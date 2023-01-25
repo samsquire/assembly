@@ -1,0 +1,47 @@
+
+
+let fresh =
+  let c = ref (-1) in
+  fun p ->
+  incr c;
+  p ^ string_of_int !c
+
+
+
+(** type alias *)
+type var = string
+
+type bop = Add | Sub | Mul
+type expr = 
+  | Var of string
+  | Int of int
+  | Bop of bop * expr * expr
+type stmt = Assign of string * expr
+
+let bopprinter bop =
+match bop with
+| Add -> "+"
+| Sub -> "-"
+| Mul -> "*"
+
+let rec printer exp =
+ match exp with
+   | Var v -> v
+   | Int v -> string_of_int v
+   | Bop (bop, left, right) -> (String.concat (String.concat (bopprinter bop) (printer left)) (printer right))
+ 
+
+
+let normalise =
+  let rec go e k = match e with
+    | Var _ | Int _ -> k e
+    | Bop (op, l, r) ->
+      go l (let result = print_string (String.concat (printer e)) in
+(fun l -> go r (fun r -> let tmp = fresh "t" in Assign (tmp, Bop (op, l, r)) :: k (Var tmp))))
+  in go
+
+(** foo(6 + 8, 10) * bar(2, id(12)) *)
+
+let complicated = Bop (Mul, Bop (Add, Var "foo", Bop (Add, Int 6, Int 10)), Bop (Add, Var "bar", (Bop (Add, Int 2, Int 12))));;
+
+normalise complicated;;
