@@ -31,11 +31,20 @@ main:
   mov $64, %ecx  
 row:
   pushq %rcx
-  mov $10, %ecx 
+  mov $3, %ecx 
   column:
+    popq %rbx  
+    pushq %rbx
     pushq %rcx
+    mov $0, %rsi
+    # leaq .linkedlist(%rip),%rsi
+    add %rcx, %rbx
+    movq $64, %rdi 
+    sub %rbx, %rdi
+    imul %rdi, %rbx
     leaq	.LC4(%rip), %rdi
-    leaq .linkedlist(%rip),%rsi
+    add %rbx, %rsi
+    mov $0, %rbx 
     movl	$0, %eax
     call	printf@PLT
     movl	$0, %eax
