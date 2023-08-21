@@ -99,7 +99,7 @@ after_yield:
 	.globl	main
 	.type	main, @function
 .LC4:
-	.string	"Creating coroutine: %x\n"
+	.string	"Creating coroutine: %d\n"
 	.text
 	.globl	main
 	.type	main, @function
@@ -213,7 +213,8 @@ print:
     pushq %rbx
     pushq %rsp
 
-  movq %rax, %rsi
+  movq %rbx, %rsi
+  movl    %ebx, %esi
 	leaq	.LC4(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
