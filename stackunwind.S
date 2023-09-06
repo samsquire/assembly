@@ -98,6 +98,7 @@ unwind:
   cmp %rax, %rdx
   leaq .sstacktrace(%rip), %rcx
   jg equal
+  leaq .unknown(%rip), %rcx  
 equal:
   pushq %rax
   pushq %rsi
