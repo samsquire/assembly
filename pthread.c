@@ -19,10 +19,14 @@ struct data {
 int main() {
   ssize_t             stack_size;
   pthread_attr_t      attr;
+  pthread_attr_t      attr2;
   pthread_t thread;
+  pthread_t thread2;
   struct data data; 
 
   int s = pthread_create(&thread, &attr,
+                            &func, &data); 
+  int d = pthread_create(&thread2, &attr2,
                             &func, &data); 
   void *result;
   pthread_join(thread, &result);

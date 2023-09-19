@@ -37,36 +37,28 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$96, %rsp
+	subq	$176, %rsp
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
-
-	leaq	-88(%rbp), %rdx
+	leaq	-164(%rbp), %rdx
+	leaq	-128(%rbp), %rsi
+	leaq	-152(%rbp), %rax
+	movq	%rdx, %rcx
+	leaq	func(%rip), %rdx
+	movq	%rax, %rdi
+	call	pthread_create@PLT
+	movl	%eax, -160(%rbp)
+	leaq	-164(%rbp), %rdx
 	leaq	-64(%rbp), %rsi
-	leaq	-80(%rbp), %rax
+	leaq	-144(%rbp), %rax
 	movq	%rdx, %rcx
 	leaq	func(%rip), %rdx
 	movq	%rax, %rdi
 	call	pthread_create@PLT
-	movl	%eax, -84(%rbp)
-
-  pushq %rsp 
-	subq	$96, %rsp
-	leaq	-88(%rsp), %rdx
-	leaq	-64(%rsp), %rsi
-	leaq	-80(%rsp), %rax
-	movq	%rdx, %rcx
-	leaq	func(%rip), %rdx
-	movq	%rax, %rdi
-	call	pthread_create@PLT
-	movl	%eax, -84(%rsp)
-
-	addq	$96, %rsp
-  popq %rsp
-
-	movq	-80(%rbp), %rax
-	leaq	-72(%rbp), %rdx
+	movl	%eax, -156(%rbp)
+	movq	-152(%rbp), %rax
+	leaq	-136(%rbp), %rdx
 	movq	%rdx, %rsi
 	movq	%rax, %rdi
 	call	pthread_join@PLT

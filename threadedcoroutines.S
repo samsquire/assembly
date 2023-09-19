@@ -1,5 +1,37 @@
 
 .global main
+.JOINED:
+	.string	"Joined thread... %d\n"
+	.text
+.CREATED:
+	.string	"created thread... %d\n"
+	.text
+.FINISHED:
+	.string	"finished coroutines\n"
+	.text
+.TDATA:
+	.string	"thread received data %p\n"
+	.text
+.TDATA2:
+	.string	"thread data %p\n"
+	.text
+.TDATA3:
+	.string	"thread's thread data is at %p\n"
+	.text
+.COR:
+	.string	"coroutine function is %p\n"
+	.text
+.INIT:
+	.string	"INIT RCX is %p\n"
+	.text
+.STARTED:
+	.string	"Starting...\n"
+	.text
+.CALLING:
+	.string	"Calling...\n"
+	.text
+
+
 
 .macro JUMP target 
 	addq $1, %rax
@@ -21,13 +53,15 @@
 .macro YIELD reset_rax {
     LOCAL next_inst, after_yield
 
+    pushq %rdi
+    pushq %rsi
     pushq %rax
     pushq %rcx
     pushq %rdx
     pushq %rbx
 
 	# movq	%rsp, %rbp
-  movq    %rcx, %rsi
+  movq    (%rcx), %rsi
 	leaq	.LC8(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
@@ -37,6 +71,11 @@
     popq %rdx
     popq %rcx
     popq %rax
+    popq %rsi
+    popq %rdi 
+
+    pushq %rdi
+    pushq %rsi
     pushq %rax
     pushq %rcx
     pushq %rdx
@@ -53,8 +92,28 @@
     popq %rdx
     popq %rcx
     popq %rax
+    popq %rsi
+    popq %rdi 
     
+    pushq %rdi
+    pushq %rsi
+    pushq %rax
+    pushq %rcx
+    pushq %rdx
+    pushq %rbx
+  movq    24(%rcx), %rsi
+	leaq	.COR(%rip), %rax
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf@PLT
+	movl	$0, %eax
 
+    popq %rbx
+    popq %rdx
+    popq %rcx
+    popq %rax
+    popq %rsi
+    popq %rdi 
 	#  local turns these labels into local labels, so multiple uses of
 	#  YIELD don't create repeated labels.
 	# swap rsp, by the stored value in rsp (this means we just saved
@@ -68,12 +127,19 @@
  	# now we push onto the stack the instruction pointer for the coroutine
 	# which will be used by the "ret" instruction further down
 	pushq 24(%rcx)	
+
 	# we call next_inst to get the instruction pointer of this coroutine.
 	# We don't wanna return to the next "pop" so we will need to increment
 	# this value so that a yield to this coroutine returns right after the
 	# "ret". The call will put this rip into the stack
 	call next_inst
 next_inst:
+#   movq    24(%rcx), %rsi
+# 	leaq	.CALLING(%rip), %rax
+# 	movq	%rax, %rdi
+# 	movl	$0, %eax
+# 	call	printf@PLT
+# 	movl	$0, %eax
 	# move the just save rip into the rip of the _co_data[coroutine_id]
 	popq 24(%rcx)
 	# increment it so a yield from the other coroutine continues from right
@@ -118,7 +184,7 @@ after_yield:
 	.string	"Coroutine RCX: %p\n"
 	.text
 	.globl	main
-	.type	main, @function
+	.type	threadstart, @function
 .LC8:
 	.string	"YIELD RCX: %p\n"
 	.text
@@ -136,13 +202,20 @@ after_yield:
 	.type	main, @function
 .data
 .align 32
-.codata:
+.codata2:
 .align 32
 	
     .skip 100000
-.data_stack:
+.data_stack1:
 	.zero 100000, 0
-.end_data_stack:
+.end_data_stack1:
+.codata1:
+.align 32
+	
+    .skip 100000
+.data_stack2:
+	.zero 100000, 0
+.end_data_stack2:
 
 .text
 costart:
@@ -169,24 +242,22 @@ main:
 .LFB7:
 	pushq	%rbp
 	movq	%rsp, %rbp
-
-	subq	$96, %rsp
+	subq	$1024, %rsp
+  subq  $32, %rsp
+  movq $1, %rsi
+	leaq	.STARTED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+  movq $1, %rsi
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
-	leaq	-88(%rbp), %rdx
-	leaq	-64(%rbp), %rsi
-	leaq	-80(%rbp), %rax
-	movq	%rdx, %rcx
-	leaq	threadstart(%rip), %rdx
-	movq	%rax, %rdi
-	call	pthread_create@PLT
-	movl	%eax, -84(%rbp)
 
-	movq	%rsp, %rbp
   
-	addq	$96, %rbp
-
+	leaq .end_data_stack1(%rip), %rax
+  movq %rax, -96(%rbp)         
+  movq .codata1(%rip), %rax
+  movq %rax, -88(%rbp)
 	leaq	-88(%rbp), %rdx
 	leaq	-64(%rbp), %rsi
 	leaq	-80(%rbp), %rax
@@ -195,18 +266,6 @@ main:
 	movq	%rax, %rdi
 	call	pthread_create@PLT
 	movl	%eax, -84(%rbp)
-
-	movq	-80(%rsp), %rax
-	leaq	-72(%rsp), %rdx
-	movq	%rdx, %rsi
-	movq	%rax, %rdi
-	call	pthread_join@PLT
-	movl	$0, %eax
-	movq	-8(%rsp), %rdx
-
-	# addq	$96, %rsp
-  addq $96, %rsp
-
 
 	movq	-80(%rbp), %rax
 	leaq	-72(%rbp), %rdx
@@ -215,6 +274,49 @@ main:
 	call	pthread_join@PLT
 	movl	$0, %eax
 	movq	-8(%rbp), %rdx
+  
+  movq $1, %rsi
+	leaq	.CREATED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+  movq $1, %rsi
+
+	leaq	.JOINED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+
+
+	leaq .end_data_stack2(%rip), %rax
+  movq %rax, -192(%rbp)         
+  leaq .codata2(%rip), %rax
+  movq %rax, -184(%rbp)
+	leaq	-184(%rbp), %rdx
+	leaq	-160(%rbp), %rsi
+	leaq	-176(%rbp), %rax
+	movq	%rdx, %rcx
+	leaq	threadstart(%rip), %rdx
+	movq	%rax, %rdi
+	call	pthread_create@PLT
+	movl	%eax, -180(%rbp)
+  movq $2, %rsi
+	leaq	.CREATED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+
+	movq	-176(%rbp), %rax
+	leaq	-168(%rbp), %rdx
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	pthread_join@PLT
+	movl	$0, %eax
+	movq	-8(%rbp), %rdx
+
+  movq $2, %rsi
+	leaq	.JOINED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+
+
 	subq	%fs:40, %rdx
 	leave
 	ret
@@ -238,52 +340,98 @@ main:
 4:
 threadstart:
 program:
+	pushq	%rbp
+  movq %rsp, %rbp
+  sub $1024, %rsp
+  pushq %rdi
+  movq %rdi, %rsi 
+	leaq	.TDATA(%rip), %rax
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf@PLT
+	movl	$0, %eax
     # PUSHS $5
     xor %rax, %rax
-    sub $1024, %rsp
-    movq %rsp, %rbp
 print2:
+  popq %rdi
+  pushq %rdi
+  movq %rdi, %rdx
+  addq $8, %rdx
+  mov %rdx, %rsi
+	leaq .TDATA2(%rip), %rax
+	movq %rax, %rdi
+	movl $0, %eax
+	call	printf@PLT
+	movl	$0, %eax
+  popq %rdi
+  pushq %rdi
+    movq %rdi, %rcx         
+    movq %rcx, (%rcx)
+  pushq %rcx 
 
-    leaq .end_data_stack(%rip),%rdx
-	leaq .codata(%rip), %rcx         
-    movq %rcx, .codata(%rip)
-
+  mov %rcx, %rsi
+	leaq .TDATA3(%rip), %rax
+	movq %rax, %rdi
+	movl $0, %eax
+	call	printf@PLT
+	movl	$0, %eax
     # sub     $8, %rbp
- 	pushq	%rbp
 
+  popq %rcx
+  
+
+  mov %rcx, %rsi
  	leaq	.LC0(%rip), %rax
  	movq	%rax, %rdi
     movq    %rcx, %rsi
  	movl	$0, %eax
  	call	printf@PLT
+
+
+  popq %rdi
 prepare:
 	movl	$0, %eax
-	leaq .codata(%rip), %rcx
-    leaq .end_data_stack(%rip),%rdx
+    movq %rdi, %rcx         
+    mov %rdi, %rdx
+    add $8, %rdx
     # sub $8, %rsp
   movq $0, %rbx
-    
 init_co_loop:
+  pushq %rcx
+  pushq %rdi
+  pushq %rdx
+ 	leaq	.INIT(%rip), %rax
+ 	movq	%rax, %rdi
+  movq    %rcx, %rsi
+ 	movl	$0, %eax
+ 	call	printf@PLT
+
 	# Initialize the rsp
-    movl $0, %esi
-	movq %rdx,(%rcx)
+  movl $0, %esi
+  pop %rdx
+  pop %rdi
+  pop %rcx
+
+	movq %rdx, (%rcx)
+
+
 	# Initialize the rip
-	leaq costart(%rip),%rdi
-    movq %rdi,24(%rcx)
+  leaq costart(%rip), %rax
+  movq %rax, 24(%rcx)
 	# Move to the next structure in _co_data
 	addq $32, %rcx
 	# Move back to the next coroutine start of the stack
 	# Each coroutine in this example gets 80 bytes
-	sub $80, %rdx
+	subq $80, %rdx
 	# Loop stuff
 	inc %rbx
 print:
-
+    pushq %rdi
+    pushq %rsi
     pushq %rax
     pushq %rcx
     pushq %rdx
     pushq %rbx
-    pushq %rsp
 
   movq %rbx, %rsi
   movl    %ebx, %esi
@@ -292,18 +440,19 @@ print:
 	call	printf@PLT
 	movl	$0, %eax
 
-    popq %rsp
     popq %rbx
     popq %rdx
     popq %rcx
     popq %rax
+    popq %rsi
+    popq %rdi 
 
-
+    pushq %rdi
+    pushq %rsi
     pushq %rax
     pushq %rcx
     pushq %rdx
     pushq %rbx
-    pushq %rsp
 
 	# movq	%rsp, %rbp
 	leaq	.LC1(%rip), %rdi
@@ -312,34 +461,38 @@ print:
 	call	printf@PLT
 	movl	$0, %eax
 
-    popq %rsp
     popq %rbx
     popq %rdx
     popq %rcx
     popq %rax
+    popq %rsi
+    popq %rdi
 
+    pushq %rdi
+    pushq %rsi
     pushq %rax
     pushq %rcx
     pushq %rdx
     pushq %rbx
-    pushq %rsp
 
+  
 	leaq	.LC5(%rip), %rdi
-    movl    %edx, %esi
+    movq    %rdx, %rsi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
 
-    popq %rsp
     popq %rbx
     popq %rdx
     popq %rcx
     popq %rax
+    popq %rsi
+    popq %rdi
 
 init_co_loop2:
 	cmp $10, %rbx 
 	jl init_co_loop
-
+  pushq %rdi
 	leaq	.LC10(%rip), %rax
 	movq	%rax, %rdi
     movl    %edx, %esi
@@ -349,12 +502,12 @@ init_co_loop2:
 
 	# movq	%rsp, %rbp
 	movl	$0, %eax
-  # popq %rax
+  popq %rdi
 co_initialized:
 	# i = 0
 	xor %rax, %rax
 	# we will start with the first co-routine
-	leaq .codata(%rip), %rcx         
+	mov %rdi, %rcx         
 _loop:
 	# yield to the coroutine
 
@@ -362,12 +515,16 @@ _loop:
     # sub $8, %rsp
     pushq %rax
     pushq %rcx
+    pushq %rdi
+    pushq %rdx
 	leaq	.LC9(%rip), %rdi
     movl    %edx, %esi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
 
+  popq %rdx
+  popq %rdi
   popq %rcx
   popq %rax
 
@@ -378,7 +535,10 @@ _loop:
 	# Loop things
 	cmp $10, %rax
 	jl _loop
-	jmp _exit
-
-	# popq	%rbp
-    ret
+  # jmp _exit
+	leaq	.FINISHED(%rip), %rdi
+    movl    %edx, %esi
+	movl	$0, %eax
+	call	printf@PLT
+	movl	$0, %eax
+  ret
