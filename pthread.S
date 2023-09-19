@@ -41,6 +41,7 @@ main:
 	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
+
 	leaq	-88(%rbp), %rdx
 	leaq	-64(%rbp), %rsi
 	leaq	-80(%rbp), %rax
@@ -49,6 +50,21 @@ main:
 	movq	%rax, %rdi
 	call	pthread_create@PLT
 	movl	%eax, -84(%rbp)
+
+  pushq %rsp 
+	subq	$96, %rsp
+	leaq	-88(%rsp), %rdx
+	leaq	-64(%rsp), %rsi
+	leaq	-80(%rsp), %rax
+	movq	%rdx, %rcx
+	leaq	func(%rip), %rdx
+	movq	%rax, %rdi
+	call	pthread_create@PLT
+	movl	%eax, -84(%rsp)
+
+	addq	$96, %rsp
+  popq %rsp
+
 	movq	-80(%rbp), %rax
 	leaq	-72(%rbp), %rdx
 	movq	%rdx, %rsi
