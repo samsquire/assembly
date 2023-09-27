@@ -5,6 +5,8 @@
 #define TIMER 0
 #define WORKER 1
 
+#define DURATION 10
+
 struct BarrierTask {
   int task_index;
   int rerunnable;
@@ -80,8 +82,8 @@ void* timer_thread(void *arg) {
   printf("In timer task %d\n", data->thread_index);
   struct timespec rem;
   struct timespec req = {
-    10,
-    10 * 10000 };
+    DURATION,
+    0 };
   while (data->running) {
     nanosleep(&req , &rem);
     for (int x = 0 ; x < data->thread_count ; x++) {
@@ -187,6 +189,15 @@ int main() {
     pthread_join(thread[x], &result);
     printf("Finished thread %d\n", x);
   }
+  long total = 0;
+  for (int x = 0 ; x < thread_count ; x++) {
+
+    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
+      total += thread_data[x].tasks[n].n;
+    }
+  }
+  printf("Total Requests %ld\n", total);
+  printf("Total Requests per second %ld\n", total / DURATION);
   return 0;
 
 }
