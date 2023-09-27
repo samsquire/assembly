@@ -66,7 +66,6 @@ void* barriered_thread(void *arg) {
           previous = data->task_count - 1;
         }
         int arrived = 0; 
-        asm volatile ("mfence" ::: "memory");
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread].tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread].tasks[previous].arrived == data->tasks[t].arrived) {
