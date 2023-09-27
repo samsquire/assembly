@@ -136,7 +136,7 @@ int barriered_reset(volatile struct BarrierTask *data) {
 }
 
 int main() {
-  int thread_count = 5;
+  int thread_count = 11;
   int timer_count = 1;
   struct KernelThread *thread_data = calloc(thread_count + 1, sizeof(struct KernelThread)); 
 
