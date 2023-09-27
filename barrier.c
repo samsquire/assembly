@@ -9,8 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 Samuel Michael Squire's nonblocking barrier ported from
 Java to C
 
-see https://github.com/samsqire/multiversion-concurrency-control
+see https://github.com/samsquire/multiversion-concurrency-control
 for Java version
+NonBlockingBarrierSynchronizationPreempt.java
 
 */
 #include <pthread.h>
