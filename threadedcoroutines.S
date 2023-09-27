@@ -25,10 +25,13 @@
 	.string	"INIT RCX is %p\n"
 	.text
 .STARTED:
-	.string	"Starting...\n"
+	.string	"Starting... %p\n"
 	.text
 .CALLING:
 	.string	"Calling...\n"
+	.text
+.ENDING:
+	.string	"Ending... %p\n"
 	.text
 
 
@@ -236,14 +239,14 @@ main:
 	movq	%rsp, %rbp
 	subq	$256, %rsp
 
-  movq $1, %rsi
+	xorl	%eax, %eax
+  movq %rbp, %rsi
 	leaq	.STARTED(%rip), %rdi
 	call	printf@PLT
 	movl	$0, %eax
 
   movq $1, %rsi
 	movq	%rax, -8(%rbp)
-	xorl	%eax, %eax
 
   
 	leaq .end_data_stack1(%rip), %rax
@@ -259,6 +262,11 @@ main:
 	call	pthread_create@PLT
 	movl	%eax, -84(%rbp)
 
+  movq $1, %rsi
+  movq -80(%rbp), %rdx
+	leaq	.CREATED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
 
 	movq	-80(%rbp), %rax
 	leaq	-72(%rbp), %rdx
@@ -274,11 +282,6 @@ main:
 	call	printf@PLT
 	movl	$0, %eax
 
-  movq $1, %rsi
-  movq -80(%rbp), %rdx
-	leaq	.CREATED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
   movq $1, %rsi
 
 
@@ -317,9 +320,17 @@ main:
 
 	# subq	%fs:40, %rdx
   # popq %rax
-  movq $0, %rax
-  # addq $1024, %rsp
-	leave
+  # movq $0, %rax
+  #addq $256, %rsp
+  movq %rbp, %rsi
+	leaq	.ENDING(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+  movq %rsp, %rsi
+	leaq	.ENDING(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+  leave
 	ret
 .LFE7:
 	.size	main, .-main

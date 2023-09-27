@@ -25,10 +25,14 @@ int main() {
   struct data data; 
 
   int s = pthread_create(&thread, &attr,
+
                             &func, &data); 
+  printf("thread 1 created\n");
   int d = pthread_create(&thread2, &attr2,
                             &func, &data); 
+  printf("thread 2 created\n");
   void *result;
   pthread_join(thread, &result);
+  pthread_join(thread2, &result);
 }
 
