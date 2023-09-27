@@ -198,17 +198,15 @@ after_yield:
 .align 32
 .codata2:
 .align 32
-	
-    .skip 100000
+    .skip 1000000
 .data_stack1:
-	.zero 100000, 0
+	.zero 1000000, 0
 .end_data_stack1:
 .codata1:
 .align 32
-	
-    .skip 100000
+    .skip 1000000
 .data_stack2:
-	.zero 100000, 0
+	.zero 1000000, 0
 .end_data_stack2:
 
 .text
@@ -237,12 +235,13 @@ main:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$256, %rsp
+
   movq $1, %rsi
 	leaq	.STARTED(%rip), %rdi
 	call	printf@PLT
 	movl	$0, %eax
+
   movq $1, %rsi
-	movq	%fs:40, %rax
 	movq	%rax, -8(%rbp)
 	xorl	%eax, %eax
 
@@ -260,9 +259,6 @@ main:
 	call	pthread_create@PLT
 	movl	%eax, -84(%rbp)
 
-	leaq	.JOINED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
 
 	movq	-80(%rbp), %rax
 	leaq	-72(%rbp), %rdx
@@ -272,6 +268,12 @@ main:
 	movl	$0, %eax
 	movq	-8(%rbp), %rdx
   
+
+  movq $1, %rsi
+	leaq	.JOINED(%rip), %rdi
+	call	printf@PLT
+	movl	$0, %eax
+
   movq $1, %rsi
   movq -80(%rbp), %rdx
 	leaq	.CREATED(%rip), %rdi
@@ -293,6 +295,7 @@ main:
 	movq	%rax, %rdi
 	call	pthread_create@PLT
 	movl	%eax, -180(%rbp)
+
   movq $2, %rsi
 	leaq	.CREATED(%rip), %rdi
 	call	printf@PLT
@@ -312,7 +315,10 @@ main:
 	movl	$0, %eax
 
 
-	subq	%fs:40, %rdx
+	# subq	%fs:40, %rdx
+  # popq %rax
+  movq $0, %rax
+  # addq $1024, %rsp
 	leave
 	ret
 .LFE7:
@@ -559,7 +565,6 @@ _loop:
 	movl	$0, %eax
   # subq $8, %rsp
   # subq $8, %rsp
-  # mov %rsp, %rbp
   # popq %rax
   popq %rax
   ret
