@@ -61,7 +61,7 @@ void* barriered_thread(void *arg) {
           data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
           data->tasks[t].arrived++;
           asm volatile("" ::: "memory");
-          printf("%d Arrived at task %d\n", data->thread_index, t);
+          //printf("%d Arrived at task %d\n", data->thread_index, t);
           break;
         } else {
           // printf("%d %d\n", t, arrived);
@@ -80,11 +80,16 @@ void* timer_thread(void *arg) {
   printf("In timer task %d\n", data->thread_index);
   struct timespec rem;
   struct timespec req = {
-    0,
-    10000 };
+    10,
+    10 * 10000 };
   while (data->running) {
     nanosleep(&req , &rem);
-    // printf("Slept \n");
+    for (int x = 0 ; x < data->thread_count ; x++) {
+      data->threads[x].running = 0;
+    }
+    asm volatile("" ::: "memory");
+    printf("Slept \n");
+    data->running = 0;
   }
   printf("Timer thread stopping\n");
   return 0;
@@ -99,7 +104,7 @@ int barriered_nulltask(volatile struct BarrierTask *data) {
   return 0;
 }
 int barriered_steal(volatile struct BarrierTask *data) {
-  printf("In barrier steal task %d %d\n", data->thread_index, data->task_index);
+  // printf("In barrier steal task %d %d\n", data->thread_index, data->task_index);
   return 0;
 }
 int barriered_reset(volatile struct BarrierTask *data) {
@@ -166,7 +171,9 @@ int main() {
   thread_data[thread_count].task_count = total_barrier_count;
 
   thread_data[thread_count].threads = thread_data;
+  thread_data[thread_count].thread_count = thread_count;
   thread_data[thread_count].thread_index = 0;
+
   pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
   for (int x = 0 ; x < thread_count ; x++) {
     thread_data[x].type = WORKER;
