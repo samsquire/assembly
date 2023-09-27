@@ -4,7 +4,7 @@ Welcome to Samuel Squire's assembly repository.
 
 I am a beginner at assembly.
 
-This repository has a Gnu Assembly port of the coroutines implementation of [Small VMS & Coroutines](https://blog.dziban.net/coroutines/) by [Marce Coll](https://github.com/MarceColl) in coroutines.S
+This repository has a Gnu Assembly port of the coroutines implementation of [Small VMS & Coroutines](https://blog.dziban.net/posts/coroutines/) by [Marce Coll](https://github.com/MarceColl) in coroutines.S
 
 In threadedcoroutines.S there is a multithreading with coroutines.
 

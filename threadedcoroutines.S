@@ -33,6 +33,9 @@
 .ENDING:
 	.string	"Ending... %p\n"
 	.text
+.JOINRES:
+	.string	"Joinres... %x\n"
+	.text
 
 
 .data
@@ -245,91 +248,95 @@ main:
 	call	printf@PLT
 	movl	$0, %eax
 
-  movq $1, %rsi
-	movq	%rax, -8(%rbp)
+   movq $1, %rsi
+   movq	%rax, -8(%rbp)
 
-  
-	leaq .end_data_stack1(%rip), %rax
-  movq %rax, -96(%rbp)         
-  leaq .codata1(%rip), %rax
-  movq %rax, -88(%rbp)
-	leaq	-88(%rbp), %rdx
-	leaq	-64(%rbp), %rsi
-	leaq	-80(%rbp), %rax
-	movq	%rdx, %rcx
-	leaq	threadstart(%rip), %rdx
-	movq	%rax, %rdi
-	call	pthread_create@PLT
-	movl	%eax, -84(%rbp)
+   
+   leaq .end_data_stack1(%rip), %rax
+   movq %rax, -96(%rbp)         
+   leaq .codata1(%rip), %rax
+   movq %rax, -88(%rbp)
+   leaq	-88(%rbp), %rdx
+   leaq	-64(%rbp), %rsi
+   leaq	-80(%rbp), %rax
+   movq	%rdx, %rcx
+   leaq	threadstart(%rip), %rdx
+   movq	%rax, %rdi
+   call	pthread_create@PLT
+   # movl	%eax, -84(%rbp)
 
-  movq $1, %rsi
-  movq -80(%rbp), %rdx
-	leaq	.CREATED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
+ #  movq $1, %rsi
+ #  movq -80(%rbp), %rdx
+ #  leaq	.CREATED(%rip), %rdi
+ #  call	printf@PLT
+ #  movl	$0, %eax
 
-	movq	-80(%rbp), %rax
-	leaq	-72(%rbp), %rdx
-	movq	%rdx, %rsi
-	movq	%rax, %rdi
-	call	pthread_join@PLT
-	movl	$0, %eax
-	movq	-8(%rbp), %rdx
-  
+   movq	-80(%rbp), %rax
+   leaq	-72(%rbp), %rdx
+   movq	%rdx, %rsi
+   movq	%rax, %rdi
+   call	pthread_join@PLT
+   movl	$0, %eax
+   # movq	-8(%rbp), %rdx
+   
+   movl %eax, %esi
+   leaq	.JOINRES(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
 
-  movq $1, %rsi
-	leaq	.JOINED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
-
-  movq $1, %rsi
-
-
-
-	leaq .end_data_stack2(%rip), %rax
-  movq %rax, -192(%rbp)         
-  leaq .codata2(%rip), %rax
-  movq %rax, -184(%rbp)
-	leaq	-184(%rbp), %rdx
-	leaq	-160(%rbp), %rsi
-	leaq	-176(%rbp), %rax
-	movq	%rdx, %rcx
-	leaq	threadstart(%rip), %rdx
-	movq	%rax, %rdi
-	call	pthread_create@PLT
-	movl	%eax, -180(%rbp)
-
-  movq $2, %rsi
-	leaq	.CREATED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
-
-	movq	-176(%rbp), %rax
-	leaq	-168(%rbp), %rdx
-	movq	%rdx, %rsi
-	movq	%rax, %rdi
-	call	pthread_join@PLT
-	movl	$0, %eax
-	movq	-8(%rbp), %rdx
-
-  movq $2, %rsi
-	leaq	.JOINED(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
+   movq $1, %rsi
+   leaq	.JOINED(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
 
 
-	# subq	%fs:40, %rdx
-  # popq %rax
-  # movq $0, %rax
-  #addq $256, %rsp
-  movq %rbp, %rsi
-	leaq	.ENDING(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
-  movq %rsp, %rsi
-	leaq	.ENDING(%rip), %rdi
-	call	printf@PLT
-	movl	$0, %eax
+
+
+   leaq .end_data_stack2(%rip), %rax
+   movq %rax, -192(%rbp)         
+   leaq .codata2(%rip), %rax
+   movq %rax, -184(%rbp)
+   leaq	-184(%rbp), %rdx
+   leaq	-160(%rbp), %rsi
+   leaq	-176(%rbp), %rax
+   movq	%rdx, %rcx
+   leaq	threadstart(%rip), %rdx
+   movq	%rax, %rdi
+   call	pthread_create@PLT
+   movl	%eax, -180(%rbp)
+
+   movq $2, %rsi
+   leaq	.CREATED(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
+
+   movq	-176(%rbp), %rax
+   leaq	-168(%rbp), %rdx
+   movq	%rdx, %rsi
+   movq	%rax, %rdi
+   call	pthread_join@PLT
+   movl	$0, %eax
+   movq	-8(%rbp), %rdx
+
+   movq $2, %rsi
+   leaq	.JOINED(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
+
+
+   # subq	%fs:40, %rdx
+   # popq %rax
+   # movq $0, %rax
+   #addq $256, %rsp
+   movq %rbp, %rsi
+   leaq	.ENDING(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
+   movq %rsp, %rsi
+   leaq	.ENDING(%rip), %rdi
+   call	printf@PLT
+   movl	$0, %eax
+   # movq %rbp, %rsp
   leave
 	ret
 .LFE7:
