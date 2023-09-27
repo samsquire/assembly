@@ -45,6 +45,7 @@ struct KernelThread {
   volatile struct BarrierTask *tasks;
   int task_count;
   volatile int running;
+  pthread_mutex_t *printf_lock;
 };
 
 
@@ -66,7 +67,6 @@ void* barriered_thread(void *arg) {
           previous = data->task_count - 1;
         }
         int arrived = 0; 
-        asm volatile ("mfence" ::: "memory");
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread].tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread].tasks[previous].arrived == data->tasks[t].arrived) {
@@ -77,9 +77,12 @@ void* barriered_thread(void *arg) {
           // we can run this task
 
           data->tasks[t].available = 0;
-          asm volatile ("mfence" ::: "memory");
-          data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
           data->tasks[t].arrived++;
+          asm volatile("" ::: "memory");
+          data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
+          pthread_mutex_lock(data->printf_lock);
+          printf("%d Arrived at task %d\n", data->thread_index, t);
+          pthread_mutex_unlock(data->printf_lock);
           break;
         } else {
           // printf("%d %d\n", t, arrived);
@@ -105,7 +108,7 @@ void* timer_thread(void *arg) {
     for (int x = 0 ; x < data->thread_count ; x++) {
       data->threads[x].running = 0;
     }
-    asm volatile ("mfence" ::: "memory");
+    asm volatile("" ::: "memory");
     printf("Slept \n");
     data->running = 0;
   }
@@ -114,7 +117,6 @@ void* timer_thread(void *arg) {
 }
 int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
-  printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   data->n++;
   return 0;
 }
@@ -133,7 +135,7 @@ int barriered_reset(volatile struct BarrierTask *data) {
     data->thread->tasks[x].arrived++; 
     data->thread->tasks[x].available = 1; 
   }
-  asm volatile ("mfence" ::: "memory");
+  asm volatile("" ::: "memory");
   return 0;
 }
 
@@ -142,10 +144,14 @@ int main() {
   int timer_count = 1;
   struct KernelThread *thread_data = calloc(thread_count + 1, sizeof(struct KernelThread)); 
 
+  pthread_mutex_t printf_lock; 
+  pthread_mutex_init(&printf_lock, NULL);
+
   int barrier_count = thread_count;
   int total_barrier_count = barrier_count + 1;
   for (int x = 0 ; x < thread_count ; x++) {
     printf("Creating kernel thread %d\n", x);
+    thread_data[x].printf_lock = &printf_lock;
     thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].thread_index = x;
