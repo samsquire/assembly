@@ -7,7 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 
 Samuel Michael Squire's nonblocking barrier ported from
-Java to C
+Java to C. This code is Zero Clause BSD licenced.
 
 see https://github.com/samsquire/multiversion-concurrency-control
 for Java version
