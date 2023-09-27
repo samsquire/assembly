@@ -113,7 +113,7 @@ void* timer_thread(void *arg) {
 }
 int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
-  printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
+  // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   data->n++;
   return 0;
 }
