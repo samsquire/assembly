@@ -94,7 +94,7 @@ void* barriered_thread(void *arg) {
   return 0;
 }
 void* timer_thread(void *arg) {
-  long tick = 5000000L;
+  long tick = 1500000L;
   long times = (1000000000L*10L)/tick;
   
   struct KernelThread *data = arg;
