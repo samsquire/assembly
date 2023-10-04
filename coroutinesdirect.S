@@ -132,8 +132,10 @@
 	xchgq 16(%rcx), %rbx
  	# now we push onto the stack the instruction pointer for the coroutine
 	# which will be used by the "ret" instruction further down 
-  movq me(%rip), %rdi
-  movq %rdi, 24(%rcx)
+  pushq 24(%rcx)
+  leaq me(%rip), %r11
+  movq %r11, 24(%rcx)
+  ret
 me:
 	# we call next_inst to get the instruction pointer of this coroutine.
 	# We don't wanna return to the next "pop" so we will need to increment
