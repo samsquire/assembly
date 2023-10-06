@@ -31,7 +31,7 @@ NonBlockingBarrierSynchronizationPreempt.java
 struct BarrierTask {
   int task_index;
   int rerunnable;
-  volatile int arrived; 
+  _Atomic int arrived; 
   long n; 
   int (*run)(volatile struct BarrierTask*);
   struct KernelThread *thread;
@@ -39,7 +39,7 @@ struct BarrierTask {
   int thread_count;
   volatile int available;
   int task_count;
-  int scheduled;
+  _Atomic int scheduled;
 };
 
 struct KernelThread {
@@ -51,7 +51,7 @@ struct KernelThread {
   int total_thread_count;
   volatile struct BarrierTask *tasks;
   int task_count;
-  volatile int running;
+  _Atomic volatile int running;
 };
 
 void* io_thread(void *arg) {
