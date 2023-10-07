@@ -106,9 +106,9 @@ void* barriered_thread(void *arg) {
 
           // printf("In thread %d %d\n", data->thread_index, t);
           data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
-          if (t == data->thread_index) {
-            data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
-          }
+          //if (t == data->thread_index) {
+          //  data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
+          //}
           data->tasks[t].arrived++;
           // break;
         } else {
@@ -182,13 +182,9 @@ void* timer_thread(void *arg) {
 int do_protected_write(volatile struct BarrierTask *data) {
 
   struct ProtectedState *protected = data->thread->protected_state;
-    data->v++; // thread local
-    // int modcount = ++protected->modcount;
+  data->v++; // thread local
     // printf("Protected %d %d\n", data->task_index, data->thread_index);
-    protected->protected++; // shared between all threads
-    //if (modcount != protected->modcount) {
-    //  printf("Race condition!\n");
-    //} 
+  protected->protected++; // shared between all threads
   return 0; 
 }
 
@@ -196,10 +192,20 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
-  while (data->scheduled == 1) {
-    data->n++;
+  if (data->thread_index == data->task_index) {
+    int modcount = ++data->thread->protected_state->modcount;
+    while (data->scheduled == 1) {
+      data->n++;
+      data->protected(&data->thread->threads[data->thread_index].tasks[data->task_index]);
+    }
+    if (modcount != data->thread->protected_state->modcount) {
+      printf("Race condition!\n");
+    } 
+  } else {
+      while (data->scheduled == 1) {
+        data->n++;
+      }
   }
-  // data->thread->protected_state->protected++;
   return 0;
 }
 
