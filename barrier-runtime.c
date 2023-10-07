@@ -33,7 +33,9 @@ struct BarrierTask {
   int rerunnable;
   volatile int arrived; 
   long n; 
+  long v; 
   int (*run)(volatile struct BarrierTask*);
+  int (*protected)(volatile struct BarrierTask*);
   struct KernelThread *thread;
   volatile int thread_index;
   int thread_count;
@@ -68,6 +70,7 @@ void* io_thread(void *arg) {
     
   //}
   printf("Finished io thread\n");
+  return 0;
 }
 
 void* barriered_thread(void *arg) {
@@ -103,6 +106,9 @@ void* barriered_thread(void *arg) {
 
           // printf("In thread %d %d\n", data->thread_index, t);
           data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
+          if (t == data->thread_index) {
+            data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
+          }
           data->tasks[t].arrived++;
           // break;
         } else {
@@ -173,17 +179,17 @@ void* timer_thread(void *arg) {
   printf("Timer thread stopping\n");
   return 0;
 }
-int do_protected_write(volatile struct BarrierTask *data, struct ProtectedState *protected) {
-  if (data->task_index == data->thread_index) {
-    data->n++;
-    int modcount = ++protected->modcount;
+int do_protected_write(volatile struct BarrierTask *data) {
+
+  struct ProtectedState *protected = data->thread->protected_state;
+    data->v++; // thread local
+    // int modcount = ++protected->modcount;
     // printf("Protected %d %d\n", data->task_index, data->thread_index);
-    protected->protected++;
-    if (modcount != protected->modcount) {
-      printf("Race condition!\n");
-    } 
-  }
-  
+    protected->protected++; // shared between all threads
+    //if (modcount != protected->modcount) {
+    //  printf("Race condition!\n");
+    //} 
+  return 0; 
 }
 
 int barriered_work(volatile struct BarrierTask *data) {
@@ -191,7 +197,7 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
   while (data->scheduled == 1) {
-    do_protected_write(data, data->thread->protected_state);
+    data->n++;
   }
   // data->thread->protected_state->protected++;
   return 0;
@@ -245,7 +251,7 @@ int main() {
 
       for (int y = 0 ; y < barrier_count ; y++) {
         if (x == y) {
-          printf("%d == %d\n", x, y);
+            thread_data[x].tasks[y].protected = do_protected_write; 
         }
         thread_data[x].tasks[y].thread_index = x;
         thread_data[x].tasks[y].thread = &thread_data[x]; 
@@ -321,14 +327,17 @@ int main() {
     printf("Finished thread %d\n", x);
   }
   long total = 0;
+  long v = 0;
   for (int x = 0 ; x < thread_count ; x++) {
 
     for (int n = 0 ; n < thread_data[x].task_count ; n++) {
       total += thread_data[x].tasks[n].n;
+      v += thread_data[x].tasks[n].v;
     }
   }
   printf("Total Requests %ld\n", total);
   printf("Total Protected %ld\n", protected_state->protected);
+  printf("Total V %ld\n", v);
   printf("Total Requests per second %ld\n", total / DURATION);
   return 0;
 
