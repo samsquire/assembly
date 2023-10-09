@@ -8,19 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 Samuel Michael Squire's multithreaded barrier runtime
 
-This code is Zero Clause BSD licenced.
-
 Includes Samuel Michael Squire's nonblocking barrier ported from
-Java to C. 
+Java to C. This code is Zero Clause BSD licenced.
 
 see https://github.com/samsquire/multiversion-concurrency-control
 for Java version
 NonBlockingBarrierSynchronizationPreempt.java
-
-This program implements synchronization without mutexes on top of data races.
-I rely on the fact that there is only one thread writing and
-there can be any number of readers and stale reads
-don't affect correctness.
 
 */
 #include <pthread.h>
@@ -47,11 +40,6 @@ struct Buffer {
   volatile int available;
 };
 
-struct Mailbox {
-  void *lower;
-  void *higher;
-};
-
 struct BarrierTask {
   int task_index;
   int rerunnable;
@@ -69,7 +57,6 @@ struct BarrierTask {
   struct Snapshot *snapshots;
   long snapshot_count;
   long current_snapshot;
-  long ingest_count;
 };
 
 struct KernelThread {
@@ -84,7 +71,6 @@ struct KernelThread {
   volatile int running;
   struct ProtectedState *protected_state;
   struct Buffers *buffers;
-  struct Mailbox *mailboxes;
 };
 
 struct ProtectedState {
@@ -219,10 +205,10 @@ void* timer_thread(void *arg) {
 
 void * external_thread(void *arg) {
   struct KernelThread *data = arg; 
-  long micros = 1000000L;
+
   struct timespec req = {
-    0,
-    micros };
+    1,
+    0 };
   struct timespec rem;
 
   while (data->running == 1) {
@@ -259,17 +245,7 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
-  // we are synchronized
   if (data->thread_index == data->task_index) {
-
-      void * tmp; 
-      // swap this thread's write buffer
-      for (int y = 0 ; y < data->thread_count; y++) {
-        tmp = data->thread->mailboxes[y].lower; 
-        data->thread->mailboxes[y].lower = data->thread->mailboxes[y].higher;
-        data->thread->mailboxes[y].higher = data->thread->mailboxes[y].lower;
-      }
-
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
     while (data->scheduled == 1) {
@@ -294,7 +270,6 @@ int barriered_work_ingest(volatile struct BarrierTask *data) {
   for (int x = 0 ; x < data->thread->buffers->count ; x++) {
     // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
     if (data->thread->buffers->buffer[x].available == 1) {
-      data->ingest_count++;
       // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
       data->thread->buffers->buffer[x].available = 0;
       asm volatile ("mfence" ::: "memory");
@@ -397,7 +372,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 10000;
+  int buffer_size = 10;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -426,22 +401,10 @@ int main() {
     thread_data[x].task_count = total_barrier_count;
     thread_data[x].protected_state = protected_state;
 
-      struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
-      thread_data[x].mailboxes = mailboxes;
-
       struct BarrierTask *barriers = calloc(barrier_count + 1, sizeof(struct BarrierTask));
       thread_data[x].tasks = barriers;
 
       for (int y = 0 ; y < barrier_count ; y++) {
-        // if the task number is identical to the thread
-        // number then we are synchronized
-        /*
-                      thread
-              t     x
-              a       x
-              s         x
-              k           x
-        */
         if (x == y) {
             thread_data[x].tasks[y].protected = do_protected_write; 
         }
@@ -543,20 +506,17 @@ int main() {
   }
   long total = 0;
   long v = 0;
-  long ingests = 0;
   for (int x = 0 ; x < thread_count ; x++) {
 
     for (int n = 0 ; n < thread_data[x].task_count ; n++) {
       total += thread_data[x].tasks[n].n;
       v += thread_data[x].tasks[n].v;
-      ingests += thread_data[x].tasks[n].ingest_count;
     }
   }
   printf("Total Requests %ld\n", total);
   printf("Total Protected %ld\n", protected_state->protected);
   printf("Total V %ld\n", v);
-  printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
-  printf("Total external thread ingests %ld\n", ingests);
+  printf("Total money %ld\n", protected_state->balance);
   printf("Total Requests per second %ld\n", total / DURATION);
   // verify(thread_data, thread_count);
   return 0;
