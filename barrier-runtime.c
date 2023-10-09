@@ -233,17 +233,6 @@ int do_protected_write(volatile struct BarrierTask *data) {
   return 0; 
 }
 
-int barriered_work_ingest(volatile struct BarrierTask *data) {
-  // printf("Ingest task\n");
-  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
-    // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
-    if (data->thread->buffers->buffer[x].available == 1) {
-      // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
-      data->thread->buffers->buffer[x].available = 0;
-      asm volatile ("mfence" ::: "memory");
-    }
-  }
-}
 
 int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
@@ -269,6 +258,19 @@ int barriered_work(volatile struct BarrierTask *data) {
   return 0;
 }
 
+int barriered_work_ingest(volatile struct BarrierTask *data) {
+  // printf("Ingest task\n");
+  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
+    // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+    if (data->thread->buffers->buffer[x].available == 1) {
+      // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
+      data->thread->buffers->buffer[x].available = 0;
+      asm volatile ("mfence" ::: "memory");
+    }
+  }
+  barriered_work(data);
+  return 0;
+}
 
 int barriered_nulltask(volatile struct BarrierTask *data) {
   // printf("In barrier null task %d %d\n", data->thread_index, data->task_index);
