@@ -8,12 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 Samuel Michael Squire's multithreaded barrier runtime
 
+This code is Zero Clause BSD licenced.
+
 Includes Samuel Michael Squire's nonblocking barrier ported from
-Java to C. This code is Zero Clause BSD licenced.
+Java to C. 
 
 see https://github.com/samsquire/multiversion-concurrency-control
 for Java version
 NonBlockingBarrierSynchronizationPreempt.java
+
+This program implements synchronization without mutexes on top of data races.
+I rely on the fact that there is only one thread writing and
+there can be any number of readers and stale reads
+don't affect correctness.
 
 */
 #include <pthread.h>
@@ -38,6 +45,11 @@ struct Buffers {
 struct Buffer {
   void * data; 
   volatile int available;
+};
+
+struct Mailbox {
+  void *lower;
+  void *higher;
 };
 
 struct BarrierTask {
@@ -71,6 +83,7 @@ struct KernelThread {
   volatile int running;
   struct ProtectedState *protected_state;
   struct Buffers *buffers;
+  struct Mailbox *mailboxes;
 };
 
 struct ProtectedState {
@@ -245,7 +258,17 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
+  // we are synchronized
   if (data->thread_index == data->task_index) {
+
+      void * tmp; 
+      // swap this thread's write buffer
+      for (int y = 0 ; y < data->thread_count; y++) {
+        tmp = data->thread->mailboxes[y].lower; 
+        data->thread->mailboxes[y].lower = data->thread->mailboxes[y].higher;
+        data->thread->mailboxes[y].higher = data->thread->mailboxes[y].lower;
+      }
+
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
     while (data->scheduled == 1) {
@@ -401,10 +424,22 @@ int main() {
     thread_data[x].task_count = total_barrier_count;
     thread_data[x].protected_state = protected_state;
 
+      struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
+      thread_data[x].mailboxes = mailboxes;
+
       struct BarrierTask *barriers = calloc(barrier_count + 1, sizeof(struct BarrierTask));
       thread_data[x].tasks = barriers;
 
       for (int y = 0 ; y < barrier_count ; y++) {
+        // if the task number is identical to the thread
+        // number then we are synchronized
+        /*
+                      thread
+              t     x
+              a       x
+              s         x
+              k           x
+        */
         if (x == y) {
             thread_data[x].tasks[y].protected = do_protected_write; 
         }
