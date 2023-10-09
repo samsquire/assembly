@@ -22,6 +22,7 @@ NonBlockingBarrierSynchronizationPreempt.java
 #include <time.h>
 #include <liburing.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #define TIMER 0
 #define WORKER 1
 #define IO 2
@@ -78,8 +79,8 @@ struct ProtectedState {
 };
 
 struct Snapshot {
-  struct timeval start;
-  struct timeval end;
+  struct timespec start;
+  struct timespec end;
 };
 
 void* io_thread(void *arg) {
@@ -148,7 +149,7 @@ void* timer_thread(void *arg) {
   long tick = 1500000L;
   long tickseconds = 0;
   // long tick = 0L;
-  long times = ((1000000000L*10L)/tick);
+  long times = ((1000000000L*30L)/tick);
   // long times = tickseconds * 10;
   
   struct KernelThread *data = arg;
@@ -239,7 +240,7 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
   if (data->thread_index == data->task_index) {
-    gettimeofday(&data->snapshots[data->current_snapshot].start, NULL);
+    clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
     while (data->scheduled == 1) {
       data->n++;
@@ -248,7 +249,7 @@ int barriered_work(volatile struct BarrierTask *data) {
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
     }
-    gettimeofday(&data->snapshots[data->current_snapshot].end, NULL);
+    clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
       while (data->scheduled == 1) {
@@ -293,14 +294,14 @@ int barriered_reset(volatile struct BarrierTask *data) {
   return 0;
 }
 
-int after(struct timeval left, struct timeval right) {
+int after(struct timespec left, struct timespec right) {
   return left.tv_sec > right.tv_sec &&
-         left.tv_usec > right.tv_usec;
+         left.tv_nsec > right.tv_nsec;
 }
 
-int within(struct timeval a, struct timeval b, struct timeval c, struct timeval d) {
-  if (a.tv_sec <- b.tv_sec && a.tv_usec <= b.tv_usec &&
-   c.tv_sec <= d.tv_sec && c.tv_usec <= d.tv_usec) {
+int within(struct timespec a, struct timespec b, struct timespec c, struct timespec d) {
+  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
+   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     return 1;
   }
   return 0;
@@ -339,12 +340,12 @@ int verify(struct KernelThread *thread_data, int thread_count) {
                 if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
                   /*
                      if (thread_data[x].tasks[y].snapshots[n].start.tv_sec <= thread_data[z].tasks[k].snapshots[m].start.tv_sec &&
-                     thread_data[x].tasks[y].snapshots[n].start.tv_usec <= thread_data[z].tasks[k].snapshots[m].start.tv_usec &&
+                     thread_data[x].tasks[y].snapshots[n].start.tv_nsec <= thread_data[z].tasks[k].snapshots[m].start.tv_nsec &&
                      thread_data[z].tasks[k].snapshots[m].end.tv_sec >= thread_data[x].tasks[y].snapshots[n].end.tv_sec &&
-                     thread_data[z].tasks[k].snapshots[m].end.tv_usec >= thread_data[x].tasks[y].snapshots[n].end.tv_usec) {
+                     thread_data[z].tasks[k].snapshots[m].end.tv_nsec >= thread_data[x].tasks[y].snapshots[n].end.tv_nsec) {
                    */
 
-                  printf("Race condition %ld  %ld\n", thread_data[x].tasks[y].snapshots[n].start.tv_usec, thread_data[z].tasks[k].snapshots[m].start.tv_usec );
+                  printf("Race condition %ld  %ld %ld %ld\n", thread_data[x].tasks[y].snapshots[n].start.tv_sec, thread_data[z].tasks[k].snapshots[m].end.tv_sec, thread_data[x].tasks[y].snapshots[n].start.tv_nsec, thread_data[z].tasks[k].snapshots[m].end.tv_nsec  );
                 }
 
                 } 
@@ -510,7 +511,7 @@ int main() {
   printf("Total Protected %ld\n", protected_state->protected);
   printf("Total V %ld\n", v);
   printf("Total Requests per second %ld\n", total / DURATION);
-  // verify(thread_data, thread_count);
+  verify(thread_data, thread_count);
   return 0;
 
 }
