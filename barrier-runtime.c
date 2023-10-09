@@ -21,12 +21,23 @@ NonBlockingBarrierSynchronizationPreempt.java
 #include <stdio.h>
 #include <time.h>
 #include <liburing.h>
+#include <sys/time.h>
 #define TIMER 0
 #define WORKER 1
 #define IO 2
+#define EXTERNAL 3
 
 #define DURATION 10
 #define QUEUE_DEPTH             256
+
+struct Buffers {
+  int count; 
+  struct Buffer *buffer;
+};
+struct Buffer {
+  void * data; 
+  volatile int available;
+};
 
 struct BarrierTask {
   int task_index;
@@ -42,6 +53,9 @@ struct BarrierTask {
   volatile int available;
   int task_count;
   volatile int scheduled;
+  struct Snapshot *snapshots;
+  long snapshot_count;
+  long current_snapshot;
 };
 
 struct KernelThread {
@@ -55,11 +69,17 @@ struct KernelThread {
   int task_count;
   volatile int running;
   struct ProtectedState *protected_state;
+  struct Buffers *buffers;
 };
 
 struct ProtectedState {
   long protected;
   int modcount;
+};
+
+struct Snapshot {
+  struct timeval start;
+  struct timeval end;
 };
 
 void* io_thread(void *arg) {
@@ -101,7 +121,6 @@ void* barriered_thread(void *arg) {
         if (arrived == 0 || arrived == data->thread_count) {
           // we can run this task
 
-          asm volatile ("mfence" ::: "memory");
           data->tasks[t].available = 0;
 
           // printf("In thread %d %d\n", data->thread_index, t);
@@ -110,6 +129,7 @@ void* barriered_thread(void *arg) {
           //  data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
           //}
           data->tasks[t].arrived++;
+          asm volatile ("mfence" ::: "memory");
           // break;
         } else {
           // printf("%d %d %d\n", data->thread_index, t, arrived);
@@ -123,6 +143,7 @@ void* barriered_thread(void *arg) {
   } 
   return 0;
 }
+
 void* timer_thread(void *arg) {
   long tick = 1500000L;
   long tickseconds = 0;
@@ -179,6 +200,30 @@ void* timer_thread(void *arg) {
   printf("Timer thread stopping\n");
   return 0;
 }
+
+void * external_thread(void *arg) {
+  struct KernelThread *data = arg; 
+
+  struct timespec req = {
+    1,
+    0 };
+  struct timespec rem;
+
+  while (data->running == 1) {
+    nanosleep(&req , &rem);
+    // printf("External thread wakeup...\n");
+    for (int x = 0; x < data->buffers->count; x++) {
+      //printf("Writing to buffer\n");
+      if (data->buffers->buffer[x].available == 0) {
+        data->buffers->buffer[x].data = "Hello world";
+        data->buffers->buffer[x].available = 1;
+      }
+    }
+    asm volatile ("mfence" ::: "memory");
+  }
+  return 0; 
+}
+
 int do_protected_write(volatile struct BarrierTask *data) {
 
   struct ProtectedState *protected = data->thread->protected_state;
@@ -188,11 +233,24 @@ int do_protected_write(volatile struct BarrierTask *data) {
   return 0; 
 }
 
+int barriered_work_ingest(volatile struct BarrierTask *data) {
+  // printf("Ingest task\n");
+  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
+    // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+    if (data->thread->buffers->buffer[x].available == 1) {
+      // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
+      data->thread->buffers->buffer[x].available = 0;
+      asm volatile ("mfence" ::: "memory");
+    }
+  }
+}
+
 int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
   if (data->thread_index == data->task_index) {
+    gettimeofday(&data->snapshots[data->current_snapshot].start, NULL);
     int modcount = ++data->thread->protected_state->modcount;
     while (data->scheduled == 1) {
       data->n++;
@@ -200,7 +258,9 @@ int barriered_work(volatile struct BarrierTask *data) {
     }
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
-    } 
+    }
+    gettimeofday(&data->snapshots[data->current_snapshot].end, NULL);
+    data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
       while (data->scheduled == 1) {
         data->n++;
@@ -231,11 +291,80 @@ int barriered_reset(volatile struct BarrierTask *data) {
   return 0;
 }
 
+int after(struct timeval left, struct timeval right) {
+  return left.tv_sec > right.tv_sec &&
+         left.tv_usec > right.tv_usec;
+}
+
+int within(struct timeval a, struct timeval b, struct timeval c, struct timeval d) {
+  if (a.tv_sec <- b.tv_sec && a.tv_usec <= b.tv_usec &&
+   c.tv_sec <= d.tv_sec && c.tv_usec <= d.tv_usec) {
+    return 1;
+  }
+  return 0;
+}
+
+int overlap(struct Snapshot left, struct Snapshot right) {
+
+  if (after(left.start, right.start) && after(right.end, left.end)) {
+    return 1;
+  }
+  if (after(right.start, left.start) && after(left.end, right.end)) {
+    return 1;
+  }
+  if (within(left.start, right.start, right.end, left.end) == 1) {
+    return 1;
+  }
+  if (within(right.start, left.start, left.end, right.end) == 1) {
+    return 1;
+  }
+  return 0;
+}
+
+int verify(struct KernelThread *thread_data, int thread_count) {
+
+  for (int x = 0 ; x < thread_count; x++) {
+    for (int z = 0 ; z < thread_count; z++) {
+      if (z != x)  {
+        for (int y = 0 ; y < thread_data[x].task_count ; y++) {
+          printf("Verifying thread %d\n", x);
+          for (int k = 0 ; k < thread_data[z].task_count; k++) {
+            printf("%ld %ld\n", thread_data[z].tasks[k].current_snapshot, thread_data[x].tasks[y].current_snapshot);
+
+            for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
+              for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
+
+                if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
+                  /*
+                     if (thread_data[x].tasks[y].snapshots[n].start.tv_sec <= thread_data[z].tasks[k].snapshots[m].start.tv_sec &&
+                     thread_data[x].tasks[y].snapshots[n].start.tv_usec <= thread_data[z].tasks[k].snapshots[m].start.tv_usec &&
+                     thread_data[z].tasks[k].snapshots[m].end.tv_sec >= thread_data[x].tasks[y].snapshots[n].end.tv_sec &&
+                     thread_data[z].tasks[k].snapshots[m].end.tv_usec >= thread_data[x].tasks[y].snapshots[n].end.tv_usec) {
+                   */
+
+                  printf("Race condition %ld  %ld\n", thread_data[x].tasks[y].snapshots[n].start.tv_usec, thread_data[z].tasks[k].snapshots[m].start.tv_usec );
+                }
+
+                } 
+              }
+
+            }
+          }
+        }
+      } 
+    }
+
+
+  return 0;
+}
+
 int main() {
   int thread_count = 10;
   int timer_count = 1;
   int io_threads = 1;
-  int total_threads = thread_count + timer_count + io_threads;
+  int external_threads = 3;
+  int buffer_size = 10;
+  int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
 
@@ -243,6 +372,17 @@ int main() {
   int total_barrier_count = barrier_count + 1;
   int timer_index = thread_count;
   int io_index = timer_index + timer_count;
+
+  struct Buffers *buffers = calloc(external_threads, sizeof(struct Buffers));
+  
+  for (int x = 0 ; x < external_threads; x++) {
+    buffers[x].count = buffer_size;
+    buffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
+    for (int y = 0 ; y < buffer_size; y++) {
+      buffers[x].buffer[y].available = 0;
+    }
+  }
+
   for (int x = 0 ; x < total_threads ; x++) {
     printf("Creating kernel thread %d\n", x);
     thread_data[x].threads = thread_data;
@@ -259,6 +399,9 @@ int main() {
         if (x == y) {
             thread_data[x].tasks[y].protected = do_protected_write; 
         }
+        thread_data[x].tasks[y].snapshot_count = 99999;
+        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+        thread_data[x].tasks[y].current_snapshot = 0;
         thread_data[x].tasks[y].thread_index = x;
         thread_data[x].tasks[y].thread = &thread_data[x]; 
         thread_data[x].tasks[y].available = 1;
@@ -273,7 +416,13 @@ int main() {
             thread_data[x].tasks[y].run = barriered_nulltask; 
           }
         } else {
-          thread_data[x].tasks[y].run = barriered_work; 
+          if (x < external_threads) { 
+            thread_data[x].buffers = buffers;
+            thread_data[x].tasks[y].run = barriered_work_ingest; 
+          } else {
+            thread_data[x].tasks[y].run = barriered_work; 
+
+          }
         }
       }
       thread_data[x].tasks[barrier_count].run = barriered_reset; 
@@ -298,6 +447,7 @@ int main() {
 
   pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
   pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
+  pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
 
   thread_data[thread_count].type = TIMER;
@@ -325,7 +475,20 @@ int main() {
     thread_data[x].thread_index = x;
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
   }
+  int external_index = io_index + io_threads;
+  for (int x = io_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
+    printf("Creating external thread %d\n", x);
+    thread_data[x].type = EXTERNAL;
+    thread_data[x].running = 1;
+    thread_data[x].task_count = 0;
+    thread_data[x].buffers = &buffers[buffer_index];
 
+    thread_data[x].threads = thread_data;
+    thread_data[x].thread_count = thread_count;
+    thread_data[x].total_thread_count = total_threads;
+    thread_data[x].thread_index = x;
+    pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
+  }
   printf("Waiting for threads to finish\n");  
   for (int x = 0 ; x < total_threads ; x++) {
     void * result; 
@@ -345,6 +508,7 @@ int main() {
   printf("Total Protected %ld\n", protected_state->protected);
   printf("Total V %ld\n", v);
   printf("Total Requests per second %ld\n", total / DURATION);
+  // verify(thread_data, thread_count);
   return 0;
 
 }
