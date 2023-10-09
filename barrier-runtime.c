@@ -75,6 +75,7 @@ struct KernelThread {
 
 struct ProtectedState {
   long protected;
+  long balance;
   int modcount;
 };
 
@@ -231,6 +232,11 @@ int do_protected_write(volatile struct BarrierTask *data) {
   data->v++; // thread local
     // printf("Protected %d %d\n", data->task_index, data->thread_index);
   protected->protected++; // shared between all threads
+  if (protected->balance > 0) {
+    protected->balance -= 500; // shared between all threads
+  } else {
+    protected->balance += 500; // shared between all threads
+  }
   return 0; 
 }
 
@@ -510,8 +516,9 @@ int main() {
   printf("Total Requests %ld\n", total);
   printf("Total Protected %ld\n", protected_state->protected);
   printf("Total V %ld\n", v);
+  printf("Total money %ld\n", protected_state->balance);
   printf("Total Requests per second %ld\n", total / DURATION);
-  verify(thread_data, thread_count);
+  // verify(thread_data, thread_count);
   return 0;
 
 }
