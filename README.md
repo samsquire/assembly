@@ -250,6 +250,25 @@ int barriered_reset(volatile struct BarrierTask *data) {
 }
 ```
 
+# external thread ingest
+
+The multithreaded barrier can ingest events from an external thread, which is slower than running internal to the barrier.
+
+For each thread that wants to talk to the multithreaded barrier, the thread must create a `Buffers` and send data in that. The `Buffers` external thread interface to multithreaded barrier is only safe if it is used in a 1 to 1 relationship.
+
+# usage
+
+To compile
+```
+gcc barrier-runtime.c -o barrier-runtime -O3 -luring 
+```
+
+To run
+```
+./barrier-runtime
+```
+
+
 # LICENCE
 
 Copyright (C) 2023 by Samuel Michael Squire sam@samsquire.com                                                                                         
