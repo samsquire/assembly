@@ -287,12 +287,13 @@ int barriered_work(volatile struct BarrierTask *data) {
         int t = data->task_index;
         for (int y = 0; y < data->thread_count ; y++) {
           for (int b = 0; b < data->thread_count ; b++) {
-            // if (y != data->thread_index && b != data->thread_index) {
+            if (y != data->thread_index && b != data->thread_index) {
               int next_task = abs((t + 1) % (data->task_count));
               tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
-              // data->thread->threads[b].tasks[t].mailboxes[y].higher = data->thread->threads[y].tasks[next_task].mailboxes[b].lower;
+              // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
               data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
             }
+          }
         }
       asm volatile ("mfence" ::: "memory");
         // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
@@ -496,7 +497,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 99999999;
+        long messages_limit = 999999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
