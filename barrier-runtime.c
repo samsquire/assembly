@@ -52,6 +52,8 @@ struct Buffer {
 struct Mailbox {
   void *lower;
   void *higher;
+  long sent;
+  long received;
 };
 
 struct Data {
@@ -86,6 +88,8 @@ struct BarrierTask {
   long ingest_count;
   struct Mailbox *mailboxes;
   long sends;
+  volatile int sending;
+  int worker_count;
 };
 
 struct KernelThread {
@@ -179,7 +183,7 @@ void* timer_thread(void *arg) {
   long tick = 1500000L;
   long tickseconds = 0;
   // long tick = 0L;
-  long times = ((1000000000L*30L)/tick);
+  long times = ((1000000000L*DURATION)/tick);
   // long times = tickseconds * 10;
   
   struct KernelThread *data = arg;
@@ -210,6 +214,51 @@ void* timer_thread(void *arg) {
     y++;
     if (y >= data->threads[0].task_count) {
       y = 0;
+    }
+  }
+  printf("Finished, waiting for drain\n");
+  // nanosleep(&req , &rem);
+  for (int x = 0 ; x < data->total_thread_count ; x++) {
+    for (int y = 0 ; y < data->task_count ; y++) {
+      data->threads[x].tasks[y].sending = 0;
+    }
+  }
+  asm volatile ("mfence" ::: "memory");
+  int drained = 0;  
+  struct timespec drainrem;
+  struct timespec drain = {
+    1,
+    0 };
+
+  while (drained == 0) {
+    // preempt tasks
+    for (int x = 0 ; x < data->thread_count ; x++) {
+        int next = (y + 1) % data->threads[x].task_count;
+        data->threads[x].tasks[next].scheduled = 1;
+        data->threads[x].tasks[y].scheduled = 0;
+    }
+    asm volatile ("mfence" ::: "memory");
+    y++;
+    if (y >= data->threads[0].task_count) {
+      y = 0;
+    }
+    int all_empty = 1;
+    for (int x = 0 ; x < data->thread_count ; x++) {
+      for (int y = 0 ; y < data->thread_count ; y++) {
+        for (int k = 0 ; k < data->thread_count; k++) {
+          if (((struct Data*)data->threads[x].tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x].tasks[y].mailboxes[k].higher)->messages_count > 0) {
+            all_empty = 0;
+            printf("%d %ld %ld left\n", k, ((struct Data*)data->threads[x].tasks[y].mailboxes[k].lower)->messages_count, ((struct Data*)data->threads[x].tasks[y].mailboxes[k].higher)->messages_count);
+            // printf("Someone unfinished\n");
+            break;
+          }
+        }
+      }
+    }
+    if (all_empty == 1) {
+      drained = 1;
+    } else {
+      nanosleep(&drain , &drainrem);
     }
   }
   printf("Finished\n");
@@ -269,6 +318,24 @@ int do_protected_write(volatile struct BarrierTask *data) {
   return 0; 
 }
 
+int receive(volatile struct BarrierTask *data) {
+  // printf("Receiving\n");
+  for (int n = 0 ; n < data->thread_count; n++) {
+    // if (n == data->thread_index) { continue; }
+    struct Data *me = data->mailboxes[n].lower;
+    for (int x = 0 ; x < me->messages_count ; x++) {
+      data->sends++;
+      data->mailboxes[n].received++;
+      // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
+      if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
+        printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
+        exit(1);
+      }
+    }
+    me->messages_count = 0;
+  }
+
+}
 
 int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
@@ -283,12 +350,13 @@ int barriered_work(volatile struct BarrierTask *data) {
   messaged->thread_index = data->thread_index;
   // we are synchronized
   if (data->thread_index == data->task_index) {
+      receive(data);
       void * tmp; 
       // swap this all thread's write buffer with the next task
         int t = data->task_index;
         for (int y = 0; y < data->thread_count ; y++) {
           for (int b = 0; b < data->thread_count ; b++) {
-              int next_task = abs((t + 1) % (data->task_count));
+              int next_task = abs((t + 1) % (data->thread_count));
               tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
               // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
               data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
@@ -310,34 +378,27 @@ int barriered_work(volatile struct BarrierTask *data) {
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
+    receive(data);
+    if (data->sending == 1) {
+      while (data->scheduled == 1) {
         for (int n = 0 ; n < data->thread_count; n++) {
           if (n == data->thread_index) { continue; }
-          struct Data *me = data->mailboxes[n].lower;
-          for (int x = 0 ; x < me->messages_count ; x++) {
-            data->sends++;
-            // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
-            if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
-              printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
-              exit(1);
-            }
-          }
-          me->messages_count = 0;
-      }
-        while (data->scheduled == 1) {
-          for (int n = 0 ; n < data->thread_count; n++) {
-            if (n == data->thread_index) { continue; }
-            struct Data *them = data->mailboxes[n].higher;
-            data->n++;
-            // printf("Sending to thread %d\n", n);
-            if (them->messages_count < them->messages_limit) {
-              them->messages[them->messages_count++] = messaged;
-            }
+          struct Data *them = data->mailboxes[n].higher;
+          data->n++;
+          // printf("Sending to thread %d\n", n);
+          if (them->messages_count < them->messages_limit) {
+            data->mailboxes[n].sent++;
+            them->messages[them->messages_count++] = messaged;
           }
         }
-      asm volatile ("mfence" ::: "memory");
+      }
+    }
   }
+  asm volatile ("mfence" ::: "memory");
   return 0;
 }
+
+
 
 int barriered_work_ingest(volatile struct BarrierTask *data) {
   // printf("Ingest task\n");
@@ -511,6 +572,7 @@ int main() {
           data[1].messages_limit = messages_limit;
         }
 
+        thread_data[x].tasks[y].sending = 1;
         thread_data[x].tasks[y].snapshot_count = 999999;
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
         thread_data[x].tasks[y].current_snapshot = 0;
@@ -520,13 +582,17 @@ int main() {
         thread_data[x].tasks[y].arrived = 0;
         thread_data[x].tasks[y].thread_count = thread_count;
         thread_data[x].tasks[y].task_count = total_barrier_count;
+        thread_data[x].tasks[y].worker_count = thread_count;
         thread_data[x].tasks[y].task_index = y;
         if (y == barrier_count - 1) {
+          /*
           if (x == thread_count - 1) {
             thread_data[x].tasks[y].run = barriered_steal; 
           } else {
             thread_data[x].tasks[y].run = barriered_nulltask; 
           }
+          */
+          thread_data[x].tasks[y].run = barriered_work; 
         } else {
           if (x < external_threads) { 
             thread_data[x].buffers = buffers;
@@ -544,6 +610,7 @@ int main() {
       thread_data[x].tasks[barrier_count].task_index = barrier_count; 
       thread_data[x].tasks[barrier_count].thread_count = thread_count; 
       thread_data[x].tasks[barrier_count].thread_index = x; 
+      thread_data[x].tasks[barrier_count].worker_count = thread_count; 
       thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
   }
   for (int x = io_index ; x < io_index + io_threads ; x++) {
@@ -612,6 +679,8 @@ int main() {
   long v = 0;
   long ingests = 0;
   long sends = 0;
+  long sents = 0;
+  long received = 0;
   for (int x = 0 ; x < thread_count ; x++) {
 
     for (int n = 0 ; n < thread_data[x].task_count ; n++) {
@@ -619,6 +688,10 @@ int main() {
       v += thread_data[x].tasks[n].v;
       ingests += thread_data[x].tasks[n].ingest_count;
       sends += thread_data[x].tasks[n].sends;
+      for (int k = 0 ; k < thread_count ; k++) {
+        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
+        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
+      }
     }
   }
   printf("Total Requests %ld\n", total);
@@ -631,6 +704,8 @@ int main() {
   printf("Total external thread ingests per second %ld\n", ingests / DURATION);
   printf("Total intra thread sends per second %ld\n", sends / DURATION);
   printf("Total Requests per second %ld\n", total / DURATION);
+  printf("Total sents %ld\n", sents);
+  printf("Total receives %ld\n", received);
   // verify(thread_data, thread_count);
   return 0;
 
