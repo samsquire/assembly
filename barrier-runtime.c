@@ -267,24 +267,23 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
-  // we are synchronized
-  char message[200];
-  memset(&message, '\0', 200);
+  char *message = malloc(sizeof(char) * 256);
+  memset(message, '\0', 256);
 
   sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
+  // we are synchronized
   if (data->thread_index == data->task_index) {
-
       void * tmp; 
-      int next_task = (data->task_index + 1) % data->task_count;
       // swap this thread's write buffer with the next task
-      for (int y = data->thread_count ; y > 0 ; y--) {
-        tmp = data->thread->threads[y].tasks[data->task_index].mailboxes->lower; 
-        data->thread->threads[y].tasks[data->task_index].mailboxes->lower = data->thread->threads[y].tasks[data->task_index].mailboxes->higher;
-        // printf("move this this task task_index %d higher to %d lower\n", data->task_index, data->task_index);
-        //printf("move next %d higher to %d higher\n", next_task, data->task_index);
-        data->thread->threads[y].tasks[next_task].mailboxes->lower = tmp;
+        int t = data->task_index;
+        for (int y = 0; y < data->thread_count ; y++) {
+            int next_task = abs((t + 1) % (data->task_count));
+            tmp = data->thread->threads[y].tasks[t].mailboxes->higher; 
+            data->thread->threads[y].tasks[t].mailboxes->higher = data->thread->threads[y].tasks[next_task].mailboxes->lower;
+            data->thread->threads[y].tasks[next_task].mailboxes->lower = tmp;
+        }
+      asm volatile ("mfence" ::: "memory");
         // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
-      }
 
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
@@ -299,19 +298,18 @@ int barriered_work(volatile struct BarrierTask *data) {
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
-      struct Data *me = data->mailboxes->lower;
-      for (int x = 0 ; x < me->messages_count ; x++) {
-        data->sends++;
-        // printf("%s\n", me->messages[x]);
-      }
-      me->messages_count = 0;
-      // struct Data *me = data->mailboxes->lower;
+        struct Data *me = data->mailboxes->lower;
+        for (int x = 0 ; x < me->messages_count ; x++) {
+          data->sends++;
+          // printf("%d %d received: %s\n", data->thread_index, data->task_index, me->messages[x]);
+        }
+        me->messages_count = 0;
+      struct Data *them = data->mailboxes->higher;
       while (data->scheduled == 1) {
         data->n++;
-        if (me->messages_count < me->messages_limit) {
-          me->messages[me->messages_count++] = message;
+        if (them->messages_count < them->messages_limit) {
+          them->messages[them->messages_count++] = message;
         }
-        //}
       }
   }
   return 0;
@@ -455,10 +453,10 @@ int main() {
     thread_data[x].protected_state = protected_state;
 
 
-      struct BarrierTask *barriers = calloc(barrier_count + 1, sizeof(struct BarrierTask));
+      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
       thread_data[x].tasks = barriers;
 
-      for (int y = 0 ; y < barrier_count ; y++) {
+      for (int y = 0 ; y < total_barrier_count ; y++) {
         // if the task number is identical to the thread
         // number then we are synchronized
         /*
@@ -474,7 +472,8 @@ int main() {
         struct Mailbox *mailboxes = calloc(1, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         struct Data *data = calloc(2, sizeof(struct Data));
-        long messages_limit = 9999999;
+        // long messages_limit = 20;/*9999999;*/
+        long messages_limit = 99999999;
         char **messages = calloc(messages_limit, sizeof(char *));
         char **messages2 = calloc(messages_limit, sizeof(char *));
 
