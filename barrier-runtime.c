@@ -287,13 +287,11 @@ int barriered_work(volatile struct BarrierTask *data) {
         int t = data->task_index;
         for (int y = 0; y < data->thread_count ; y++) {
           for (int b = 0; b < data->thread_count ; b++) {
-            if (y != data->thread_index && b != data->thread_index) {
               int next_task = abs((t + 1) % (data->task_count));
               tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
               // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
               data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
             }
-          }
         }
       asm volatile ("mfence" ::: "memory");
         // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
@@ -317,7 +315,7 @@ int barriered_work(volatile struct BarrierTask *data) {
           for (int x = 0 ; x < me->messages_count ; x++) {
             data->sends++;
             // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
-            if (me->messages[x]->task_index == data->task_index || me->messages[x]->thread_index == data->thread_index) {
+            if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
               printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
               exit(1);
             }
@@ -325,16 +323,16 @@ int barriered_work(volatile struct BarrierTask *data) {
           me->messages_count = 0;
       }
         while (data->scheduled == 1) {
-      for (int n = 0 ; n < data->thread_count; n++) {
-        if (n == data->thread_index) { continue; }
-        struct Data *them = data->mailboxes[n].higher;
-          data->n++;
-          // printf("Sending to thread %d\n", n);
-          if (them->messages_count < them->messages_count + 5) {
-            them->messages[them->messages_count++] = messaged;
+          for (int n = 0 ; n < data->thread_count; n++) {
+            if (n == data->thread_index) { continue; }
+            struct Data *them = data->mailboxes[n].higher;
+            data->n++;
+            // printf("Sending to thread %d\n", n);
+            if (them->messages_count < them->messages_limit) {
+              them->messages[them->messages_count++] = messaged;
+            }
           }
         }
-      }
       asm volatile ("mfence" ::: "memory");
   }
   return 0;
