@@ -13,7 +13,7 @@ Total intra thread sends per second 776758223
 Total Requests per second 1224392484
 ```
 
-With 12 threads for 30 seconds, 12 threads all incrementing a long can do all the following: 1.2 billion additions, 776 billion interthread sends, 21 million external thread ingests and 38 million critical section executions a second.
+With 12 threads for 30 seconds, 12 threads all incrementing a long can do all the following: 1.2 billion additions, 776 million interthread sends, 21 million external thread ingests and 38 million critical section executions a second.
 
 This algorithm is inspired by [Bulk synchronous parallel](https://en.wikipedia.org/wiki/Bulk_Synchronous_Parallel).
 
