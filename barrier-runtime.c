@@ -274,12 +274,6 @@ int barriered_work(volatile struct BarrierTask *data) {
   sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
   if (data->thread_index == data->task_index) {
 
-      struct Data *me = data->mailboxes->lower;
-      for (int x = 0 ; x < me->messages_count ; x++) {
-        data->sends++;
-        // printf("%s\n", me->messages[x]);
-      }
-      me->messages_count = 0;
       void * tmp; 
       int next_task = (data->task_index + 1) % data->task_count;
       // swap this thread's write buffer with the next task
@@ -306,6 +300,12 @@ int barriered_work(volatile struct BarrierTask *data) {
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
       struct Data *me = data->mailboxes->lower;
+      for (int x = 0 ; x < me->messages_count ; x++) {
+        data->sends++;
+        // printf("%s\n", me->messages[x]);
+      }
+      me->messages_count = 0;
+      // struct Data *me = data->mailboxes->lower;
       while (data->scheduled == 1) {
         data->n++;
         if (me->messages_count < me->messages_limit) {
