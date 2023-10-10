@@ -48,6 +48,7 @@ void* barriered_thread(void *arg) {
   } 
   return 0;
 }
+```
 
 This is what the work task looks like:
 
@@ -110,7 +111,6 @@ int barriered_work(volatile struct BarrierTask *data) {
 }
 ```
 
-```
 
 This is what happens when all tasks are finished:
 
