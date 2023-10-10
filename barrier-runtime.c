@@ -78,6 +78,7 @@ struct BarrierTask {
   long current_snapshot;
   long ingest_count;
   struct Mailbox *mailboxes;
+  long sends;
 };
 
 struct KernelThread {
@@ -267,6 +268,10 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
   // we are synchronized
+  char message[200];
+  memset(&message, '\0', 200);
+
+  sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
   if (data->thread_index == data->task_index) {
 
       void * tmp; 
@@ -281,6 +286,7 @@ int barriered_work(volatile struct BarrierTask *data) {
 
     struct Data *me = data->mailboxes->lower;
     for (int x = 0 ; x < me->messages_count ; x++) {
+      data->sends++;
       // printf("%s\n", me->messages[x]);
     }
     me->messages_count = 0;
@@ -301,12 +307,10 @@ int barriered_work(volatile struct BarrierTask *data) {
         data->n++;
         struct Data *me = data->mailboxes->lower;
         if (me->messages_count < me->messages_limit) {
-          char message[200];
-          memset(&message, '\0', 200);
-
-          sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
 
           me->messages[me->messages_count++] = message;
+        } else {
+          // printf("Starve!\n");
         }
       }
   }
@@ -470,7 +474,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(1, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         struct Data *data = calloc(2, sizeof(struct Data));
-        int messages_limit = 10000;
+        long messages_limit = 99999999;
         char **messages = calloc(messages_limit, sizeof(char *));
         char **messages2 = calloc(messages_limit, sizeof(char *));
 
@@ -582,12 +586,14 @@ int main() {
   long total = 0;
   long v = 0;
   long ingests = 0;
+  long sends = 0;
   for (int x = 0 ; x < thread_count ; x++) {
 
     for (int n = 0 ; n < thread_data[x].task_count ; n++) {
       total += thread_data[x].tasks[n].n;
       v += thread_data[x].tasks[n].v;
       ingests += thread_data[x].tasks[n].ingest_count;
+      sends += thread_data[x].tasks[n].sends;
     }
   }
   printf("Total Requests %ld\n", total);
@@ -595,6 +601,7 @@ int main() {
   printf("Total V %ld\n", v);
   printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
   printf("Total external thread ingests %ld\n", ingests);
+  printf("Total intra thread sends %ld\n", sends);
   printf("Total Requests per second %ld\n", total / DURATION);
   // verify(thread_data, thread_count);
   return 0;
