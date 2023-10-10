@@ -1,0 +1,332 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c00000048 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c00000048 by thread T2:
+    #0 barriered_work <null> (barrier-runtime+0x3172) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:382 (libtsan.so.2+0x5e032) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 timer_thread <null> (barrier-runtime+0x2db3) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T2 (tid=1840, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in timer_thread
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c000003c8 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c000003c8 by thread T3:
+    #0 barriered_work <null> (barrier-runtime+0x30cb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:382 (libtsan.so.2+0x5e032) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 timer_thread <null> (barrier-runtime+0x2db3) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00000380 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in timer_thread
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c00000708 by thread T4:
+    #0 barriered_thread <null> (barrier-runtime+0x2a29) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c00000708 by thread T3:
+    #0 barriered_thread <null> (barrier-runtime+0x2936) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00000700 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T4 (tid=1842, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2a29) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_thread
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c000011c8 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c000011c8 by thread T7:
+    #0 barriered_work <null> (barrier-runtime+0x30fb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:382 (libtsan.so.2+0x5e032) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 timer_thread <null> (barrier-runtime+0x2db3) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00001180 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T7 (tid=1845, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2e4c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in timer_thread
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Read of size 4 at 0x7b5c00002018 by thread T11:
+    #0 barriered_work <null> (barrier-runtime+0x30cb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 4 at 0x7b5c00002018 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e37) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00001f80 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T11 (tid=1849, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x30cb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_work
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Read of size 4 at 0x7b0400000008 by thread T3:
+    #0 barriered_work <null> (barrier-runtime+0x3148) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 4 at 0x7b0400000008 by thread T2:
+    #0 barriered_work <null> (barrier-runtime+0x315d) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 16 at 0x7b0400000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1267) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T2 (tid=1840, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x3148) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_work
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Read of size 4 at 0x7b5c00000418 by thread T3:
+    #0 barriered_work <null> (barrier-runtime+0x3172) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 4 at 0x7b5c00000418 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e37) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00000380 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x3172) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_work
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b0400000008 by thread T4:
+    #0 barriered_work <null> (barrier-runtime+0x315d) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 4 at 0x7b0400000008 by thread T3:
+    #0 barriered_work <null> (barrier-runtime+0x315d) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 16 at 0x7b0400000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1267) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T4 (tid=1842, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x315d) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_work
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c000011c8 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2e37) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c000011c8 by thread T7:
+    #0 barriered_work <null> (barrier-runtime+0x30fb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:382 (libtsan.so.2+0x5e032) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 timer_thread <null> (barrier-runtime+0x2db3) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00001180 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T7 (tid=1845, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2e37) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in timer_thread
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5c00000288 by thread T2:
+    #0 barriered_reset <null> (barrier-runtime+0x2beb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous read of size 4 at 0x7b5c00000288 by thread T10:
+    #0 barriered_thread <null> (barrier-runtime+0x2936) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 880 at 0x7b5c00000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1a8f) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T2 (tid=1840, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T10 (tid=1848, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2beb) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in barriered_reset
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 8 at 0x7b0400000000 by thread T4:
+    #0 do_protected_write <null> (barrier-runtime+0x2afc) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_work <null> (barrier-runtime+0x3218) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #2 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 8 at 0x7b0400000000 by thread T3:
+    #0 do_protected_write <null> (barrier-runtime+0x2afc) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #1 barriered_work <null> (barrier-runtime+0x3218) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+    #2 barriered_thread <null> (barrier-runtime+0x29f8) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 16 at 0x7b0400000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x1267) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T4 (tid=1842, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T3 (tid=1841, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x2475) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2afc) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in do_protected_write
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1837)
+  Write of size 4 at 0x7b5800000294 by thread T1:
+    #0 timer_thread <null> (barrier-runtime+0x2f34) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Previous write of size 4 at 0x7b5800000294 by main thread:
+    #0 main <null> (barrier-runtime+0x24bf) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:382 (libtsan.so.2+0x5e032) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 timer_thread <null> (barrier-runtime+0x2db3) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Location is heap block of size 672 at 0x7b5800000000 allocated by main thread:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:701 (libtsan.so.2+0x3c467) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x127a) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+  Thread T1 (tid=1839, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1036 (libtsan.so.2+0x3d189) (BuildId: 29a32c589768a10ed232cacef24e09c48a66ec41)
+    #1 main <null> (barrier-runtime+0x241c) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f)
+
+SUMMARY: ThreadSanitizer: data race (/home/sam/assembly/barrier-runtime+0x2f34) (BuildId: 5410090d89f8e14933af0d074b6723623748cf6f) in timer_thread
+==================
+ThreadSanitizer: reported 12 warnings
+Creating kernel thread 0
+Creating kernel thread 1
+Creating kernel thread 2
+Creating kernel thread 3
+Creating kernel thread 4
+Creating kernel thread 5
+Creating kernel thread 6
+Creating kernel thread 7
+Creating kernel thread 8
+Creating kernel thread 9
+Creating kernel thread 10
+Creating kernel thread 11
+In timer task 0
+Will sleep 6666 times
+Creating IO thread
+Waiting for threads to finish
+Finished io thread
+Finished
+Finished thread 0
+Finished thread 1
+Slept 
+Timer thread stopping
+Finished thread 2
+Finished thread 3
+Finished thread 4
+Finished thread 5
+Finished thread 6
+Finished thread 7
+Finished thread 8
+Finished thread 9
+Finished thread 10
+Finished thread 11
+Total Requests 720920097
+Total Protected 2997106
+Total V 2997106
+Total Requests per second 72092009

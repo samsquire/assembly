@@ -280,8 +280,11 @@ int barriered_work(volatile struct BarrierTask *data) {
       for (int y = data->thread_count ; y > 0 ; y--) {
         tmp = data->thread->threads[y].tasks[data->task_index].mailboxes->lower; 
         data->thread->threads[y].tasks[data->task_index].mailboxes->lower = data->thread->threads[y].tasks[data->task_index].mailboxes->higher;
+        // printf("move this this task task_index %d higher to %d lower\n", data->task_index, data->task_index);
         data->thread->threads[y].tasks[data->task_index].mailboxes->higher = data->thread->threads[y].tasks[next_task].mailboxes->higher;
+        //printf("move next %d higher to %d higher\n", next_task, data->task_index);
         data->thread->threads[y].tasks[next_task].mailboxes->lower = tmp;
+        // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
       }
 
     struct Data *me = data->mailboxes->lower;
