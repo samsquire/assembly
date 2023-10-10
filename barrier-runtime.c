@@ -511,7 +511,7 @@ int main() {
           data[1].messages_limit = messages_limit;
         }
 
-        thread_data[x].tasks[y].snapshot_count = 99999;
+        thread_data[x].tasks[y].snapshot_count = 999999;
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
         thread_data[x].tasks[y].current_snapshot = 0;
         thread_data[x].tasks[y].thread_index = x;
