@@ -15,6 +15,8 @@ Total Requests per second 1224392484
 
 With 12 threads for 30 seconds, 12 threads all incrementing a long can do all the following: 1.2 billion additions, 776 million interthread sends, 21 million external thread ingests and 38 million critical section executions a second.
 
+On a Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz, 1608 Mhz, 6 Core(s), 12 Logical Processor(s) CPU on Windows 11 Intel NUC inside an Lubuntu virtual machine.
+
 This algorithm is inspired by [Bulk synchronous parallel](https://en.wikipedia.org/wiki/Bulk_Synchronous_Parallel).
 
 This algorithm uses ideas from my **M:N** thread scheduler, which is at [samsquire/preemptible-thread](https://github.com/samsquire/preemptible-thread).
