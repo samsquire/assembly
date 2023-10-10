@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 
 
 Samuel Michael Squire's multithreaded barrier runtime
+from https://github.com/samsquire/assembly
 
 This code is Zero Clause BSD licenced.
 
@@ -467,7 +468,6 @@ int main() {
   }
 
   for (int x = 0 ; x < total_threads ; x++) {
-    printf("Creating kernel thread %d\n", x);
     thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].total_thread_count = total_threads;
@@ -574,10 +574,10 @@ int main() {
   for (int x = 0 ; x < thread_count ; x++) {
     thread_data[x].type = WORKER;
     thread_data[x].running = 1;
+    printf("Creating kernel worker thread %d\n", x);
     pthread_create(&thread[x], &timer_attr[x], &barriered_thread, &thread_data[x]);
   }
   for (int x = io_index ; x < io_index + io_threads ; x++) {
-    printf("Creating IO thread\n");
     thread_data[x].type = IO;
     thread_data[x].running = 1;
     thread_data[x].task_count = 0;
@@ -585,6 +585,7 @@ int main() {
     thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].thread_index = x;
+    printf("Creating IO thread %d\n", x);
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
   }
   int external_index = io_index + io_threads;
