@@ -1,8 +1,129 @@
-# multithreaded barrier-runtime
+# multithreaded nonblocking barrier-runtime
 
-This is the lock free algorithm for nonblocking multithreaded performant barrier:
+This is my (Samuel Michael Squire, sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier.
 
-The data races reported by Thread Sanitizer do not affect correctness but allow this algorithm to be extextremely performant this is because there is a happens before relationship between arrived and writes always come from the same thread.
+```
+Total Requests 12243924844
+Total Protected 382789962
+Total V 382789962
+Total Protected per second 38278996
+Total money 0 (correct if 0 or 500)
+Total external thread ingests per second 21585790
+Total intra thread sends per second 776758223
+Total Requests per second 1224392484
+```
+
+With 12 threads for 30 seconds, 12 threads all incrementing a long can do all the following: 1.2 billion additions, 776 billion interthread sends, 21 million external thread ingests and 38 million critical section executions a second.
+
+This algorithm is inspired by [Bulk synchronous parallel](https://en.wikipedia.org/wiki/Bulk_Synchronous_Parallel).
+
+This algorithm uses ideas from my **M:N** thread scheduler, which is at [samsquire/preemptible-thread](https://github.com/samsquire/preemptible-thread).
+
+This algorithm is based on the idea there is a timeline grid of work to do and we synchronise in bulk on an interval. For the vast majority of time every thread is doing useful work, and synchronization is **total synchronization** between all threads in the cluster. Each thread has its own collection of **supersteps called BarrierTasks**. Each thread can do a different task in eachstep.
+
+When the `BarrierTask.task_index == BarrierTask.thread_index`, we are guaranteed to be the only thread executing this code. This is similar to a critical section or a mutex. The great thing about this algorithm is that we can synchronize and do data transfer in bulk.
+
+This barrier creates the following rhythm. The threads can arrive in any order, but they **do not start the next superstep** until they have all sycnhronized the previous superstep.
+
+```
+8 Arrived at task 0
+5 Arrived at task 0
+2 Arrived at task 0
+6 Arrived at task 0
+3 Arrived at task 0
+4 Arrived at task 0
+7 Arrived at task 0
+0 Arrived at task 0
+1 Arrived at task 0
+9 Arrived at task 0
+9 Arrived at task 1
+3 Arrived at task 1
+4 Arrived at task 1
+8 Arrived at task 1
+7 Arrived at task 1
+5 Arrived at task 1
+6 Arrived at task 1
+1 Arrived at task 1
+2 Arrived at task 1
+0 Arrived at task 1
+5 Arrived at task 2
+6 Arrived at task 2
+0 Arrived at task 2
+1 Arrived at task 2
+8 Arrived at task 2
+7 Arrived at task 2
+9 Arrived at task 2
+2 Arrived at task 2
+3 Arrived at task 2
+4 Arrived at task 2
+4 Arrived at task 3
+7 Arrived at task 3
+3 Arrived at task 3
+9 Arrived at task 3
+6 Arrived at task 3
+8 Arrived at task 3
+5 Arrived at task 3
+1 Arrived at task 3
+2 Arrived at task 3
+0 Arrived at task 3
+4 Arrived at task 4
+8 Arrived at task 4
+1 Arrived at task 4
+5 Arrived at task 4
+7 Arrived at task 4
+6 Arrived at task 4
+2 Arrived at task 4
+9 Arrived at task 4
+0 Arrived at task 4
+3 Arrived at task 4
+3 Arrived at task 5
+5 Arrived at task 5
+9 Arrived at task 5
+6 Arrived at task 5
+7 Arrived at task 5
+8 Arrived at task 5
+4 Arrived at task 5
+0 Arrived at task 5
+1 Arrived at task 5
+2 Arrived at task 5
+4 Arrived at task 6
+2 Arrived at task 6
+7 Arrived at task 6
+6 Arrived at task 6
+8 Arrived at task 6
+5 Arrived at task 6
+3 Arrived at task 6
+9 Arrived at task 6
+0 Arrived at task 6
+1 Arrived at task 6
+4 Arrived at task 7
+9 Arrived at task 7
+5 Arrived at task 7
+7 Arrived at task 7
+3 Arrived at task 7
+6 Arrived at task 7
+8 Arrived at task 7
+2 Arrived at task 7
+1 Arrived at task 7
+0 Arrived at task 7
+3 Arrived at task 8
+5 Arrived at task 8
+6 Arrived at task 8
+2 Arrived at task 8
+4 Arrived at task 8
+7 Arrived at task 8
+8 Arrived at task 8
+1 Arrived at task 8
+9 Arrived at task 8
+0 Arrived at task 8
+
+```
+
+In Go, if you are sending 64 bits of data to a channel, this causes unnecessary context switches in the go scheduler.
+
+The data races reported by Thread Sanitizer do not affect correctness but allow this algorithm to be extremely performant this is because there is a **happens before** relationship between **arrived** and writes to arrived always come from the same thread.
+
+
 
 ```
 void* barriered_thread(void *arg) {
