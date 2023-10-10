@@ -178,32 +178,29 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
-  // we are synchronized
-  char message[200];
-  memset(&message, '\0', 200);
-
+  char *message = malloc(sizeof(char) * 256);
+  struct Message *messaged = malloc(sizeof(struct Message));
+  memset(message, '\0', 256);
   sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
+  messaged->message = message;
+  messaged->task_index = data->task_index;
+  messaged->thread_index = data->thread_index;
+  // we are synchronized
   if (data->thread_index == data->task_index) {
-
       void * tmp; 
-      int next_task = (data->task_index + 1) % data->task_count;
-      // swap this thread's write buffer with the next task
-      for (int y = data->thread_count ; y > 0 ; y--) {
-        tmp = data->thread->threads[y].tasks[data->task_index].mailboxes->lower; 
-        data->thread->threads[y].tasks[data->task_index].mailboxes->lower = data->thread->threads[y].tasks[data->task_index].mailboxes->higher;
-        // printf("move this this task task_index %d higher to %d lower\n", data->task_index, data->task_index);
-        data->thread->threads[y].tasks[data->task_index].mailboxes->higher = data->thread->threads[y].tasks[next_task].mailboxes->higher;
-        //printf("move next %d higher to %d higher\n", next_task, data->task_index);
-        data->thread->threads[y].tasks[next_task].mailboxes->lower = tmp;
+      // swap this all thread's write buffer with the next task
+        int t = data->task_index;
+        for (int y = 0; y < data->thread_count ; y++) {
+          for (int b = 0; b < data->thread_count ; b++) {
+              int next_task = abs((t + 1) % (data->task_count));
+              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
+              // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
+              data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
+            }
+        }
+      asm volatile ("mfence" ::: "memory");
         // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
-      }
 
-    struct Data *me = data->mailboxes->lower;
-    for (int x = 0 ; x < me->messages_count ; x++) {
-      data->sends++;
-      // printf("%s\n", me->messages[x]);
-    }
-    me->messages_count = 0;
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
@@ -217,16 +214,31 @@ int barriered_work(volatile struct BarrierTask *data) {
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
-      while (data->scheduled == 1) {
-        data->n++;
-        struct Data *me = data->mailboxes->lower;
-        if (me->messages_count < me->messages_limit) {
-
-          me->messages[me->messages_count++] = message;
-        } else {
-          // printf("Starve!\n");
-        }
+        for (int n = 0 ; n < data->thread_count; n++) {
+          if (n == data->thread_index) { continue; }
+          struct Data *me = data->mailboxes[n].lower;
+          for (int x = 0 ; x < me->messages_count ; x++) {
+            data->sends++;
+            // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
+            if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
+              printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
+              exit(1);
+            }
+          }
+          me->messages_count = 0;
       }
+        while (data->scheduled == 1) {
+          for (int n = 0 ; n < data->thread_count; n++) {
+            if (n == data->thread_index) { continue; }
+            struct Data *them = data->mailboxes[n].higher;
+            data->n++;
+            // printf("Sending to thread %d\n", n);
+            if (them->messages_count < them->messages_limit) {
+              them->messages[them->messages_count++] = messaged;
+            }
+          }
+        }
+      asm volatile ("mfence" ::: "memory");
   }
   return 0;
 }
