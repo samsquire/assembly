@@ -30,6 +30,7 @@ don't affect correctness.
 #include <liburing.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <string.h>
 #define TIMER 0
 #define WORKER 1
 #define IO 2
@@ -52,6 +53,12 @@ struct Mailbox {
   void *higher;
 };
 
+struct Data {
+  char **messages;
+  long messages_count;
+  long messages_limit;
+};
+
 struct BarrierTask {
   int task_index;
   int rerunnable;
@@ -70,6 +77,7 @@ struct BarrierTask {
   long snapshot_count;
   long current_snapshot;
   long ingest_count;
+  struct Mailbox *mailboxes;
 };
 
 struct KernelThread {
@@ -84,7 +92,6 @@ struct KernelThread {
   volatile int running;
   struct ProtectedState *protected_state;
   struct Buffers *buffers;
-  struct Mailbox *mailboxes;
 };
 
 struct ProtectedState {
@@ -263,12 +270,20 @@ int barriered_work(volatile struct BarrierTask *data) {
   if (data->thread_index == data->task_index) {
 
       void * tmp; 
-      // swap this thread's write buffer
-      for (int y = 0 ; y < data->thread_count; y++) {
-        tmp = data->thread->mailboxes[y].lower; 
-        data->thread->mailboxes[y].lower = data->thread->mailboxes[y].higher;
-        data->thread->mailboxes[y].higher = data->thread->mailboxes[y].lower;
+      int next_task = (data->task_index + 1) % data->task_count;
+      // swap this thread's write buffer with the next task
+      for (int y = data->thread_count ; y > 0 ; y--) {
+        tmp = data->thread->threads[y].tasks[data->task_index].mailboxes->lower; 
+        data->thread->threads[y].tasks[data->task_index].mailboxes->lower = data->thread->threads[y].tasks[data->task_index].mailboxes->higher;
+        data->thread->threads[y].tasks[data->task_index].mailboxes->higher = data->thread->threads[y].tasks[next_task].mailboxes->higher;
+        data->thread->threads[y].tasks[next_task].mailboxes->lower = tmp;
       }
+
+    struct Data *me = data->mailboxes->lower;
+    for (int x = 0 ; x < me->messages_count ; x++) {
+      // printf("%s\n", me->messages[x]);
+    }
+    me->messages_count = 0;
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
@@ -284,6 +299,15 @@ int barriered_work(volatile struct BarrierTask *data) {
   } else {
       while (data->scheduled == 1) {
         data->n++;
+        struct Data *me = data->mailboxes->lower;
+        if (me->messages_count < me->messages_limit) {
+          char message[200];
+          memset(&message, '\0', 200);
+
+          sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
+
+          me->messages[me->messages_count++] = message;
+        }
       }
   }
   return 0;
@@ -426,8 +450,6 @@ int main() {
     thread_data[x].task_count = total_barrier_count;
     thread_data[x].protected_state = protected_state;
 
-      struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
-      thread_data[x].mailboxes = mailboxes;
 
       struct BarrierTask *barriers = calloc(barrier_count + 1, sizeof(struct BarrierTask));
       thread_data[x].tasks = barriers;
@@ -445,6 +467,22 @@ int main() {
         if (x == y) {
             thread_data[x].tasks[y].protected = do_protected_write; 
         }
+        struct Mailbox *mailboxes = calloc(1, sizeof(struct Mailbox));
+        thread_data[x].tasks[y].mailboxes = mailboxes;
+        struct Data *data = calloc(2, sizeof(struct Data));
+        int messages_limit = 10000;
+        char **messages = calloc(messages_limit, sizeof(char *));
+        char **messages2 = calloc(messages_limit, sizeof(char *));
+
+        mailboxes->lower = &data[0];
+        mailboxes->higher = &data[1];
+        data[0].messages = messages;
+        data[1].messages = messages2;
+        data[0].messages_limit = messages_limit;
+        data[0].messages_count = 0;
+        data[1].messages_count = 0;
+        data[1].messages_limit = messages_limit;
+
         thread_data[x].tasks[y].snapshot_count = 99999;
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
         thread_data[x].tasks[y].current_snapshot = 0;
