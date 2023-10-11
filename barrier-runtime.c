@@ -513,7 +513,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 9999999;
+  int buffer_size = 99999999;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -561,7 +561,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 999999;
+        long messages_limit = 99999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
@@ -671,7 +671,7 @@ int main() {
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
   }
   int external_index = io_index + io_threads;
-  for (int x = io_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
+  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     printf("Creating external thread %d\n", x);
     thread_data[x].type = EXTERNAL;
     thread_data[x].running = 1;
