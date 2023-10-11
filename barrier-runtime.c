@@ -348,6 +348,7 @@ int barriered_work(volatile struct BarrierTask *data) {
   volatile long *n = &data->n;
   // we are synchronized
   if (data->thread_index == data->task_index) {
+      receive(data);
       void * tmp; 
       // swap this all thread's write buffer with the next task
         int t = data->task_index;
@@ -374,24 +375,23 @@ int barriered_work(volatile struct BarrierTask *data) {
     }
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-      receive(data);
   } else {
     receive(data);
+    while (data->scheduled == 1) {
+      data->n++;
+    }
     if (data->sending == 1) {
-      while (data->scheduled == 1) {
-        data->n++;
         for (int n = 0 ; n < data->thread_count; n++) {
           if (n == data->thread_index) { continue; }
           struct Data *them = data->mailboxes[n].higher;
           // printf("Sending to thread %d\n", n);
-          for (;them->messages_count < them->messages_limit;) {
+          for (; them->messages_count < them->messages_limit;) {
             data->n++;
             data->mailboxes[n].sent++;
             them->messages[them->messages_count++] = data->message;
           }
         }
       }
-    }
   }
   asm volatile ("mfence" ::: "memory");
   return 0;
@@ -407,9 +407,9 @@ int barriered_work_ingest(volatile struct BarrierTask *data) {
       data->ingest_count++;
       // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
       data->thread->buffers->buffer[x].available = 0;
-      asm volatile ("mfence" ::: "memory");
     }
   }
+  asm volatile ("mfence" ::: "memory");
   barriered_work(data);
   return 0;
 }
@@ -507,7 +507,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 10000;
+  int buffer_size = 99999;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -555,7 +555,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 9999999;
+        long messages_limit = 999999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
