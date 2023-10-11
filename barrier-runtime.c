@@ -37,7 +37,7 @@ don't affect correctness.
 #define IO 2
 #define EXTERNAL 3
 
-#define DURATION 10
+#define DURATION 30
 #define QUEUE_DEPTH             256
 
 struct Buffers {
@@ -90,6 +90,7 @@ struct BarrierTask {
   long sends;
   volatile int sending;
   int worker_count;
+  struct Message *message;
 };
 
 struct KernelThread {
@@ -216,6 +217,7 @@ void* timer_thread(void *arg) {
       y = 0;
     }
   }
+  
   printf("Finished, waiting for drain\n");
   // nanosleep(&req , &rem);
   for (int x = 0 ; x < data->total_thread_count ; x++) {
@@ -224,6 +226,7 @@ void* timer_thread(void *arg) {
     }
   }
   asm volatile ("mfence" ::: "memory");
+
   int drained = 0;  
   struct timespec drainrem;
   struct timespec drain = {
@@ -261,6 +264,7 @@ void* timer_thread(void *arg) {
       nanosleep(&drain , &drainrem);
     }
   }
+  
   printf("Finished\n");
   while (data->running) {
     // nanosleep(&req , &rem);
@@ -325,6 +329,7 @@ int receive(volatile struct BarrierTask *data) {
     struct Data *me = data->mailboxes[n].lower;
     for (int x = 0 ; x < me->messages_count ; x++) {
       data->sends++;
+      data->n++;
       data->mailboxes[n].received++;
       // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
       if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
@@ -341,16 +346,8 @@ int barriered_work(volatile struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d Arrived at task %d\n", data->thread_index, data->task_index);
   volatile long *n = &data->n;
-  char *message = malloc(sizeof(char) * 256);
-  struct Message *messaged = malloc(sizeof(struct Message));
-  memset(message, '\0', 256);
-  sprintf(message, "Sending message from thread %d task %d", data->thread_index, data->task_index);
-  messaged->message = message;
-  messaged->task_index = data->task_index;
-  messaged->thread_index = data->thread_index;
   // we are synchronized
   if (data->thread_index == data->task_index) {
-      receive(data);
       void * tmp; 
       // swap this all thread's write buffer with the next task
         int t = data->task_index;
@@ -377,18 +374,20 @@ int barriered_work(volatile struct BarrierTask *data) {
     }
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
+      receive(data);
   } else {
     receive(data);
     if (data->sending == 1) {
       while (data->scheduled == 1) {
+        data->n++;
         for (int n = 0 ; n < data->thread_count; n++) {
           if (n == data->thread_index) { continue; }
           struct Data *them = data->mailboxes[n].higher;
-          data->n++;
           // printf("Sending to thread %d\n", n);
-          if (them->messages_count < them->messages_limit) {
+          for (;them->messages_count < them->messages_limit;) {
+            data->n++;
             data->mailboxes[n].sent++;
-            them->messages[them->messages_count++] = messaged;
+            them->messages[them->messages_count++] = data->message;
           }
         }
       }
@@ -556,7 +555,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 999999;
+        long messages_limit = 9999999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
@@ -572,6 +571,14 @@ int main() {
           data[1].messages_limit = messages_limit;
         }
 
+        char *message = malloc(sizeof(char) * 256);
+        struct Message *messaged = malloc(sizeof(struct Message));
+        memset(message, '\0', 256);
+        sprintf(message, "Sending message from thread %d task %d", x, y);
+        messaged->message = message;
+        messaged->task_index = y;
+        messaged->thread_index = x;
+        thread_data[x].tasks[y].message = messaged;
         thread_data[x].tasks[y].sending = 1;
         thread_data[x].tasks[y].snapshot_count = 999999;
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
@@ -704,8 +711,8 @@ int main() {
   printf("Total external thread ingests per second %ld\n", ingests / DURATION);
   printf("Total intra thread sends per second %ld\n", sends / DURATION);
   printf("Total Requests per second %ld\n", total / DURATION);
-  printf("Total sents %ld\n", sents);
-  printf("Total receives %ld\n", received);
+  printf("Total sents %ld\n", sents / DURATION);
+  printf("Total receives %ld\n", received / DURATION);
   // verify(thread_data, thread_count);
   return 0;
 
