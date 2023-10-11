@@ -91,6 +91,7 @@ struct BarrierTask {
   volatile int sending;
   int worker_count;
   struct Message *message;
+  int next_thread;
 };
 
 struct KernelThread {
@@ -411,6 +412,7 @@ int barriered_work_ingest(volatile struct BarrierTask *data) {
       data->ingest_count++;
       // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
       data->thread->buffers->buffer[x].available = 0;
+    } else {
     }
   }
   asm volatile ("mfence" ::: "memory");
@@ -511,7 +513,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 50000;
+  int buffer_size = 999999;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -530,7 +532,7 @@ int main() {
       buffers[x].buffer[y].available = 0;
     }
   }
-
+  int external_thread_index = 0;
   for (int x = 0 ; x < total_threads ; x++) {
     thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
@@ -582,6 +584,7 @@ int main() {
         messaged->message = message;
         messaged->task_index = y;
         messaged->thread_index = x;
+        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
         thread_data[x].tasks[y].message = messaged;
         thread_data[x].tasks[y].sending = 1;
         thread_data[x].tasks[y].snapshot_count = 999999;
@@ -605,8 +608,9 @@ int main() {
           */
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
-          if (x < external_threads) { 
-            thread_data[x].buffers = buffers;
+          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
+            printf("Ingest thread %d\n", x);
+            thread_data[x].buffers = &buffers[external_thread_index++];
             thread_data[x].tasks[y].run = barriered_work_ingest; 
           } else {
             thread_data[x].tasks[y].run = barriered_work; 
