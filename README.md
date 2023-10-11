@@ -3,17 +3,21 @@
 This is my (Samuel Michael Squire, sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
 
 ```
-Total Requests 12243924844
-Total Protected 382789962
-Total V 382789962
-Total Protected per second 38278996
-Total money 0 (correct if 0 or 500)
-Total external thread ingests per second 21585790
-Total intra thread sends per second 776758223
-Total Requests per second 1224392484
+Total Requests 27317816286
+
+Total Protected 63025917
+Total V 63025917
+
+Total Protected per second 2100863
+Total money 500 (correct if 0 or 500)
+Total external thread ingests per second 2691622
+Total intra thread sends per second 409855901
+Total Requests per second 910593876
+Total sents 409855901
+Total receives 40985590
 ```
 
-With 12 threads for 30 seconds, 12 threads all incrementing a long can do all the following: 1.2 billion additions, 776 million interthread sends, 21 million external thread ingests and 38 million critical section executions a second.
+With 12 threads for 30 seconds, 10 threads all incrementing a long can do all the following: 910 million additions, 409 million interthread sends, 2.6 million external thread ingests and 2.1 million critical sections a second.
 
 On a Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz, 1608 Mhz, 6 Core(s), 12 Logical Processor(s) CPU on Windows 11 Intel NUC inside an Lubuntu virtual machine.
 

@@ -385,11 +385,11 @@ int barriered_work(volatile struct BarrierTask *data) {
           if (n == data->thread_index) { continue; }
           struct Data *them = data->mailboxes[n].higher;
           // printf("Sending to thread %d\n", n);
-          int min = them->messages_count + 2500;
-          if (them->messages_limit < min) {
-            min = them->messages_limit;
-          }
-          for (; them->messages_count < them->messages_limit;) {
+          int min = them->messages_limit;
+          //if (them->messages_limit < min) {
+          //  min = them->messages_limit;
+          //}
+          for (; them->messages_count < min;) {
             data->n++;
             data->mailboxes[n].sent++;
             them->messages[them->messages_count++] = data->message;
@@ -511,7 +511,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 999999;
+  int buffer_size = 50000;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -559,7 +559,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 999999;
+        long messages_limit = 99999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
