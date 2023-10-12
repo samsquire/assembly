@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 Samuel Michael Squire's multithreaded barrier runtime
 from https://github.com/samsquire/assembly
 
-This code is Zero Clause BSD licenced.
+This multithreaded barrier runtime is Zero Clause BSD licenced.
 
 Includes Samuel Michael Squire's nonblocking barrier ported from
 Java to C. 
@@ -23,6 +23,28 @@ I rely on the fact that there is only one thread writing and
 there can be any number of readers and stale reads
 don't affect correctness.
 
+Liburing HTTP server from https://github.com/shuveb/loti-examples/blob/master/webserver_liburing.c
+MIT License
+
+Copyright (c) 2020 Shuveb Hussain
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 #include <pthread.h>
 #include <netinet/in.h>
@@ -44,7 +66,7 @@ don't affect correctness.
 #define IO 2
 #define EXTERNAL 3
 
-#define DURATION 5
+#define DURATION 30
 
 #define QUEUE_DEPTH             256
 #define READ_SZ                 8192
