@@ -561,7 +561,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 99999;
+        long messages_limit = 999999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
