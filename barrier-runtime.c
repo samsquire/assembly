@@ -513,7 +513,12 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 99999999;
+  int buffer_size = 9999;
+  long messages_limit = 99999;
+  printf("Multithreaded lock free barrier parameters:\n");
+  printf("thread_count = %d\n", thread_count);
+  printf("external thread ingest buffer size = %d\n", buffer_size);
+  printf("intrathread message buffer size = %ld\n", messages_limit);
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -561,7 +566,6 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        long messages_limit = 999999;
         for (int b = 0 ; b < thread_count ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
