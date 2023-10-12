@@ -25,21 +25,62 @@ don't affect correctness.
 
 */
 #include <pthread.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 #include <liburing.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/utsname.h>
+#include <ctype.h>
+#include <sys/eventfd.h>
 #define TIMER 0
 #define WORKER 1
 #define IO 2
 #define EXTERNAL 3
 
-#define DURATION 30
-#define QUEUE_DEPTH             256
+#define DURATION 5
 
+#define QUEUE_DEPTH             256
+#define READ_SZ                 8192
+
+#define EVENT_TYPE_ACCEPT       0
+#define EVENT_TYPE_READ         1
+#define EVENT_TYPE_WRITE        2
+#define SERVER_STRING           "Server: zerohttpd/0.1\r\n"
+
+const char *unimplemented_content = \
+                                "HTTP/1.0 400 Bad Request\r\n"
+                                "Content-type: text/html\r\n"
+                                "\r\n"
+                                "<html>"
+                                "<head>"
+                                "<title>ZeroHTTPd: Unimplemented</title>"
+                                "</head>"
+                                "<body>"
+                                "<h1>Bad Request (Unimplemented)</h1>"
+                                "<p>Your client sent a request ZeroHTTPd did not understand and it is probably not your fault.</p>"
+                                "</body>"
+                                "</html>";
+
+const char *http_404_content = \
+                                "HTTP/1.0 404 Not Found\r\n"
+                                "Content-type: text/html\r\n"
+                                "\r\n"
+                                "<html>"
+                                "<head>"
+                                "<title>ZeroHTTPd: Not Found</title>"
+                                "</head>"
+                                "<body>"
+                                "<h1>Not Found (404)</h1>"
+                                "<p>Your client is asking for an object that was not found on this server.</p>"
+                                "</body>"
+                                "</html>";
 struct Buffers {
   int count; 
   struct Buffer *buffer;
@@ -47,6 +88,13 @@ struct Buffers {
 struct Buffer {
   void * data; 
   volatile int available;
+};
+
+struct Request {
+    int event_type;
+    int iovec_count;
+    int client_socket;
+    struct iovec iov[];
 };
 
 struct Mailbox {
@@ -106,6 +154,8 @@ struct KernelThread {
   volatile int running;
   struct ProtectedState *protected_state;
   struct Buffers *buffers;
+  struct io_uring *ring;
+  int _eventfd;
 };
 
 struct ProtectedState {
@@ -119,13 +169,342 @@ struct Snapshot {
   struct timespec end;
 };
 
+void fatal_error(const char *syscall) {
+    perror(syscall);
+    exit(1);
+}
+void strtolower(char *str) {
+    for (; *str; ++str)
+        *str = (char)tolower(*str);
+}
+void *zh_malloc(size_t size) {
+    void *buf = malloc(size);
+    if (!buf) {
+        fprintf(stderr, "Fatal error: unable to allocate memory.\n");
+        exit(1);
+    }
+    return buf;
+}
+const char *get_filename_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if (!dot || dot == filename)
+        return "";
+    return dot + 1;
+}
+void send_headers(const char *path, off_t len, struct iovec *iov) {
+    char small_case_path[1024];
+    char send_buffer[1024];
+    strcpy(small_case_path, path);
+    strtolower(small_case_path);
+
+    char *str = "HTTP/1.0 200 OK\r\n";
+    unsigned long slen = strlen(str);
+    iov[0].iov_base = zh_malloc(slen);
+    iov[0].iov_len = slen;
+    memcpy(iov[0].iov_base, str, slen);
+
+    slen = strlen(SERVER_STRING);
+    iov[1].iov_base = zh_malloc(slen);
+    iov[1].iov_len = slen;
+    memcpy(iov[1].iov_base, SERVER_STRING, slen);
+
+    /*
+     * Check the file extension for certain common types of files
+     * on web pages and send the appropriate content-type header.
+     * Since extensions can be mixed case like JPG, jpg or Jpg,
+     * we turn the extension into lower case before checking.
+     * */
+    const char *file_ext = get_filename_ext(small_case_path);
+    if (strcmp("jpg", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: image/jpeg\r\n");
+    if (strcmp("jpeg", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: image/jpeg\r\n");
+    if (strcmp("png", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: image/png\r\n");
+    if (strcmp("gif", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: image/gif\r\n");
+    if (strcmp("htm", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: text/html\r\n");
+    if (strcmp("html", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: text/html\r\n");
+    if (strcmp("js", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: application/javascript\r\n");
+    if (strcmp("css", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: text/css\r\n");
+    if (strcmp("txt", file_ext) == 0)
+        strcpy(send_buffer, "Content-Type: text/plain\r\n");
+    slen = strlen(send_buffer);
+    iov[2].iov_base = zh_malloc(slen);
+    iov[2].iov_len = slen;
+    memcpy(iov[2].iov_base, send_buffer, slen);
+
+    /* Send the content-length header, which is the file size in this case. */
+    sprintf(send_buffer, "content-length: %ld\r\n", len);
+    slen = strlen(send_buffer);
+    iov[3].iov_base = zh_malloc(slen);
+    iov[3].iov_len = slen;
+    memcpy(iov[3].iov_base, send_buffer, slen);
+
+    /*
+     * When the browser sees a '\r\n' sequence in a line on its own,
+     * it understands there are no more headers. Content may follow.
+     * */
+    strcpy(send_buffer, "\r\n");
+    slen = strlen(send_buffer);
+    iov[4].iov_base = zh_malloc(slen);
+    iov[4].iov_len = slen;
+    memcpy(iov[4].iov_base, send_buffer, slen);
+}
+void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
+    int fd;
+
+    char *buf = zh_malloc(file_size);
+    fd = open(file_path, O_RDONLY);
+    if (fd < 0)
+        fatal_error("read");
+
+    /* We should really check for short reads here */
+    int ret = read(fd, buf, file_size);
+    if (ret < file_size) {
+        fprintf(stderr, "Encountered a short read.\n");
+    }
+    close(fd);
+
+    iov->iov_base = buf;
+    iov->iov_len = file_size;
+}
+int add_write_request(struct Request *req, struct io_uring *ring) {
+    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+    req->event_type = EVENT_TYPE_WRITE;
+    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
+    io_uring_sqe_set_data(sqe, req);
+    io_uring_submit(ring);
+    return 0;
+}
+
+int add_read_request(int client_socket, struct io_uring *ring) {
+    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+    struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
+        
+
+    req->iov[0].iov_base = malloc(READ_SZ);
+    req->iov[0].iov_len = READ_SZ;
+    req->event_type = EVENT_TYPE_READ;
+    req->client_socket = client_socket;
+    memset(req->iov[0].iov_base, 0, READ_SZ);
+    /* Linux kernel 5.5 has support for readv, but not for recv() or read() */
+    io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
+    io_uring_sqe_set_data(sqe, req);
+    io_uring_submit(ring);
+    return 0;
+}
+void _send_static_string_content(const char *str, int client_socket, struct io_uring *ring) {
+    struct Request *req = zh_malloc(sizeof(*req) + sizeof(struct iovec));
+    unsigned long slen = strlen(str);
+    req->iovec_count = 1;
+    req->client_socket = client_socket;
+    req->iov[0].iov_base = zh_malloc(slen);
+    req->iov[0].iov_len = slen;
+    memcpy(req->iov[0].iov_base, str, slen);
+    add_write_request(req, ring);
+}
+void handle_unimplemented_method(int client_socket, struct io_uring *ring) {
+    _send_static_string_content(unimplemented_content, client_socket, ring);
+}
+void handle_http_404(int client_socket, struct io_uring *ring) {
+    _send_static_string_content(http_404_content, client_socket, ring);
+}
+
+void handle_get_method(char *path, int client_socket, struct io_uring *ring) {
+    char final_path[1024];
+
+    /*
+     If a path ends in a trailing slash, the client probably wants the index
+     file inside of that directory.
+     */
+    if (path[strlen(path) - 1] == '/') {
+        strcpy(final_path, "public");
+        strcat(final_path, path);
+        strcat(final_path, "index.html");
+    }
+    else {
+        strcpy(final_path, "public");
+        strcat(final_path, path);
+    }
+
+    /* The stat() system call will give you information about the file
+     * like type (regular file, directory, etc), size, etc. */
+    struct stat path_stat;
+    if (stat(final_path, &path_stat) == -1) {
+        printf("404 Not Found: %s (%s)\n", final_path, path);
+        handle_http_404(client_socket, ring);
+    }
+    else {
+        /* Check if this is a normal/regular file and not a directory or something else */
+        if (S_ISREG(path_stat.st_mode)) {
+            struct Request *req = zh_malloc(sizeof(*req) + (sizeof(struct iovec) * 6));
+            req->iovec_count = 6;
+            req->client_socket = client_socket;
+            send_headers(final_path, path_stat.st_size, req->iov);
+            copy_file_contents(final_path, path_stat.st_size, &req->iov[5]);
+            printf("200 %s %ld bytes\n", final_path, path_stat.st_size);
+            add_write_request(req, ring);
+        }
+        else {
+            handle_http_404(client_socket, ring);
+            printf("404 Not Found: %s\n", final_path);
+        }
+    }
+}
+
+void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
+    char *method, *path, *saveptr;
+
+    method = strtok_r(method_buffer, " ", &saveptr);
+    strtolower(method);
+    path = strtok_r(NULL, " ", &saveptr);
+
+    if (strcmp(method, "get") == 0) {
+        handle_get_method(path, client_socket, ring);
+    }
+    else {
+        handle_unimplemented_method(client_socket, ring);
+    }
+}
+
+int get_line(const char *src, char *dest, int dest_sz) {
+    for (int i = 0; i < dest_sz; i++) {
+        dest[i] = src[i];
+        if (src[i] == '\r' && src[i+1] == '\n') {
+            dest[i] = '\0';
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int handle_client_request(struct Request *req, struct io_uring *ring) {
+    char http_request[1024];
+    /* Get the first line, which will be the request */
+    if(get_line(req->iov[0].iov_base, http_request, sizeof(http_request))) {
+        fprintf(stderr, "Malformed request\n");
+        exit(1);
+    }
+    handle_http_method(http_request, req->client_socket, ring);
+    return 0;
+}
+
+int add_accept_request(int socket, struct sockaddr_in *client_addr,
+                       socklen_t *client_addr_len, struct io_uring *ring) {
+  struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+
+  io_uring_prep_accept(sqe, socket, (struct sockaddr *) client_addr,
+                       client_addr_len, 0);
+  struct Request *req = malloc(sizeof(*req));
+  req->event_type = EVENT_TYPE_ACCEPT;
+  io_uring_sqe_set_data(sqe, req);
+  io_uring_submit(ring);
+}
+
 void* io_thread(void *arg) {
+  int port = 80;
   struct KernelThread *data = arg;
-  struct io_uring ring;
+  struct io_uring ring = *data->ring;
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-  //while (data->running == 1) {
+  io_uring_register_eventfd(data->ring, 0);
+  int sock;
+  struct sockaddr_in srv_addr;
+
+  sock = socket(PF_INET, SOCK_STREAM, 0);
+  if (sock == -1)
+      fatal_error("socket()");
+
+  int enable = 1;
+  if (setsockopt(sock,
+                 SOL_SOCKET, SO_REUSEADDR,
+                 &enable, sizeof(int)) < 0)
+      fatal_error("setsockopt(SO_REUSEADDR)");
+
+
+  memset(&srv_addr, 0, sizeof(srv_addr));
+  srv_addr.sin_family = AF_INET;
+  srv_addr.sin_port = htons(port);
+  srv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  if (bind(sock,
+           (const struct sockaddr *)&srv_addr,
+           sizeof(srv_addr)) < 0)
+      fatal_error("bind()");
+
+  if (listen(sock, 10) < 0) {
+    fatal_error("listen()");
+  }
+  
+  printf("Listening on port %d\n", port);
     
-  //}
+  struct io_uring_cqe *cqe;
+  struct sockaddr_in client_addr;
+  socklen_t client_addr_len = sizeof(client_addr);
+
+  add_accept_request(sock, &client_addr, &client_addr_len, &ring);
+
+  eventfd_t dummy;
+  struct iovec *iov = calloc(1, sizeof(struct iovec));
+  iov->iov_base = zh_malloc(10);
+  iov->iov_len = 10;
+  struct io_uring_sqe *sqe= io_uring_get_sqe(&ring);
+        io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
+        io_uring_sqe_set_data(sqe, &data->_eventfd); 
+  io_uring_submit(&ring);
+  while (data->running == 1) {
+      printf("Looping server...\n"); 
+      int ret = io_uring_wait_cqe(&ring, &cqe);
+      if (cqe->user_data == 1) {
+        io_uring_cqe_seen(&ring, cqe);
+        printf("Received stop event\n");
+        break;
+      }
+      printf("Received wait finished\n");
+      struct Request *req = (struct Request *) cqe->user_data;
+      if (ret < 0)
+          fatal_error("io_uring_wait_cqe");
+      if (cqe->res < 0) {
+          fprintf(stderr, "Async request failed: %s for event: %d\n",
+                  strerror(-cqe->res), req->event_type);
+          exit(1);
+      }
+
+      switch (req->event_type) {
+          case EVENT_TYPE_ACCEPT:
+              add_accept_request(sock, &client_addr, &client_addr_len, &ring);
+              add_read_request(cqe->res, &ring);
+              free(req);
+              break;
+          case EVENT_TYPE_READ:
+              if (!cqe->res) {
+                  fprintf(stderr, "Empty request!\n");
+                  break;
+              }
+              handle_client_request(req, &ring);
+              free(req->iov[0].iov_base);
+              free(req);
+              break;
+          case EVENT_TYPE_WRITE:
+              for (int i = 0; i < req->iovec_count; i++) {
+                  free(req->iov[i].iov_base);
+              }
+              close(req->client_socket);
+              free(req);
+              break;
+      }
+      /* Mark this request as processed */
+      io_uring_cqe_seen(&ring, cqe);
+      struct io_uring_sqe *sqe= io_uring_get_sqe(&ring);
+        io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
+        io_uring_sqe_set_data(sqe, &data->_eventfd); 
+      io_uring_submit(&ring);
+    }
+  
   printf("Finished io thread\n");
   return 0;
 }
@@ -271,6 +650,10 @@ void* timer_thread(void *arg) {
     // nanosleep(&req , &rem);
     for (int x = 0 ; x < data->total_thread_count ; x++) {
       data->threads[x].running = 0;
+      if (data->threads[x].type == IO) {
+        printf("Stopping io_uring\n");
+        eventfd_write(data->threads[x]._eventfd, 1);
+      }
     }
     // forcefully deschedule all tasks
     for (int x = 0 ; x < data->thread_count ; x++) {
@@ -668,6 +1051,8 @@ int main() {
     thread_data[x].running = 1;
     thread_data[x].task_count = 0;
 
+    thread_data[x].ring = calloc(1, sizeof(struct io_uring));
+    thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
     thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].thread_index = x;
