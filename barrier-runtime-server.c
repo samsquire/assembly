@@ -5,6 +5,8 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+gcc barrier-runtime-server.c -o barrier-runtime-server -O3 -luring 
+./barrier-runtime-server
 
 Samuel Michael Squire's multithreaded barrier runtime
 from https://github.com/samsquire/assembly
@@ -178,6 +180,9 @@ struct KernelThread {
   struct Buffers *buffers;
   struct io_uring *ring;
   int _eventfd;
+  struct timespec start;
+  struct timespec end;
+  long iteration_count;
 };
 
 struct ProtectedState {
@@ -558,15 +563,21 @@ void* barriered_thread(void *arg) {
         } 
         if (arrived == 0 || arrived == data->thread_count) {
           // we can run this task
+          if (t == 0) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->start);
+          }
 
           data->tasks[t].available = 0;
-
           // printf("In thread %d %d\n", data->thread_index, t);
           data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
           //if (t == data->thread_index) {
           //  data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
           //}
           data->tasks[t].arrived++;
+          data->iteration_count++;
+          if (t == data->task_count - 1) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->end);
+          }
           asm volatile ("mfence" ::: "memory");
           // break;
         } else {
@@ -583,7 +594,7 @@ void* barriered_thread(void *arg) {
 }
 
 void* timer_thread(void *arg) {
-  long tick = 1500000L;
+  long tick = 1000000L;
   long tickseconds = 0;
   // long tick = 0L;
   long times = ((1000000000L*DURATION)/tick);
@@ -772,6 +783,7 @@ int barriered_work(volatile struct BarrierTask *data) {
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
+
     while (data->scheduled == 1) {
       data->n++;
       data->protected(&data->thread->threads[data->thread_index].tasks[data->task_index]);
@@ -798,7 +810,7 @@ int barriered_work(volatile struct BarrierTask *data) {
           for (; them->messages_count < min;) {
             data->n++;
             data->mailboxes[n].sent++;
-            them->messages[them->messages_count++] = data->message;
+            them->messages[them->messages_count++] = data->message; 
           }
         }
       }
@@ -918,8 +930,8 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 9999999;
-  long messages_limit = 99999;
+  int buffer_size = 9999;
+  long messages_limit = 9999;
   printf("Multithreaded lock free barrier parameters:\n");
   printf("thread_count = %d\n", thread_count);
   printf("external thread ingest buffer size = %d\n", buffer_size);
@@ -1119,6 +1131,12 @@ int main() {
         received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
       }
     }
+    struct timespec start = thread_data[x].start;
+    struct timespec end = thread_data[x].end;
+    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+    const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+    printf("elapsed %ld seconds (%ld ns)\n", seconds, seconds2);
+    printf("%ld iterations\n", thread_data[x].iteration_count);
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
