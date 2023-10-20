@@ -579,6 +579,11 @@ void* barriered_thread(void *arg) {
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);
           }
+          if (waiting == 1) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
+            data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
+            waiting = 3;
+          }
 
           data->tasks[t].available = 0;
           // printf("In thread %d %d\n", data->thread_index, t);
@@ -596,13 +601,8 @@ void* barriered_thread(void *arg) {
             data->task_snapshot[data->task_timestamp_count].task = t;
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
             waiting = 1;
-            if (waiting == data->task_count) {
-              waiting = 0;
-            }
           }
-          if (waiting == 1) {
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
-            data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
+          if (waiting == 3) {
             waiting = 0;
           }
           asm volatile ("mfence" ::: "memory");
@@ -815,6 +815,7 @@ int barriered_work(volatile struct BarrierTask *data) {
       data->n++;
       data->protected(&data->thread->threads[data->thread_index].tasks[data->task_index]);
     }
+  
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
     }
@@ -822,9 +823,11 @@ int barriered_work(volatile struct BarrierTask *data) {
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
   } else {
     receive(data);
+  
     while (data->scheduled == 1) {
       data->n++;
     }
+  
     if (data->sending == 1) {
         for (int n = 0 ; n < data->thread_count; n++) {
           if (n == data->thread_index) { continue; }
@@ -953,16 +956,20 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 }
 
 int main() {
-  int thread_count = 10;
+  int thread_count = 8;
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
   int buffer_size = 9999;
   long messages_limit = 9999;
-  printf("Multithreaded lock free barrier parameters:\n");
-  printf("thread_count = %d\n", thread_count);
+  printf("Multithreaded nonblocking lock free barrier runtime (https://github.com/samsquire/assembly)\n");
+  printf("\n");
+  printf("Runtime parameters:\n");
+  printf("thread count = %d\n", thread_count);
+  printf("extrenal thread count = %d\n", external_threads);
   printf("external thread ingest buffer size = %d\n", buffer_size);
   printf("intrathread message buffer size = %ld\n", messages_limit);
+  printf("\n");
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
@@ -1064,7 +1071,7 @@ int main() {
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
           if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
-            printf("Ingest thread %d\n", x);
+            // printf("Thread %d is an ingest thread\n", x);
             thread_data[x].buffers = &buffers[external_thread_index++];
             thread_data[x].tasks[y].run = barriered_work_ingest; 
           } else {
@@ -1107,6 +1114,7 @@ int main() {
   thread_data[thread_count].thread_count = thread_count;
   thread_data[thread_count].thread_index = 0;
 
+  printf("Creating scheduler thread %d\n", thread_count);
   pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
   for (int x = 0 ; x < thread_count ; x++) {
     thread_data[x].type = WORKER;
@@ -1178,7 +1186,7 @@ int main() {
       struct timespec end = thread_data[x].task_snapshot[n].task_end;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("task %d elapsed %ld seconds (%ld ns)\n", thread_data[x].task_snapshot[n].task, seconds, seconds2);
+      printf("task %d elapsed %ld seconds (%ld ns %ld ms %ldns per thread)\n", thread_data[x].task_snapshot[n].task, seconds, seconds2, seconds2 / 1000000, seconds2 / thread_count);
     }
     printf("cycles %ld\n", thread_data[x].cycles);
   }
