@@ -165,7 +165,11 @@ struct BarrierTask {
   struct Message *message;
   int next_thread;
 };
-
+struct TaskSnapshot {
+  struct timespec task_start;
+  struct timespec task_end;
+  int task;
+};
 struct KernelThread {
   int thread_index;
   int type; 
@@ -185,10 +189,10 @@ struct KernelThread {
   long iteration_count;
   long timestamp_count;
   long timestamp_limit;
-  struct timespec *task_start;
-  struct timespec *task_end;
+  struct TaskSnapshot *task_snapshot;
   long task_timestamp_count;
   long task_timestamp_limit;
+  long cycles;
 };
 
 struct ProtectedState {
@@ -546,9 +550,11 @@ void* barriered_thread(void *arg) {
   struct KernelThread *data = arg;
   // printf("In barrier task %d\n", data->thread_index);
   int t = 0;
+  int waiting = 0;
   while (data->running == 1) {
     if (t >= data->task_count) {
       t = 0;
+      data->cycles++;
     }
     // printf("%d reporting %d %d\n", data->thread_index, t, data->task_count);
     for (; t < data->task_count; t++) {
@@ -567,10 +573,6 @@ void* barriered_thread(void *arg) {
             arrived++;
           } 
         } 
-        if (arrived == data->thread_count) {
-          clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_end[data->task_timestamp_count]);
-          data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
-        }
         if (arrived == 0 || arrived == data->thread_count) {
            
           // we can run this task
@@ -590,8 +592,18 @@ void* barriered_thread(void *arg) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
             data->timestamp_count = data->timestamp_count + 1;
           }
-          if (arrived == 0) {
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_start[data->task_timestamp_count]);
+          if (waiting == 0) {
+            data->task_snapshot[data->task_timestamp_count].task = t;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
+            waiting = 1;
+            if (waiting == data->task_count) {
+              waiting = 0;
+            }
+          }
+          if (waiting == 1) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
+            data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
+            waiting = 0;
           }
           asm volatile ("mfence" ::: "memory");
           // break;
@@ -945,7 +957,7 @@ int main() {
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
-  int buffer_size = 99999;
+  int buffer_size = 9999;
   long messages_limit = 9999;
   printf("Multithreaded lock free barrier parameters:\n");
   printf("thread_count = %d\n", thread_count);
@@ -982,8 +994,7 @@ int main() {
     thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
     thread_data[x].timestamp_count = 0;
     thread_data[x].timestamp_limit = timestamp_limit;
-    thread_data[x].task_start = calloc(timestamp_limit, sizeof(struct timespec));
-    thread_data[x].task_end = calloc(timestamp_limit, sizeof(struct timespec));
+    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
     thread_data[x].task_timestamp_count = 0;
     thread_data[x].task_timestamp_limit = timestamp_limit;
 
@@ -1163,13 +1174,13 @@ int main() {
       printf("%ld iterations\n", thread_data[x].iteration_count);
     }
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
-      struct timespec start = thread_data[x].task_start[n];
-      struct timespec end = thread_data[x].task_end[n];
+      struct timespec start = thread_data[x].task_snapshot[n].task_start;
+      struct timespec end = thread_data[x].task_snapshot[n].task_end;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("task elapsed %ld seconds (%ld ns)\n", seconds, seconds2);
-
+      printf("task %d elapsed %ld seconds (%ld ns)\n", thread_data[x].task_snapshot[n].task, seconds, seconds2);
     }
+    printf("cycles %ld\n", thread_data[x].cycles);
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
