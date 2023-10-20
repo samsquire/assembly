@@ -1,6 +1,6 @@
 # multithreaded nonblocking barrier-runtime
 
-This is my (Samuel Michael Squire, sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
+This is my [Samuel Michael Squire](https://samsquire.com/), sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
 
 ```
 Total Requests 27317816286
@@ -24,6 +24,8 @@ On a Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz, 1608 Mhz, 6 Core(s), 12 Logical 
 This algorithm is inspired by [Bulk synchronous parallel](https://en.wikipedia.org/wiki/Bulk_Synchronous_Parallel).
 
 This algorithm uses ideas from my **M:N** thread scheduler, which is at [samsquire/preemptible-thread](https://github.com/samsquire/preemptible-thread).
+
+In Go, if you are sending 64 bits of data to a channel, this causes unnecessary context switches in the go scheduler.
 
 This algorithm is based on the idea there is a timeline grid of work to do and we synchronise in bulk on an interval. For the vast majority of time every thread is doing useful work, and synchronization is **total synchronization** between all threads in the cluster. Each thread has its own collection of **supersteps called BarrierTasks**. Each thread can do a different task in eachstep.
 
@@ -125,11 +127,20 @@ This barrier creates the following rhythm. The threads can arrive in any order, 
 
 ```
 
-In Go, if you are sending 64 bits of data to a channel, this causes unnecessary context switches in the go scheduler.
 
-The data races reported by Thread Sanitizer do not affect correctness but allow this algorithm to be extremely performant this is because there is a **happens before** relationship between **arrived** and writes to arrived always come from the same thread.
+I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
 
 
+# THROUGHPUT vs LATENCY
+
+LMAX Disruptor can transmit a message between threads with average latency of 53 nanoseconds.
+
+This assumes there is a thread busy spinning on a sequence number and waiting for it to become available when another thread (a producer) has written it.
+
+
+# how it works
+
+If you imagine a 2 dimensional table or grid with **workers (threads) that are rows** and **tasks that are columns**, the identity matrix is a row and column in that grid that if the task index is equal to the worker (thread) index then there is nobody else executing that: you get mutual exclusion. It is diagonal line through the grid over time.
 
 ```
 void* barriered_thread(void *arg) {
