@@ -69,6 +69,7 @@ SOFTWARE.
 #define EXTERNAL 3
 
 #define DURATION 30
+#define TICK 1000000L
 
 #define QUEUE_DEPTH             256
 #define READ_SZ                 8192
@@ -584,6 +585,14 @@ void* barriered_thread(void *arg) {
             data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
             waiting = 3;
           }
+          if (waiting == 0) {
+            data->task_snapshot[data->task_timestamp_count].task = t;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
+            waiting = 1;
+          }
+          if (waiting == 3) {
+            waiting = 0;
+          }
 
           data->tasks[t].available = 0;
           // printf("In thread %d %d\n", data->thread_index, t);
@@ -596,14 +605,6 @@ void* barriered_thread(void *arg) {
           if (t == data->task_count - 1 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
             data->timestamp_count = data->timestamp_count + 1;
-          }
-          if (waiting == 0) {
-            data->task_snapshot[data->task_timestamp_count].task = t;
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
-            waiting = 1;
-          }
-          if (waiting == 3) {
-            waiting = 0;
           }
           asm volatile ("mfence" ::: "memory");
           // break;
@@ -621,7 +622,7 @@ void* barriered_thread(void *arg) {
 }
 
 void* timer_thread(void *arg) {
-  long tick = 1000000L;
+  long tick = TICK;
   long tickseconds = 0;
   // long tick = 0L;
   long times = ((1000000000L*DURATION)/tick);
@@ -954,23 +955,28 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 
   return 0;
 }
-
 int main() {
-  int thread_count = 8;
+  int thread_count = 6;
   int timer_count = 1;
   int io_threads = 1;
-  int external_threads = 3;
+  int external_threads = 1;
   int buffer_size = 9999;
   long messages_limit = 9999;
+  int total_threads = thread_count + timer_count + io_threads + external_threads;
   printf("Multithreaded nonblocking lock free barrier runtime (https://github.com/samsquire/assembly)\n");
   printf("\n");
-  printf("Runtime parameters:\n");
-  printf("thread count = %d\n", thread_count);
-  printf("extrenal thread count = %d\n", external_threads);
+  printf("Barrier runtime parameters:\n");
+  printf("worker thread count = %d\n", thread_count);
+  printf("total threads = %d\n", total_threads);
+  printf("io threads = %d\n", io_threads);
+  printf("scheduler threads = %d\n", timer_count);
+  printf("external thread count = %d\n", external_threads);
   printf("external thread ingest buffer size = %d\n", buffer_size);
   printf("intrathread message buffer size = %ld\n", messages_limit);
-  printf("\n");
-  int total_threads = thread_count + timer_count + io_threads + external_threads;
+  printf("per thread runtime %ldns\n", TICK);
+  printf("duration %d seconds", DURATION);
+  printf("\n\n");
+
   struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
 
@@ -1070,8 +1076,8 @@ int main() {
           */
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
-            // printf("Thread %d is an ingest thread\n", x);
+          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 0)) { 
+            printf("Thread %d is an ingest thread\n", x);
             thread_data[x].buffers = &buffers[external_thread_index++];
             thread_data[x].tasks[y].run = barriered_work_ingest; 
           } else {
@@ -1186,7 +1192,8 @@ int main() {
       struct timespec end = thread_data[x].task_snapshot[n].task_end;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("task %d elapsed %ld seconds (%ld ns %ld ms %ldns per thread)\n", thread_data[x].task_snapshot[n].task, seconds, seconds2, seconds2 / 1000000, seconds2 / thread_count);
+      printf("all %d task %d synchronized in %lds %ldms %ld ns \n", thread_count, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+      printf("%ldns per thread\n", (seconds2 / thread_count));
     }
     printf("cycles %ld\n", thread_data[x].cycles);
   }

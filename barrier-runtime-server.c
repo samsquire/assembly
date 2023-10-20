@@ -926,7 +926,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 }
 
 int main() {
-  int thread_count = 10;
+  int thread_count = 4;
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 3;
