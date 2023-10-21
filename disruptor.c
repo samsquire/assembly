@@ -30,14 +30,57 @@ This disruptor C code is Zero Clause BSD licenced.
 #include <ctype.h>
 #include <sys/eventfd.h>
 
+#define READER 0
+#define WRITER 1
+
+struct Snapshot {
+  struct timespec start;
+  struct timespec end;
+};
+
 struct Thread {
   int thread_index;
-
+  struct Thread *sender;
+  struct Snapshot * data;
+  volatile int start;
+  volatile int end;
+  int mode;
+  long size;
+  volatile int running;
 };
 
 void * disruptor_thread(void * arg) {
-  struct Thread *thread = arg;
-  
+  struct Thread *data = arg;
+  if (data->mode == WRITER) {
+    while (data->running) {
+      int next = (data->end + 1);
+      if (next % data->size == data->start) {
+        //printf("Full\n"); 
+      } else {
+        // printf("Wrote\n");
+        clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
+        // data->data[data->end] = item;
+        data->end = next % data->size;
+        asm volatile ("mfence" ::: "memory");
+      } 
+    } 
+  } 
+  if (data->mode == READER) {
+    struct Thread *sender = data->sender;
+    while (data->running == 1) {
+      if (sender->end == sender->start) {
+        // printf("Empty\n"); 
+      } else {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->sender->start].end);
+        // free(data->sender->data[data->sender->start]);
+        
+        sender->start = (sender->start + 1) % sender->size;
+        asm volatile ("mfence" ::: "memory");
+      } 
+      
+    } 
+  } 
+  printf("Finished\n");
   return 0;
 }
 
@@ -48,7 +91,9 @@ int main() {
 
   */   
   int thread_count = 12;
-  int groups = thread_count / 2; 
+  long buffer_size = 2L << 28;
+  printf("Buffer size (power of 2) %ld\n", buffer_size);
+  int groups = 1; 
   struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
@@ -57,16 +102,48 @@ int main() {
     int sender = x * 2; 
     int receiver = sender + 1; 
     thread_data[sender].thread_index = sender;
+    thread_data[sender].mode = WRITER;
+    thread_data[sender].running = 1;
+    thread_data[sender].size = buffer_size;
+    thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
     thread_data[receiver].thread_index = receiver;
+    thread_data[receiver].running = 1;
+    thread_data[receiver].mode = READER;
+    thread_data[receiver].size = buffer_size;
+    thread_data[receiver].sender = &thread_data[sender];
     printf("Creating sender thread %d\n", sender);
     printf("Creating receiver thread %d\n", receiver);
   }
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
-    pthread_create(&thread[sender], &attr[thread_count], &disruptor_thread, &thread_data[sender]);
-    pthread_create(&thread[receiver], &attr[thread_count], &disruptor_thread, &thread_data[receiver]);
+    pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
+    pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
     }
+  int seconds = 5;
+  printf("Sleeping for %d seconds\n", seconds);
+  sleep(seconds);
+  for (int x = 0 ; x < groups ; x++) {
+    int sender = x * 2; 
+    int receiver = sender + 1; 
+    thread_data[sender].running = 0;
+    thread_data[receiver].running = 0;
+    void * res1;
+    void * res2;
+    pthread_join(thread[sender], res1);
+    pthread_join(thread[receiver], res2);
+  }
+  for (int x = 0 ; x < groups ; x++) {
+    int sender = x * 2; 
+    int receiver = sender + 1;
+    for (int y = 0 ; y < thread_data[sender].end ; y++) {
+    struct timespec start = thread_data[sender].data[y].start;
+    struct timespec end = thread_data[sender].data[y].end;
+    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+    const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+    printf("Read %ld %ld\n", seconds, seconds2);
+    }
+  }
 
   return 0;
 }
