@@ -14,6 +14,7 @@ from https://github.com/samsquire/assembly
 
 This disruptor C code is Zero Clause BSD licenced.
 */
+#define _GNU_SOURCE
 #include <pthread.h>
 #include <netinet/in.h>
 #include <stdlib.h>
@@ -29,6 +30,8 @@ This disruptor C code is Zero Clause BSD licenced.
 #include <sys/utsname.h>
 #include <ctype.h>
 #include <sys/eventfd.h>
+#include <math.h>
+#include <sched.h>
 
 #define READER 0
 #define WRITER 1
@@ -47,14 +50,15 @@ struct Thread {
   int mode;
   long size;
   volatile int running;
+  cpu_set_t *cpu_set;
 };
 
 void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
   if (data->mode == WRITER) {
     while (data->running) {
-      int next = (data->end + 1);
-      if (next % data->size == data->start) {
+      int next = (data->end + 1) % data->size;
+      if (next == data->start) {
         //printf("Full\n"); 
       } else {
         // printf("Wrote\n");
@@ -65,7 +69,7 @@ void * disruptor_thread(void * arg) {
       } 
     } 
   } 
-  if (data->mode == READER) {
+  else if (data->mode == READER) {
     struct Thread *sender = data->sender;
     while (data->running == 1) {
       if (sender->end == sender->start) {
@@ -73,10 +77,10 @@ void * disruptor_thread(void * arg) {
       } else {
         clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->sender->start].end);
         // free(data->sender->data[data->sender->start]);
-        
-        sender->start = (sender->start + 1) % sender->size;
-        asm volatile ("mfence" ::: "memory");
-      } 
+        int next = (sender->start + 1) % data->size;
+        sender->start = next;
+        // asm volatile ("mfence" ::: "memory");
+      }
       
     } 
   } 
@@ -90,23 +94,37 @@ int main() {
    We want a topology that allows fast forks and callbacks.
 
   */   
+
   int thread_count = 12;
-  long buffer_size = 2L << 28;
+  long buffer_size = pow(2, 20);
   printf("Buffer size (power of 2) %ld\n", buffer_size);
-  int groups = 1; 
+  int groups = 3; /* thread_count / 2 */ 
   struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
+
+
+   /* Set affinity mask to include CPUs 0 to 7. */
+
   // groups = 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
+    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
+    CPU_ZERO(sendercpu);
+    CPU_SET(sender, sendercpu);
+    cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
+    CPU_ZERO(receivercpu);
+    CPU_SET(receiver, receivercpu);
+     
     thread_data[sender].thread_index = sender;
+    thread_data[sender].cpu_set = sendercpu;
     thread_data[sender].mode = WRITER;
     thread_data[sender].running = 1;
     thread_data[sender].size = buffer_size;
     thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
     thread_data[receiver].thread_index = receiver;
+    thread_data[receiver].cpu_set = receivercpu;
     thread_data[receiver].running = 1;
     thread_data[receiver].mode = READER;
     thread_data[receiver].size = buffer_size;
@@ -117,10 +135,14 @@ int main() {
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
+
+
     pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
     pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
+    // pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
+    // pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     }
-  int seconds = 5;
+  int seconds = 10;
   printf("Sleeping for %d seconds\n", seconds);
   sleep(seconds);
   for (int x = 0 ; x < groups ; x++) {
@@ -136,7 +158,7 @@ int main() {
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1;
-    for (int y = 0 ; y < thread_data[sender].end ; y++) {
+    for (int y = 0 ; y < thread_data[sender].start ; y++) {
     struct timespec start = thread_data[sender].data[y].start;
     struct timespec end = thread_data[sender].data[y].end;
     const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
