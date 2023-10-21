@@ -79,7 +79,7 @@ void * disruptor_thread(void * arg) {
         // free(data->sender->data[data->sender->start]);
         int next = (sender->start + 1) % data->size;
         sender->start = next;
-        // asm volatile ("mfence" ::: "memory");
+        asm volatile ("mfence" ::: "memory");
       }
       
     } 
@@ -110,12 +110,17 @@ int main() {
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
+    int next = receiver + 1;
     cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(sendercpu);
     CPU_SET(sender, sendercpu);
+    CPU_SET(receiver, sendercpu);
+    CPU_SET(next, sendercpu);
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
     CPU_SET(receiver, receivercpu);
+    CPU_SET(sender, receivercpu);
+    CPU_SET(next, receivercpu);
      
     thread_data[sender].thread_index = sender;
     thread_data[sender].cpu_set = sendercpu;
@@ -139,8 +144,8 @@ int main() {
 
     pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
     pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
-    // pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
-    // pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
+    pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
+    pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     }
   int seconds = 10;
   printf("Sleeping for %d seconds\n", seconds);
@@ -158,7 +163,7 @@ int main() {
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1;
-    for (int y = 0 ; y < thread_data[sender].start ; y++) {
+    for (int y = 0 ; y < buffer_size ; y++) {
     struct timespec start = thread_data[sender].data[y].start;
     struct timespec end = thread_data[sender].data[y].end;
     const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
