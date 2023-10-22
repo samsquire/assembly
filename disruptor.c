@@ -33,12 +33,16 @@ This disruptor C code is Zero Clause BSD licenced.
 #include <math.h>
 #include <sched.h>
 
-#define READER 0
-#define WRITER 1
+#define READER 1
+#define WRITER 0
+
+#define TICKSECONDS 0
+#define TICK 150000L
 
 struct Snapshot {
   struct timespec start;
   struct timespec end;
+  volatile int complete;
 };
 
 struct Thread {
@@ -47,7 +51,7 @@ struct Thread {
   struct Snapshot * data;
   volatile int start;
   volatile int end;
-  int mode;
+  volatile int mode;
   long size;
   volatile int running;
   cpu_set_t *cpu_set;
@@ -55,31 +59,40 @@ struct Thread {
 
 void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
+  printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
   if (data->mode == WRITER) {
-    while (data->running) {
-      int next = (data->end + 1) % data->size;
-      if (next == data->start) {
-        //printf("Full\n"); 
+    while (data->running == 1) {
+      if ((data->end + 1) % data->size == data->start) {
+        // printf("Full\n"); 
+        // if (data->running == 2) { data->running = -1; }
       } else {
         // printf("Wrote\n");
         clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
+        data->data[data->end].complete = 0;
         // data->data[data->end] = item;
-        data->end = next % data->size;
+        data->end = (data->end + 1) % data->size;
         asm volatile ("mfence" ::: "memory");
       } 
     } 
   } 
   else if (data->mode == READER) {
+    struct timespec rem2;
+    struct timespec preempt = {
+      TICKSECONDS,
+      TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
       if (sender->end == sender->start) {
-        // printf("Empty\n"); 
-      } else {
-        clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->sender->start].end);
-        // free(data->sender->data[data->sender->start]);
-        int next = (sender->start + 1) % data->size;
-        sender->start = next;
         asm volatile ("mfence" ::: "memory");
+        // printf("Empty\n"); 
+        // if (data->running == 2) { data->running = -1; }
+        // nanosleep(&preempt , &rem2);
+      } else {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[sender->start].end);
+        sender->data[sender->start].complete = 1;
+        // printf("Read %d\n", data->thread_index);
+        // free(data->sender->data[data->sender->start]);
+        sender->start = (sender->start + 1) % data->size;
       }
       
     } 
@@ -96,31 +109,34 @@ int main() {
   */   
 
   int thread_count = 12;
-  long buffer_size = pow(2, 20);
+  long buffer_size = pow(2, 12);
   printf("Buffer size (power of 2) %ld\n", buffer_size);
   int groups = 3; /* thread_count / 2 */ 
-  struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
-  pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
-  pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
+  struct Thread *thread_data = calloc(groups * 2, sizeof(struct Thread)); 
+  pthread_attr_t      *attr = calloc(groups * 2, sizeof(pthread_attr_t));
+  pthread_t *thread = calloc(groups * 2, sizeof(pthread_t));
 
 
    /* Set affinity mask to include CPUs 0 to 7. */
-
-  // groups = 6
+  int cores = 6;
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
+    int corestart = x * 3; 
+    int coreend = corestart + 3; 
     int receiver = sender + 1; 
-    int next = receiver + 1;
+    printf("%d is linked to %d\n", receiver, sender);
     cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(sendercpu);
-    CPU_SET(sender, sendercpu);
-    CPU_SET(receiver, sendercpu);
-    CPU_SET(next, sendercpu);
+    for (int j = 0 ; j < cores; j++) {
+      printf("assigning sender %d to core %d\n", sender, j);
+      CPU_SET(j, sendercpu);
+    }
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
-    CPU_SET(receiver, receivercpu);
-    CPU_SET(sender, receivercpu);
-    CPU_SET(next, receivercpu);
+    for (int j = 0 ; j < cores ; j++) {
+      printf("assigning receiver %d to core %d\n", receiver, j);
+      CPU_SET(j, receivercpu);
+    }
      
     thread_data[sender].thread_index = sender;
     thread_data[sender].cpu_set = sendercpu;
@@ -128,6 +144,7 @@ int main() {
     thread_data[sender].running = 1;
     thread_data[sender].size = buffer_size;
     thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
+    printf("Created data for %d\n", sender);
     thread_data[receiver].thread_index = receiver;
     thread_data[receiver].cpu_set = receivercpu;
     thread_data[receiver].running = 1;
@@ -136,40 +153,63 @@ int main() {
     thread_data[receiver].sender = &thread_data[sender];
     printf("Creating sender thread %d\n", sender);
     printf("Creating receiver thread %d\n", receiver);
+    asm volatile ("mfence" ::: "memory");
   }
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
-
-
-    pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
+    
     pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
-    pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
-    pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
+    pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
+    // pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
+    //pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
+    struct timespec rem2;
+    struct timespec preempt = {
+      0,
+      TICK };
+    // printf("Waiting before starting next disruptor %ld ns\n", TICK);
+    // nanosleep(&preempt , &rem2);
     }
   int seconds = 10;
+  struct timespec rem2;
+  struct timespec preempt = {
+    seconds,
+    0 };
   printf("Sleeping for %d seconds\n", seconds);
-  sleep(seconds);
+  nanosleep(&preempt , &rem2);
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1; 
     thread_data[sender].running = 0;
     thread_data[receiver].running = 0;
+  }
+  for (int x = 0 ; x < groups ; x++) {
     void * res1;
     void * res2;
+    int sender = x * 2; 
+    int receiver = sender + 1; 
     pthread_join(thread[sender], res1);
     pthread_join(thread[receiver], res2);
   }
+  
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 2; 
     int receiver = sender + 1;
-    for (int y = 0 ; y < buffer_size ; y++) {
-    struct timespec start = thread_data[sender].data[y].start;
-    struct timespec end = thread_data[sender].data[y].end;
-    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-    const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-    printf("Read %ld %ld\n", seconds, seconds2);
+    int incompletes = 0;
+    printf("Inspecting sender %d\n", sender);
+    printf("%d %d\n", thread_data[sender].start, thread_data[sender].end);
+    for (int y = 0 ; y < buffer_size; y++) {
+      if (thread_data[sender].data[y].complete == 1) {
+        struct timespec start = thread_data[sender].data[y].start;
+        struct timespec end = thread_data[sender].data[y].end;
+        const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+        const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+        printf("rb %d Read %ld %ld\n", sender, seconds, seconds2);
+      } else {
+        incompletes++;
+      }
     }
+    printf("Incompletes %d\n", incompletes);
   }
 
   return 0;
