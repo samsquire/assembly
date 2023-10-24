@@ -140,7 +140,7 @@ int main() {
 
 
    /* Set affinity mask to include CPUs 0 to 7. */
-  int cores = 6;
+  int cores = 12;
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 3; 
