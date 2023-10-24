@@ -129,9 +129,9 @@ void * disruptor_thread(void * arg) {
   /* This creates a 10ms/30ms reservation */
   attr.sched_policy = SCHED_DEADLINE;
   
-  attr.sched_runtime = 100L * 1000L * 1000L;
-  attr.sched_period = 10L * 1000 * 1000 * 100;
-  attr.sched_deadline = 100L * 1000 * 1000;
+  attr.sched_runtime = 500L * 1000L * 1000L;
+  attr.sched_period = 1000 * 1000 * 1000;
+  attr.sched_deadline = 601 * 1000 * 1000;
   int x = 0;
   int ret;
   unsigned int flags = 0;
@@ -216,7 +216,7 @@ int main() {
 
   */   
 
-  long buffer_size = pow(2, 9);
+  long buffer_size = pow(2, 18);
   printf("Buffer size (power of 2) %ld\n", buffer_size);
   int groups = 2; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
@@ -280,7 +280,7 @@ int main() {
 
   struct sched_param param2;
   struct sched_param param;
-  param.sched_priority = 90;
+  param.sched_priority = 49;
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 3; 
     int receiver = sender + 1; 
@@ -288,7 +288,7 @@ int main() {
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
       printf("Creating receiver thread %d\n", j);
       
-      int ret = pthread_attr_setschedpolicy(&attr[j], SCHED_FIFO);
+      int ret = pthread_attr_setschedpolicy(&attr[j], SCHED_RR);
       if (ret) {
                printf("pthread setschedpolicy failed\n");
                exit(1);
@@ -303,12 +303,12 @@ int main() {
       pthread_setaffinity_np(thread[j], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     }
       
-      int ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_FIFO);
+      int ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_RR);
       if (ret) {
                printf("pthread setschedpolicy failed\n");
                exit(1);
       }
-      param2.sched_priority = 90;
+      param2.sched_priority = 49;
       ret = pthread_attr_setschedparam(&attr[sender], &param2);
       if (ret) {
               printf("pthread setschedparam failed\n");
@@ -355,19 +355,30 @@ int main() {
     int incompletes = 0;
     printf("Inspecting sender %d\n", sender);
     for (int y = 0 ; y < buffer_size; y++) {
+      int compcount = 0;
       for (int n = 0 ; n < readers_count ; n++) {
-        if (thread_data[sender].data[y].complete[n] == 1) {
-          // printf("start and end %d %d\n", thread_data[sender + n].start, thread_data[sender].end);
-          struct timespec start = thread_data[sender].data[y].start;
-          struct timespec end = thread_data[sender].data[y].end[n];
-          const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-          const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-          printf("rb %d %d Read %ld %ld\n", sender, n, seconds, seconds2);
-        } else {
-          incompletes++;
-        }
+	  if (thread_data[sender].data[y].complete[n] == 1) {
+	    compcount++;
+	  }
+
       }
+        if (compcount == readers_count) {
+	  for (int n = 0 ; n < readers_count ; n++) {
+
+	    if (thread_data[sender].data[y].complete[n] == 1) {
+	      // printf("start and end %d %d\n", thread_data[sender + n].start, thread_data[sender].end);
+	      struct timespec start = thread_data[sender].data[y].start;
+	      struct timespec end = thread_data[sender].data[y].end[n];
+	      const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+	      const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+	      printf("rb %d %d Read %ld %ld\n", sender, n, seconds, seconds2);
+	    } else {
+	      incompletes++;
+	    }
+	  }
+	}
     }
+
     printf("Incompletes %d\n", incompletes);
   }
 
