@@ -66,14 +66,19 @@ void * disruptor_thread(void * arg) {
   if (data->mode == WRITER) {
     int anyfull = 0;
     while (data->running == 1) {
+      asm volatile ("mfence" ::: "memory");
       anyfull = 0;
+      int next = (data->end + 1) % data->size;
       for (int x  = 0 ; x < data->readers_count; x++) {
-        if ((data->end + 1) % data->size == data->readers[x]->start) {
+        if (next == data->readers[x]->start) {
           anyfull = 1;
+          // printf("waiting for %d\n", x);
+          break;
           // if (data->running == 2) { data->running = -1; }
         } else {
         } 
       }
+
       if (anyfull == 0) {
         // printf("Wrote\n");
         clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
@@ -82,7 +87,8 @@ void * disruptor_thread(void * arg) {
         }
         // data->data[data->end] = item;
         data->end = (data->end + 1) % data->size;
-        asm volatile ("mfence" ::: "memory");
+      } else {
+        continue;
       }
     } 
   } 
@@ -93,8 +99,9 @@ void * disruptor_thread(void * arg) {
       TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
+      asm volatile ("mfence" ::: "memory");
+      // asm volatile ("sfence" ::: "memory");
       if (sender->end == data->start) {
-        asm volatile ("mfence" ::: "memory");
         // printf("Empty\n"); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
@@ -122,8 +129,11 @@ int main() {
   long buffer_size = pow(2, 12);
   printf("Buffer size (power of 2) %ld\n", buffer_size);
   int groups = 3; /* thread_count / 2 */ 
+  printf("Group count %d\n", groups);
   int readers_count = 2;
+  printf("Readers count %d\n", readers_count);
   int thread_count = groups * (readers_count + 1);
+  printf("Total thread count %d\n", thread_count);
   struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
@@ -136,17 +146,16 @@ int main() {
     int sender = x * 3; 
     int receiver = sender + 1; 
     int receiver2 = receiver + 1; 
-    printf("%d is linked to %d\n", receiver, sender);
     cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(sendercpu);
     for (int j = 0 ; j < cores; j++) {
-      printf("assigning sender %d to core %d\n", sender, j);
+      // printf("assigning sender %d to core %d\n", sender, j);
       CPU_SET(j, sendercpu);
     }
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
     for (int j = 0 ; j < cores ; j++) {
-      printf("assigning receiver %d to core %d\n", receiver, j);
+      // printf("assigning receiver %d to core %d\n", receiver, j);
       CPU_SET(j, receivercpu);
     }
      
@@ -162,10 +171,8 @@ int main() {
       thread_data[sender].data[n].complete = calloc(readers_count, sizeof(int));
     }
     thread_data[sender].readers_count = readers_count;
-    printf("Created data for %d\n", sender);
-    printf("Range %d\n", sender + readers_count);
+    // printf("Created data for %d\n", sender);
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
-      printf("Creating receiver %d\n", j);
       thread_data[j].thread_index = j;
       thread_data[j].reader_index = receiver_index;
       thread_data[j].cpu_set = receivercpu;
@@ -179,17 +186,45 @@ int main() {
     printf("Creating sender thread %d\n", sender);
     asm volatile ("mfence" ::: "memory");
   }
+
+  struct sched_param param2;
+  struct sched_param param;
+  param.sched_priority = 99;
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * 3; 
     int receiver = sender + 1; 
     
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
       printf("Creating receiver thread %d\n", j);
+      
+      int ret = pthread_attr_setschedpolicy(&attr[j], SCHED_FIFO);
+      if (ret) {
+               printf("pthread setschedpolicy failed\n");
+               exit(1);
+      }
+      ret = pthread_attr_setschedparam(&attr[j], &param);
+      if (ret) {
+              printf("pthread setschedparam failed\n");
+              exit(1);
+      }
+      
       pthread_create(&thread[j], &attr[j], &disruptor_thread, &thread_data[j]);
+      pthread_setaffinity_np(thread[j], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     }
+      
+      int ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_FIFO);
+      if (ret) {
+               printf("pthread setschedpolicy failed\n");
+               exit(1);
+      }
+      param2.sched_priority = 99;
+      ret = pthread_attr_setschedparam(&attr[sender], &param2);
+      if (ret) {
+              printf("pthread setschedparam failed\n");
+              exit(1);
+      }
     pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
-    // pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
-    //pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
+    pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
     struct timespec rem2;
     struct timespec preempt = {
       0,
@@ -228,10 +263,10 @@ int main() {
     int receiver = sender + 1;
     int incompletes = 0;
     printf("Inspecting sender %d\n", sender);
-    printf("start and end %d %d\n", thread_data[sender].start, thread_data[sender].end);
     for (int y = 0 ; y < buffer_size; y++) {
       for (int n = 0 ; n < readers_count ; n++) {
         if (thread_data[sender].data[y].complete[n] == 1) {
+          // printf("start and end %d %d\n", thread_data[sender + n].start, thread_data[sender].end);
           struct timespec start = thread_data[sender].data[y].start;
           struct timespec end = thread_data[sender].data[y].end[n];
           const uint64_t seconds = (end.tv_sec) - (start.tv_sec);

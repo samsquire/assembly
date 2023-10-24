@@ -111,7 +111,8 @@ int main() {
   int thread_count = 12;
   long buffer_size = pow(2, 12);
   printf("Buffer size (power of 2) %ld\n", buffer_size);
-  int groups = 3; /* thread_count / 2 */ 
+  int groups = 1; /* thread_count / 2 */ 
+  printf("Group count %d\n", groups);
   struct Thread *thread_data = calloc(groups * 2, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(groups * 2, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(groups * 2, sizeof(pthread_t));
@@ -160,7 +161,18 @@ int main() {
     int receiver = sender + 1; 
     
     pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
+    int ret = pthread_attr_setschedpolicy(&attr[receiver], SCHED_RR);
+    if (ret) {
+            printf("pthread setschedpolicy failed\n");
+            exit(1);
+    }
     pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
+    ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_RR);
+    if (ret) {
+            printf("pthread setschedpolicy failed\n");
+            exit(1);
+    }
+    printf("set scheduling\n");
     // pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
     //pthread_setaffinity_np(thread[receiver], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     struct timespec rem2;
