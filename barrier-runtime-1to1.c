@@ -1026,7 +1026,6 @@ int main() {
       thread_data[x].threads = thread_data;
       thread_data[x].thread_count = thread_count;
     }
-    printf("%d is in thread group %d", )
     thread_data[x].total_thread_count = total_threads;
     // thread_data[x].thread_index = current_thread;
     thread_data[x].task_count = total_barrier_count;
