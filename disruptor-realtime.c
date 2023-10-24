@@ -129,7 +129,7 @@ void * disruptor_thread(void * arg) {
   /* This creates a 10ms/30ms reservation */
   attr.sched_policy = SCHED_DEADLINE;
   
-  attr.sched_runtime = 500L * 1000L * 1000L;
+  attr.sched_runtime = 200L * 1000L * 1000L;
   attr.sched_period = 1000 * 1000 * 1000;
   attr.sched_deadline = 601 * 1000 * 1000;
   int x = 0;
