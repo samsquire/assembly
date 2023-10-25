@@ -74,8 +74,9 @@ void * disruptor_thread(void * arg) {
     int anyfull = 0;
     int next = (data->end + 1) % data->size;
     while (data->running == 1) {
+      asm volatile ("sfence" ::: "memory");
       anyfull = 0;
-      asm volatile ("mfence" ::: "memory");
+      // asm volatile ("mfence" ::: "memory");
       for (int x  = 0 ; x < data->readers_count; x++) {
         if (next == data->readers[x]->start) {
           anyfull = 1;
@@ -102,12 +103,12 @@ void * disruptor_thread(void * arg) {
   else if (data->mode == READER) {
     struct timespec rem2;
     struct timespec preempt = {
-      TICKSECONDS,
+      0,
       TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
+      asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
-      // asm volatile ("sfence" ::: "memory");
       if (sender->end == data->start) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
@@ -119,7 +120,6 @@ void * disruptor_thread(void * arg) {
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
         data->start = (data->start + 1) % data->size;
-        asm volatile ("mfence" ::: "memory");
       }
       
     } 
@@ -135,9 +135,10 @@ int main() {
 
   */   
 
-  long buffer_size = pow(2, 12);
-  printf("Buffer size (power of 2) %ld\n", buffer_size);
-  int groups = 3; /* thread_count / 2 */ 
+  int power = 12;
+  long buffer_size = pow(2, power);
+  printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
+  int groups = 2; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 1;
   int readers_count = 2;
@@ -150,7 +151,7 @@ int main() {
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
 
    /* Set affinity mask to include CPUs 0 to 7. */
-  int cores = 12;
+  int cores = 6;
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
@@ -290,16 +291,12 @@ int main() {
       }
       if (compcount == readers_count) {
         for (int n = 0 ; n < readers_count ; n++) {
-          if (thread_data[sender].data[y].complete[n] == 1) {
             // printf("start and end %d %d\n", thread_data[sender + n].start, thread_data[sender].end);
             struct timespec start = thread_data[sender].data[y].start;
             struct timespec end = thread_data[sender].data[y].end[n];
             const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
             const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
             printf("rb %d %d Read %ld %ld\n", sender, n, seconds, seconds2);
-          } else {
-            incompletes++;
-          }
         }
       }
     }
