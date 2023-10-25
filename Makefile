@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-I. -O3 -luring
+CFLAGS=-O3 -luring
 DEPS = 
 CFILES=$(wildcard *.c)
 OBJ=$(patsubst %.c,%,$(CFILES))
 all: $(OBJ)
 %: %.c 
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -o $@ $< $(CFLAGS)
 
 default: $(OBJ)
 	echo $(CFILES); echo $(OBJ) \;
