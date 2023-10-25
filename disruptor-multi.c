@@ -63,15 +63,23 @@ struct Thread {
 void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
   printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
+
+  int ret = setpriority(PRIO_PROCESS, 0, -20);
+  if (ret) {
+    perror("priority set");
+    exit(1);
+  }
+
   if (data->mode == WRITER) {
     int anyfull = 0;
+    int next = (data->end + 1) % data->size;
     while (data->running == 1) {
       anyfull = 0;
-      int next = (data->end + 1) % data->size;
+      asm volatile ("mfence" ::: "memory");
       for (int x  = 0 ; x < data->readers_count; x++) {
         if (next == data->readers[x]->start) {
           anyfull = 1;
-          // printf("waiting for %d\n", x);
+          // printf("waiting for %d %d == %d\n", data->readers[x]->thread_index, next, data->readers[x]->start);
           break;
           // if (data->running == 2) { data->running = -1; }
         } else {
@@ -79,16 +87,15 @@ void * disruptor_thread(void * arg) {
       }
 
       if (anyfull == 0) {
-        // printf("Wrote\n");
+        // printf("Wrote %d\n", data->end);
         clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
         for (int n = 0 ; n < data->readers_count ; n++) { 
           data->data[data->end].complete[n] = 0;
         }
         // data->data[data->end] = item;
         data->end = (data->end + 1) % data->size;
-        asm volatile ("mfence" ::: "memory");
+        next = (data->end + 1) % data->size;
       } else {
-        continue;
       }
     } 
   } 
@@ -99,12 +106,14 @@ void * disruptor_thread(void * arg) {
       TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
+      // printf("reading %d\n", data->thread_index); 
       // asm volatile ("sfence" ::: "memory");
       if (sender->end == data->start) {
-        // printf("Empty\n"); 
+        // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
       } else {
+        // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
         clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->start].end[data->reader_index]);
         sender->data[data->start].complete[data->reader_index] = 1;
         // printf("Read %d\n", data->thread_index);
@@ -165,6 +174,7 @@ int main() {
     thread_data[sender].mode = WRITER;
     thread_data[sender].running = 1;
     thread_data[sender].size = buffer_size;
+    thread_data[sender].end = 0;
     thread_data[sender].readers = calloc(readers_count, sizeof(struct Thread*));
     thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
     for (int n = 0 ; n < buffer_size ; n++) {
@@ -181,6 +191,7 @@ int main() {
       thread_data[j].mode = READER;
       thread_data[j].size = buffer_size;
       thread_data[j].sender = &thread_data[sender];
+      thread_data[j].start = 0;
       thread_data[sender].readers[receiver_index] = &thread_data[j];
       printf("Setting up receiver thread %d %d to sender %d\n", j, receiver_index, sender);
     }
@@ -238,7 +249,7 @@ int main() {
     // printf("Waiting before starting next disruptor %ld ns\n", TICK);
     // nanosleep(&preempt , &rem2);
     }
-  int seconds = 5;
+  int seconds = 10;
   struct timespec rem2;
   struct timespec preempt = {
     seconds,
