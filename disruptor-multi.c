@@ -66,7 +66,6 @@ void * disruptor_thread(void * arg) {
   if (data->mode == WRITER) {
     int anyfull = 0;
     while (data->running == 1) {
-      asm volatile ("mfence" ::: "memory");
       anyfull = 0;
       int next = (data->end + 1) % data->size;
       for (int x  = 0 ; x < data->readers_count; x++) {
@@ -87,6 +86,7 @@ void * disruptor_thread(void * arg) {
         }
         // data->data[data->end] = item;
         data->end = (data->end + 1) % data->size;
+        asm volatile ("mfence" ::: "memory");
       } else {
         continue;
       }
@@ -99,7 +99,6 @@ void * disruptor_thread(void * arg) {
       TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
-      asm volatile ("mfence" ::: "memory");
       // asm volatile ("sfence" ::: "memory");
       if (sender->end == data->start) {
         // printf("Empty\n"); 
@@ -111,6 +110,7 @@ void * disruptor_thread(void * arg) {
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
         data->start = (data->start + 1) % data->size;
+        asm volatile ("mfence" ::: "memory");
       }
       
     } 
@@ -130,7 +130,9 @@ int main() {
   printf("Buffer size (power of 2) %ld\n", buffer_size);
   int groups = 3; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
+  int writers_count = 1;
   int readers_count = 2;
+  int group_size = writers_count + readers_count;
   printf("Readers count %d\n", readers_count);
   int thread_count = groups * (readers_count + 1);
   printf("Total thread count %d\n", thread_count);
@@ -138,17 +140,11 @@ int main() {
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
 
-  int ret = setpriority(PRIO_PROCESS, 0, -20);
-  if (ret) {
-    perror("priority set"); 
-    exit(1);
-  }
-
    /* Set affinity mask to include CPUs 0 to 7. */
   int cores = 12;
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 3; 
+    int sender = x * group_size; 
     int receiver = sender + 1; 
     int receiver2 = receiver + 1; 
     cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
@@ -186,7 +182,7 @@ int main() {
       thread_data[j].size = buffer_size;
       thread_data[j].sender = &thread_data[sender];
       thread_data[sender].readers[receiver_index] = &thread_data[j];
-      printf("Setting up receiver thread %d %d\n", j, receiver_index);
+      printf("Setting up receiver thread %d %d to sender %d\n", j, receiver_index, sender);
     }
     printf("Creating sender thread %d\n", sender);
     asm volatile ("mfence" ::: "memory");
@@ -196,13 +192,15 @@ int main() {
   struct sched_param param;
   param.sched_priority = 0;
   for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 3; 
+    int sender = x * group_size; 
     int receiver = sender + 1; 
     
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
       printf("Creating receiver thread %d\n", j);
       
-      int ret = pthread_attr_setschedpolicy(&attr[j], SCHED_OTHER);
+      int ret;
+      
+      ret = pthread_attr_setschedpolicy(&attr[j], SCHED_OTHER);
       if (ret) {
                printf("pthread setschedpolicy failed\n");
                exit(1);
@@ -212,12 +210,14 @@ int main() {
               printf("pthread setschedparam failed\n");
               exit(1);
       }
-      
+       
       pthread_create(&thread[j], &attr[j], &disruptor_thread, &thread_data[j]);
       pthread_setaffinity_np(thread[j], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
     }
       
-      int ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_OTHER);
+      int ret;
+      
+      ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_OTHER);
       if (ret) {
                printf("pthread setschedpolicy failed\n");
                exit(1);
@@ -228,6 +228,7 @@ int main() {
               printf("pthread setschedparam failed\n");
               exit(1);
       }
+      
     pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
     pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
     struct timespec rem2;
@@ -237,7 +238,7 @@ int main() {
     // printf("Waiting before starting next disruptor %ld ns\n", TICK);
     // nanosleep(&preempt , &rem2);
     }
-  int seconds = 10;
+  int seconds = 5;
   struct timespec rem2;
   struct timespec preempt = {
     seconds,
@@ -245,7 +246,7 @@ int main() {
   printf("Sleeping for %d seconds\n", seconds);
   nanosleep(&preempt , &rem2);
   for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 3; 
+    int sender = x * group_size; 
     int receiver = sender + 1; 
     thread_data[sender].running = 0;
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
@@ -255,7 +256,7 @@ int main() {
   for (int x = 0 ; x < groups ; x++) {
     void * res1;
     void * res2;
-    int sender = x * 3; 
+    int sender = x * group_size; 
     int receiver = sender + 1; 
     pthread_join(thread[sender], res1);
     for (int j = receiver, receiver_index = 0; j < sender + readers_count + 1; j++, receiver_index++) {
@@ -264,7 +265,7 @@ int main() {
   }
   
   for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 3; 
+    int sender = x * group_size; 
     int receiver = sender + 1;
     int incompletes = 0;
     printf("Inspecting sender %d\n", sender);
