@@ -60,24 +60,24 @@ struct Thread {
   int reader_index;
 };
 
+int min(long a, long b) {
+  if (a < b) return a;
+  if (b < a) return b;
+  return a;
+}
+
 void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
   printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
-
-  int ret = setpriority(PRIO_PROCESS, 0, -20);
-  if (ret) {
-    perror("priority set");
-    exit(1);
-  }
-
+  int mina = data->size;
   if (data->mode == WRITER) {
     int anyfull = 0;
-    int next = (data->end + 1) % data->size;
     while (data->running == 1) {
-      asm volatile ("sfence" ::: "memory");
       anyfull = 0;
+      int next = (data->end + 1) % data->size;
       // asm volatile ("mfence" ::: "memory");
       for (int x  = 0 ; x < data->readers_count; x++) {
+        mina = min(mina, data->readers[x]->start);
         if (next == data->readers[x]->start) {
           anyfull = 1;
           // printf("waiting for %d %d == %d\n", data->readers[x]->thread_index, next, data->readers[x]->start);
@@ -89,13 +89,14 @@ void * disruptor_thread(void * arg) {
 
       if (anyfull == 0) {
         // printf("Wrote %d\n", data->end);
-        clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
-        for (int n = 0 ; n < data->readers_count ; n++) { 
-          data->data[data->end].complete[n] = 0;
-        }
-        // data->data[data->end] = item;
-        data->end = (data->end + 1) % data->size;
-        next = (data->end + 1) % data->size;
+          clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
+          for (int n = 0 ; n < data->readers_count ; n++) { 
+            data->data[data->end].complete[n] = 0;
+          }
+          // data->data[data->end] = item;
+          data->end = (data->end + 1) % data->size;
+          asm volatile ("mfence" ::: "memory");
+      
       } else {
       }
     } 
@@ -107,7 +108,6 @@ void * disruptor_thread(void * arg) {
       TICK };
     struct Thread *sender = data->sender;
     while (data->running == 1) {
-      asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
       if (sender->end == data->start) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
@@ -120,6 +120,7 @@ void * disruptor_thread(void * arg) {
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
         data->start = (data->start + 1) % data->size;
+        asm volatile ("mfence" ::: "memory");
       }
       
     } 
@@ -135,23 +136,24 @@ int main() {
 
   */   
 
-  int power = 12;
+  int power = 20;
   long buffer_size = pow(2, power);
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
-  int groups = 2; /* thread_count / 2 */ 
+  int groups = 3; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 1;
   int readers_count = 2;
   int group_size = writers_count + readers_count;
   printf("Readers count %d\n", readers_count);
-  int thread_count = groups * (readers_count + 1);
+  int thread_count = groups * (readers_count + writers_count);
   printf("Total thread count %d\n", thread_count);
   struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
 
    /* Set affinity mask to include CPUs 0 to 7. */
-  int cores = 6;
+  int cores = 12;
+
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
@@ -159,13 +161,13 @@ int main() {
     int receiver2 = receiver + 1; 
     cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(sendercpu);
-    for (int j = 0 ; j < cores; j++) {
+    for (int j = 0 ; j < cores ; j++) {
       // printf("assigning sender %d to core %d\n", sender, j);
       CPU_SET(j, sendercpu);
     }
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
-    for (int j = 0 ; j < cores ; j++) {
+    for (int j = 0; j < cores ; j++) {
       // printf("assigning receiver %d to core %d\n", receiver, j);
       CPU_SET(j, receivercpu);
     }
