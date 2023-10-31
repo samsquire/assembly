@@ -48,9 +48,9 @@ struct Snapshot {
 struct Thread {
   int thread_index;
   struct Thread *sender;
-  struct Snapshot * data;
-  volatile int start;
-  volatile int end;
+  struct Snapshot * data __attribute__((aligned (64)));
+  volatile int start __attribute__((aligned (64)));
+  volatile int end __attribute__((aligned (64)));
   volatile int mode;
   long size;
   volatile int running;
@@ -77,7 +77,7 @@ void * disruptor_thread(void * arg) {
       int next = (data->end + 1) % data->size;
       // asm volatile ("mfence" ::: "memory");
       for (int x  = 0 ; x < data->readers_count; x++) {
-        mina = min(mina, data->readers[x]->start);
+        // mina = min(mina, data->readers[x]->start);
         if (next == data->readers[x]->start) {
           anyfull = 1;
           // printf("waiting for %d %d == %d\n", data->readers[x]->thread_index, next, data->readers[x]->start);
@@ -110,6 +110,7 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       // printf("reading %d\n", data->thread_index); 
       if (sender->end == data->start) {
+        asm volatile ("sfence" ::: "memory");
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
@@ -120,7 +121,6 @@ void * disruptor_thread(void * arg) {
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
         data->start = (data->start + 1) % data->size;
-        asm volatile ("sfence" ::: "memory");
       }
       
     } 
