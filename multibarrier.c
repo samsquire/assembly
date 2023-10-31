@@ -123,8 +123,8 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower __attribute__((aligned (64)));
-  void *higher __attribute__((aligned (64)));
+  void *lower __attribute__((aligned (8)));
+  void *higher __attribute__((aligned (8)));
   long sent;
   long received;
 };
@@ -144,7 +144,7 @@ struct Message {
 struct BarrierTask {
   int task_index;
   int rerunnable;
-  volatile int arrived; 
+  volatile int arrived __attribute__((aligned (64))); 
   long n; 
   long v; 
   int (*run)(volatile struct BarrierTask*);
