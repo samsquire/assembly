@@ -173,6 +173,7 @@ struct TaskSnapshot {
 };
 struct KernelThread {
   int thread_index;
+  volatile int real_thread_index;
   int type; 
   int preempt_interval;
   struct KernelThread **threads;
@@ -551,6 +552,7 @@ void* io_thread(void *arg) {
 void* barriered_thread(void *arg) {
   struct KernelThread *data = arg;
   // printf("In barrier task %d\n", data->thread_index);
+  // printf("TASK POINTER %p\n", data->threads[data->thread_index]->tasks);
   int t = 0;
   int waiting = 0;
   while (data->running == 1) {
@@ -596,7 +598,9 @@ void* barriered_thread(void *arg) {
           }
 
           data->tasks[t].available = 0;
-          // printf("In thread %d %d\n", data->thread_index, t);
+          // printf("In thread %d %d %d\n", data->thread_index, data->real_thread_index, t);
+          // printf("TASK POINTER %p\n", data->threads[data->thread_index]->tasks);
+          // printf("resolve %p %p %p my %d real %d task %d\n", &data->threads[data->thread_index], data->threads[data->thread_index]->tasks, &data->tasks, data->thread_index, data->real_thread_index, t);
           data->tasks[t].run(&data->threads[data->thread_index]->tasks[t]);
           //if (t == data->thread_index) {
           //  data->tasks[t].protected(&data->threads[data->thread_index]->tasks[t]);
@@ -815,6 +819,7 @@ int barriered_work(volatile struct BarrierTask *data) {
 
     while (data->scheduled == 1) {
       data->n++;
+      // printf("%p\n", data->protected);
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
     }
   
@@ -978,7 +983,8 @@ int main() {
   printf("duration %d seconds", DURATION);
   printf("\n\n");
 
-  struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
+
+  struct ProtectedState *protected_state = calloc(thread_count, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
 
   int barrier_count = 2;
@@ -1001,25 +1007,27 @@ int main() {
     struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
     int other = -1;
     if (x % 2 == 1) {
-      other = abs(x - 1) % thread_count;
+      other = abs(x - 1) % total_threads;
+      thread_data[x].thread_index = 1;
       my_thread_data[0] = &thread_data[other]; 
       my_thread_data[1] = &thread_data[x]; 
+      printf("odd %d %p %p\n", x, my_thread_data[0], my_thread_data[1]);
+      thread_data[x].protected_state = &protected_state[other];
     } else {
-      other = (x + 1) % thread_count;
+      thread_data[x].thread_index = 0;
+      other = (x + 1) % total_threads;
       my_thread_data[0] = &thread_data[x]; 
       my_thread_data[1] = &thread_data[other]; 
+      printf("even %d %p %p\n", x, my_thread_data[0], my_thread_data[1]);
+      thread_data[x].protected_state = &protected_state[x];
     }
-    printf("i am %d, other is %d\n", x, other);
+    printf("i am %d, other is %d my thread index is %d\n", x, other, thread_data[x].thread_index);
+    thread_data[x].real_thread_index = x;
     thread_data[x].threads = my_thread_data;
+    printf("settings threads %d\n", x);
     thread_data[x].thread_count = 2;
     thread_data[x].total_thread_count = total_threads;
-    if (x % 2 == 0) {
-      thread_data[x].thread_index = 0;
-    } else {
-      thread_data[x].thread_index = 1;
-    }
     thread_data[x].task_count = total_barrier_count;
-    thread_data[x].protected_state = protected_state;
     thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
     thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
     thread_data[x].timestamp_count = 0;
@@ -1041,7 +1049,7 @@ int main() {
               s         x
               k           x
         */
-            thread_data[x].tasks[y].protected = do_protected_write; 
+        thread_data[x].tasks[y].protected = do_protected_write; 
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
@@ -1101,6 +1109,7 @@ int main() {
           }
         }
       }
+      thread_data[x].tasks[barrier_count].protected = do_protected_write; 
       thread_data[x].tasks[barrier_count].run = barriered_reset; 
       thread_data[x].tasks[barrier_count].thread = &thread_data[x]; 
       thread_data[x].tasks[barrier_count].available = 1; 
@@ -1111,13 +1120,16 @@ int main() {
       thread_data[x].tasks[barrier_count].worker_count = thread_count; 
       thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
   }
+  printf("io index = %d\n", io_index);
   for (int x = io_index ; x < io_index + io_threads ; x++) {
     struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
     my_thread_data[0] = &thread_data[x]; 
     my_thread_data[1] = &thread_data[(x + 1) % thread_count]; 
+
+    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     thread_data[x].thread_count = 2;
-    thread_data[x].thread_index = x;
+    thread_data[x].thread_index = 0;
     thread_data[x].task_count = total_barrier_count;
   }
   // schedule first task
@@ -1125,6 +1137,7 @@ int main() {
     thread_data[n].tasks[0].scheduled = 1;
   }
 
+  pthread_attr_t      *thread_attr = calloc(total_threads, sizeof(pthread_attr_t));
   pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
   pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
   pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
@@ -1140,6 +1153,7 @@ int main() {
     my_thread_data[n] = &thread_data[n]; 
   }
   thread_data[thread_count].threads = my_thread_data;
+  printf("settings threads %d\n", thread_count);
   thread_data[thread_count].thread_count = thread_count;
   thread_data[thread_count].my_thread_count = 2;
   thread_data[thread_count].thread_index = 0;
@@ -1150,7 +1164,7 @@ int main() {
     thread_data[x].type = WORKER;
     thread_data[x].running = 1;
     printf("Creating kernel worker thread %d\n", x);
-    pthread_create(&thread[x], &timer_attr[x], &barriered_thread, &thread_data[x]);
+    pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
   }
   for (int x = io_index ; x < io_index + io_threads ; x++) {
     thread_data[x].type = IO;
@@ -1163,6 +1177,7 @@ int main() {
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
+    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     // thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
@@ -1182,6 +1197,7 @@ int main() {
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
+    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].total_thread_count = total_threads;
@@ -1242,7 +1258,7 @@ int main() {
   printf("Total Requests per second %ld\n", total / DURATION);
   printf("Total sents %ld\n", sents / DURATION);
   printf("Total receives %ld\n", received / DURATION);
-  // verify(thread_data, thread_count);
+  verify(thread_data, thread_count);
   return 0;
 
 }

@@ -1209,7 +1209,7 @@ int main() {
   printf("Total Requests per second %ld\n", total / DURATION);
   printf("Total sents %ld\n", sents / DURATION);
   printf("Total receives %ld\n", received / DURATION);
-  // verify(thread_data, thread_count);
+  verify(thread_data, thread_count);
   return 0;
 
 }

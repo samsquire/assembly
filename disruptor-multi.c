@@ -95,7 +95,7 @@ void * disruptor_thread(void * arg) {
           }
           // data->data[data->end] = item;
           data->end = (data->end + 1) % data->size;
-          asm volatile ("mfence" ::: "memory");
+          asm volatile ("sfence" ::: "memory");
       
       } else {
       }
@@ -120,7 +120,7 @@ void * disruptor_thread(void * arg) {
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
         data->start = (data->start + 1) % data->size;
-        asm volatile ("mfence" ::: "memory");
+        asm volatile ("sfence" ::: "memory");
       }
       
     } 
@@ -136,7 +136,7 @@ int main() {
 
   */   
 
-  int power = 20;
+  int power = 14;
   long buffer_size = pow(2, power);
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
   int groups = 3; /* thread_count / 2 */ 
