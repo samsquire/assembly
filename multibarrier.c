@@ -447,7 +447,7 @@ int add_accept_request(int socket, struct sockaddr_in *client_addr,
 }
 
 void* io_thread(void *arg) {
-  int port = 80;
+  int port = 6363;
   struct KernelThread *data = arg;
   struct io_uring ring = *data->ring;
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
@@ -1031,7 +1031,6 @@ int main() {
     printf("i am %d, other is %d my thread index is %d\n", x, other, thread_data[x].thread_index);
     thread_data[x].real_thread_index = x;
     thread_data[x].threads = my_thread_data;
-    printf("settings threads %d\n", x);
     thread_data[x].thread_count = 2;
     thread_data[x].total_thread_count = total_threads;
     thread_data[x].task_count = total_barrier_count;
@@ -1133,7 +1132,6 @@ int main() {
     my_thread_data[0] = &thread_data[x]; 
     my_thread_data[1] = &thread_data[(x + 1) % thread_count]; 
 
-    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     thread_data[x].thread_count = 2;
     thread_data[x].thread_index = 0;
@@ -1160,7 +1158,6 @@ int main() {
     my_thread_data[n] = &thread_data[n]; 
   }
   thread_data[thread_count].threads = my_thread_data;
-  printf("settings threads %d\n", thread_count);
   thread_data[thread_count].thread_count = thread_count;
   thread_data[thread_count].my_thread_count = 2;
   thread_data[thread_count].thread_index = 0;
@@ -1184,7 +1181,6 @@ int main() {
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
-    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     // thread_data[x].threads = thread_data;
     thread_data[x].thread_count = thread_count;
@@ -1204,7 +1200,6 @@ int main() {
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
-    printf("settings threads %d\n", x);
     thread_data[x].threads = my_thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].total_thread_count = total_threads;
