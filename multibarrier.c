@@ -578,7 +578,6 @@ void* barriered_thread(void *arg) {
           } 
         } 
         if (arrived == 0 || arrived == data->thread_count) {
-           
           // we can run this task
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);
@@ -586,16 +585,19 @@ void* barriered_thread(void *arg) {
           if (waiting == 1) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
             data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
-            waiting = 3;
+            waiting = 3; 
           }
+
           if (waiting == 0) {
             data->task_snapshot[data->task_timestamp_count].task = t;
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
             waiting = 1;
           }
-          if (waiting == 3) {
-            waiting = 0;
+          if ( waiting == 3) {
+            waiting = 0; 
           }
+
+
 
           data->tasks[t].available = 0;
           // printf("In thread %d %d %d\n", data->thread_index, data->real_thread_index, t);
@@ -611,7 +613,7 @@ void* barriered_thread(void *arg) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
             data->timestamp_count = data->timestamp_count + 1;
           }
-          asm volatile ("mfence" ::: "memory");
+          asm volatile ("sfence" ::: "memory");
           // break;
         } else {
           // printf("%d %d %d\n", data->thread_index, t, arrived);
@@ -771,7 +773,25 @@ int do_protected_write(volatile struct BarrierTask *data) {
   }
   return 0; 
 }
-
+int sendm(volatile struct BarrierTask *data) {
+  if (data->sending == 1) {
+      for (int n = 0 ; n < data->thread_count; n++) {
+        if (n == data->thread_index) { continue; }
+        struct Data *them = data->mailboxes[n].higher;
+        // printf("Sending to thread %d\n", n);
+        int min = them->messages_limit;
+        //if (them->messages_limit < min) {
+        //  min = them->messages_limit;
+        //}
+        for (; them->messages_count < min;) {
+          data->n++;
+          data->mailboxes[n].sent++;
+          them->messages[them->messages_count++] = data->message; 
+        }
+      }
+    }
+  return 0;
+}
 int receive(volatile struct BarrierTask *data) {
   // printf("Receiving\n");
   for (int n = 0 ; n < data->thread_count; n++) {
@@ -817,40 +837,27 @@ int barriered_work(volatile struct BarrierTask *data) {
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
 
+    /*
     while (data->scheduled == 1) {
       data->n++;
-      // printf("%p\n", data->protected);
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    }
+    } */
   
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
     }
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
+    sendm(data);
   } else {
     receive(data);
   
+    /*
     while (data->scheduled == 1) {
       data->n++;
-    }
+    }*/
   
-    if (data->sending == 1) {
-        for (int n = 0 ; n < data->thread_count; n++) {
-          if (n == data->thread_index) { continue; }
-          struct Data *them = data->mailboxes[n].higher;
-          // printf("Sending to thread %d\n", n);
-          int min = them->messages_limit;
-          //if (them->messages_limit < min) {
-          //  min = them->messages_limit;
-          //}
-          for (; them->messages_count < min;) {
-            data->n++;
-            data->mailboxes[n].sent++;
-            them->messages[them->messages_count++] = data->message; 
-          }
-        }
-      }
+    sendm(data);
   }
   asm volatile ("mfence" ::: "memory");
   return 0;
@@ -962,12 +969,12 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int thread_count = 6;
+  int thread_count = 3;
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 1;
-  int buffer_size = 9999;
-  long messages_limit = 9999;
+  int buffer_size = 1;
+  long messages_limit = 1;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   printf("Multithreaded nonblocking lock free barrier runtime (https://github.com/samsquire/assembly)\n");
   printf("\n");
@@ -1053,7 +1060,7 @@ int main() {
         struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
         thread_data[x].tasks[y].mailboxes = mailboxes;
         // long messages_limit = 20;/*9999999;*/
-        for (int b = 0 ; b < thread_count ; b++) {
+        for (int b = 0 ; b < 2 ; b++) {
           struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
           struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
           struct Data *data = calloc(2, sizeof(struct Data));
@@ -1078,7 +1085,7 @@ int main() {
         thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
         thread_data[x].tasks[y].message = messaged;
         thread_data[x].tasks[y].sending = 1;
-        thread_data[x].tasks[y].snapshot_count = 999999;
+        thread_data[x].tasks[y].snapshot_count = 99;
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
         thread_data[x].tasks[y].current_snapshot = 0;
         thread_data[x].tasks[y].thread_index = thread_data[x].thread_index;
@@ -1211,16 +1218,34 @@ int main() {
     printf("Finished thread %d\n", x);
   }
   long total = 0;
-  long v = 0;
   long ingests = 0;
   long sends = 0;
   long sents = 0;
   long received = 0;
   for (int x = 0 ; x < thread_count ; x++) {
+    long v = 0;
+    
+    int other = -1;
+    int me = x;
+    if (x % 2 == 1) {
+      other = abs(x - 1) % total_threads;
+    } else {
+      other = (x + 1) % total_threads;
+    }
+    printf("\n");
+    printf("Total Protected %ld\n", protected_state[me].protected);
 
+    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
+      v += thread_data[me].tasks[n].v;
+    }
+    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
+      v += thread_data[other].tasks[n].v;
+    }
+    printf("Total V %ld\n", v);
+    printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
+    printf("\n");
     for (int n = 0 ; n < thread_data[x].task_count ; n++) {
       total += thread_data[x].tasks[n].n;
-      v += thread_data[x].tasks[n].v;
       ingests += thread_data[x].tasks[n].ingest_count;
       sends += thread_data[x].tasks[n].sends;
       for (int k = 0 ; k < thread_count ; k++) {
@@ -1233,32 +1258,28 @@ int main() {
       struct timespec end = thread_data[x].end[n];
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("elapsed %ld seconds (%ld ms)\n", seconds, seconds2 / 1000000);
-      printf("%ld iterations\n", thread_data[x].iteration_count);
+      // printf("elapsed %ld seconds (%ld ms)\n", seconds, seconds2 / 1000000);
+      // printf("%ld iterations\n", thread_data[x].iteration_count);
     }
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
       struct timespec start = thread_data[x].task_snapshot[n].task_start;
       struct timespec end = thread_data[x].task_snapshot[n].task_end;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("all %d task %d synchronized in %lds %ldms %ld ns \n", thread_count, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-      printf("%ldns per thread\n", (seconds2 / thread_count));
+      printf("all %d task %d synchronized in %lds %ldms %ld ns \n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+      printf("%ldns per thread\n", (seconds2 / 2));
     }
-    printf("cycles %ld\n", thread_data[x].cycles);
+    // printf("cycles %ld\n", thread_data[x].cycles);
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
-  printf("Total Protected %ld\n", protected_state->protected);
-  printf("Total V %ld\n", v);
-  printf("\n");
-  printf("Total Protected per second %ld\n", protected_state->protected / DURATION);
   printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
   printf("Total external thread ingests per second %ld\n", ingests / DURATION);
   printf("Total intra thread sends per second %ld\n", sends / DURATION);
   printf("Total Requests per second %ld\n", total / DURATION);
   printf("Total sents %ld\n", sents / DURATION);
   printf("Total receives %ld\n", received / DURATION);
-  verify(thread_data, thread_count);
+  // verify(thread_data, thread_count);
   return 0;
 
 }
