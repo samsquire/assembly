@@ -130,7 +130,7 @@ struct Mailbox {
 };
 
 struct Data {
-  struct Message **messages __attribute__((aligned (64)));
+  struct Message **messages __attribute__((aligned (8)));
   volatile long messages_count;
   long messages_limit;
 };
@@ -155,11 +155,11 @@ struct BarrierTask {
   volatile int available;
   int task_count;
   volatile int scheduled;
-  struct Snapshot *snapshots __attribute__((aligned (64)));
+  struct Snapshot *snapshots __attribute__((aligned (8)));
   long snapshot_count;
   long current_snapshot;
   long ingest_count;
-  struct Mailbox *mailboxes __attribute__((aligned (64)));
+  struct Mailbox *mailboxes __attribute__((aligned (8)));
   long sends;
   volatile int sending;
   int worker_count;
