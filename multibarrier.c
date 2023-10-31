@@ -108,7 +108,7 @@ const char *http_404_content = \
                                 "</html>";
 struct Buffers {
   int count; 
-  struct Buffer *buffer;
+  struct Buffer *buffer __attribute__((aligned (64))) ;
 };
 struct Buffer {
   void * data; 
@@ -123,14 +123,14 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower;
-  void *higher;
+  void *lower __attribute__((aligned (64)));
+  void *higher __attribute__((aligned (64)));
   long sent;
   long received;
 };
 
 struct Data {
-  struct Message **messages;
+  struct Message **messages __attribute__((aligned (64)));
   volatile long messages_count;
   long messages_limit;
 };
@@ -155,11 +155,11 @@ struct BarrierTask {
   volatile int available;
   int task_count;
   volatile int scheduled;
-  struct Snapshot *snapshots;
+  struct Snapshot *snapshots __attribute__((aligned (64)));
   long snapshot_count;
   long current_snapshot;
   long ingest_count;
-  struct Mailbox *mailboxes;
+  struct Mailbox *mailboxes __attribute__((aligned (64)));
   long sends;
   volatile int sending;
   int worker_count;
@@ -176,15 +176,15 @@ struct KernelThread {
   volatile int real_thread_index;
   int type; 
   int preempt_interval;
-  struct KernelThread **threads;
+  struct KernelThread **threads __attribute__((aligned (64)));
   int thread_count;
   int total_thread_count;
   int my_thread_count;
-  volatile struct BarrierTask *tasks;
+  volatile struct BarrierTask *tasks __attribute__((aligned (64)));
   int task_count;
   volatile int running;
-  struct ProtectedState *protected_state;
-  struct Buffers *buffers;
+  struct ProtectedState *protected_state __attribute__((aligned (64)));
+  struct Buffers *buffers __attribute__((aligned (64)));
   struct io_uring *ring;
   int _eventfd;
   struct timespec *start;
@@ -192,7 +192,7 @@ struct KernelThread {
   long iteration_count;
   long timestamp_count;
   long timestamp_limit;
-  struct TaskSnapshot *task_snapshot;
+  struct TaskSnapshot *task_snapshot __attribute__((aligned (64)));
   long task_timestamp_count;
   long task_timestamp_limit;
   long cycles;
