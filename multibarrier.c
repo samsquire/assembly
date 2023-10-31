@@ -837,11 +837,11 @@ int barriered_work(volatile struct BarrierTask *data) {
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     int modcount = ++data->thread->protected_state->modcount;
 
-    /*
+    
     while (data->scheduled == 1) {
       data->n++;
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    } */
+    } 
   
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
@@ -852,14 +852,14 @@ int barriered_work(volatile struct BarrierTask *data) {
   } else {
     receive(data);
   
-    /*
+    
     while (data->scheduled == 1) {
       data->n++;
-    }*/
+    }
   
     sendm(data);
   }
-  asm volatile ("mfence" ::: "memory");
+  asm volatile ("sfence" ::: "memory");
   return 0;
 }
 
@@ -969,7 +969,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int thread_count = 3;
+  int thread_count = 12;
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 1;
