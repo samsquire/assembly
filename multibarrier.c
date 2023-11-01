@@ -108,7 +108,7 @@ const char *http_404_content = \
                                 "</html>";
 struct Buffers {
   int count; 
-  struct Buffer *buffer __attribute__((aligned (64))) ;
+  struct Buffer *buffer __attribute__((aligned (8))) ;
 };
 struct Buffer {
   void * data; 
@@ -130,7 +130,7 @@ struct Mailbox {
 };
 
 struct Data {
-  struct Message **messages __attribute__((aligned (8)));
+  struct Message **messages __attribute__((aligned (64)));
   volatile long messages_count;
   long messages_limit;
 };

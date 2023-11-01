@@ -48,9 +48,9 @@ struct Snapshot {
 struct Thread {
   int thread_index;
   struct Thread *sender;
-  struct Snapshot * data;
-  volatile int start;
-  volatile int end;
+  struct Snapshot * data ;
+  volatile int start __attribute__((aligned (64)));
+  volatile int end __attribute__((aligned (64)));
   volatile int mode;
   long size;
   volatile int running;
