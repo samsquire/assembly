@@ -40,8 +40,8 @@ This disruptor C code is Zero Clause BSD licenced.
 #define TICK 150000L
 
 struct Snapshot {
-  struct timespec start;
-  struct timespec *end;
+  struct timespec start __attribute__((aligned (64)));
+  struct timespec *end __attribute__((aligned (64)));
   volatile int *complete;
 };
 
