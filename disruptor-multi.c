@@ -133,10 +133,10 @@ void * disruptor_thread(void * arg) {
         //for (int x = data->start; x < sender->end ; x++) {
           clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[cachedStart].end[index]);
           // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
-          sender->data[cachedStart].complete[index] = 1;
-          data->start = (cachedStart + 1) % size;
+          rdata[cachedStart].complete[index] = 1;
+          cachedStart = (cachedStart + 1) % size;
+          data->start = cachedStart;
           cachedEnd = sender->end;
-          cachedStart = data->start;
         //}
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
