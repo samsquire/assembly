@@ -147,6 +147,7 @@ struct BarrierTask {
   int task_index;
   int rerunnable;
   volatile int arrived __attribute__((aligned (64))); 
+  volatile int prearrive __attribute__((aligned (64))); 
   long n; 
   long v; 
   int (*run)(volatile struct BarrierTask*);
@@ -575,18 +576,25 @@ void* barriered_thread(void *arg) {
           previous = data->task_count - 1;
         }
         int arrived = 0; 
+        int prearrive = 0; 
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread]->tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
             arrived++;
           } 
+          if (data->threads[thread]->tasks[previous].prearrive == data->tasks[t].prearrive) {
+            prearrive++;
+          }
         } 
-        if (arrived == 0 || arrived == data->thread_count) {
+        if (prearrive == 0 || prearrive == data->thread_count) {
           if (waiting == 1) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
             data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
             waiting = 0; 
           }
+        }
+        if (arrived == 0 || arrived == data->thread_count) {
+          data->tasks[t].prearrive++;
           // we can run this task
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);
@@ -892,6 +900,7 @@ int barriered_reset(volatile struct BarrierTask *data) {
     for (int x = 0 ; x < data->task_count ; x++) {
       // printf("Resetting %d %d\n", data->thread_index, x);
       data->thread->threads[data->thread_index]->tasks[x].arrived++; 
+      data->thread->threads[data->thread_index]->tasks[x].prearrive++; 
       // data->thread->tasks[x].arrived++; 
       
       data->thread->tasks[x].available = 1; 

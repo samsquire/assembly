@@ -42,20 +42,20 @@ This disruptor C code is Zero Clause BSD licenced.
 struct Snapshot {
   struct timespec start __attribute__((aligned (64)));
   struct timespec *end __attribute__((aligned (64)));
-  volatile int *complete;
+  volatile int *complete __attribute__((aligned (64)));
 };
 
 struct Thread {
   int thread_index;
   struct Thread *sender;
-  struct Snapshot * data __attribute__((aligned (64)));
+  struct Snapshot * data;
   volatile int start __attribute__((aligned (64)));
   volatile int end __attribute__((aligned (64)));
   volatile int mode;
   long size;
   volatile int running;
   cpu_set_t *cpu_set;
-  struct Thread **readers;
+  struct Thread **readers __attribute__((aligned (64)));
   int readers_count;
   int reader_index;
 };
@@ -70,12 +70,13 @@ void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
   printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
   int mina = data->size;
+  
+  int next = (data->end + 1) % data->size;
   if (data->mode == WRITER) {
     int anyfull = 0;
     while (data->running == 1) {
+      asm volatile ("sfence" ::: "memory");
       anyfull = 0;
-      int next = (data->end + 1) % data->size;
-      // asm volatile ("mfence" ::: "memory");
       for (int x  = 0 ; x < data->readers_count; x++) {
         // mina = min(mina, data->readers[x]->start);
         if (next == data->readers[x]->start) {
@@ -88,15 +89,23 @@ void * disruptor_thread(void * arg) {
       }
 
       if (anyfull == 0) {
-        // printf("Wrote %d\n", data->end);
-          clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
-          for (int n = 0 ; n < data->readers_count ; n++) { 
-            data->data[data->end].complete[n] = 0;
-          }
-          // data->data[data->end] = item;
-          data->end = (data->end + 1) % data->size;
-          asm volatile ("sfence" ::: "memory");
-      
+          //for (int x = 0 ; x < data->size ; x++) {
+            // printf("%d %d\n", next, mina);
+            /*
+            if (next == mina) {
+              break;
+            }*/
+            // printf("Wrote %d\n", data->end);
+            for (int n = 0 ; n < data->readers_count ; n++) { 
+              data->data[data->end].complete[n] = 0;
+            }
+            // data->data[data->end] = item;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
+            data->end = (data->end + 1) % data->size;
+            next = (data->end + 1) % data->size;
+            // asm volatile ("sfence" ::: "memory");
+            /*if (next == mina) { break; } */
+          
       } else {
       }
     } 
@@ -107,20 +116,25 @@ void * disruptor_thread(void * arg) {
       0,
       TICK };
     struct Thread *sender = data->sender;
+    int cachedEnd = sender->end;
     while (data->running == 1) {
       // printf("reading %d\n", data->thread_index); 
-      if (sender->end == data->start) {
-        asm volatile ("sfence" ::: "memory");
+      // asm volatile ("sfence" ::: "memory");
+      if (cachedEnd == data->start) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
+        cachedEnd = sender->end;
       } else {
-        // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
-        clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->start].end[data->reader_index]);
-        sender->data[data->start].complete[data->reader_index] = 1;
+        //for (int x = data->start; x < sender->end ; x++) {
+          clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->start].end[data->reader_index]);
+          // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
+          sender->data[data->start].complete[data->reader_index] = 1;
+          data->start = (data->start + 1) % data->size;
+          cachedEnd = sender->end;
+        //}
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
-        data->start = (data->start + 1) % data->size;
       }
       
     } 
@@ -136,10 +150,10 @@ int main() {
 
   */   
 
-  int power = 14;
+  int power = 20;
   long buffer_size = pow(2, power);
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
-  int groups = 3; /* thread_count / 2 */ 
+  int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 1;
   int readers_count = 2;
@@ -153,7 +167,7 @@ int main() {
 
    /* Set affinity mask to include CPUs 0 to 7. */
   int cores = 12;
-
+  int curcpu = 0;
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
