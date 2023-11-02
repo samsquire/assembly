@@ -116,22 +116,27 @@ void * disruptor_thread(void * arg) {
       0,
       TICK };
     struct Thread *sender = data->sender;
+    struct Snapshot * rdata = sender->data;
     int cachedEnd = sender->end;
+    int cachedStart = data->start;
+    int size = data->size;
+    int index = data->reader_index;
     while (data->running == 1) {
       // printf("reading %d\n", data->thread_index); 
       // asm volatile ("sfence" ::: "memory");
-      if (cachedEnd == data->start) {
+      if (cachedEnd == cachedStart) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
         cachedEnd = sender->end;
       } else {
         //for (int x = data->start; x < sender->end ; x++) {
-          clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[data->start].end[data->reader_index]);
+          clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[cachedStart].end[index]);
           // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
-          sender->data[data->start].complete[data->reader_index] = 1;
-          data->start = (data->start + 1) % data->size;
+          sender->data[cachedStart].complete[index] = 1;
+          data->start = (cachedStart + 1) % size;
           cachedEnd = sender->end;
+          cachedStart = data->start;
         //}
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
