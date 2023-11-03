@@ -1,5 +1,16 @@
 # multithreaded nonblocking barrier-runtime
 
+This repository has:
+
+ * a nonblocking barrier runtime: no mutexes in C
+ * an LMAX Disruptor inspired ringbuffer in C
+ * a [simple summary](https://github.com/samsquire/assembly/blob/main/assembly/README.md) of what I've learned programming in assembly
+ * Marce Coll's tweaked coroutines assembly
+
+# nonblocking-barrier
+
+# nonblocking-prearrive
+
 This is my [Samuel Michael Squire](https://samsquire.com/), sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
 
 ```
@@ -136,6 +147,34 @@ I take advantage of benign data races. **If you use atomics, the program is slow
 LMAX Disruptor can transmit a message between threads with average latency of 53 nanoseconds.
 
 This assumes there is a thread busy spinning on a sequence number and waiting for it to become available when another thread (a producer) has written it.
+
+The `multibarrier-prearrive` latencies:
+
+
+```
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 42 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 51 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 42 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 42 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 49 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 45 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 42 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 48 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 45 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 43 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 46 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 41 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 44 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 46 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 48 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 44 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 45 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 45 nanoseconds
+2 tasks (1) synchronized in 0 seconds 0 milliseconds 48 nanoseconds
+2 tasks (2) synchronized in 0 seconds 0 milliseconds 51 nanoseconds
+2 tasks (0) synchronized in 0 seconds 0 milliseconds 40 nanoseconds
+```
+
 
 
 # how it works
