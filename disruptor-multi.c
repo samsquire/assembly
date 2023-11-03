@@ -40,22 +40,22 @@ This disruptor C code is Zero Clause BSD licenced.
 #define TICK 150000L
 
 struct Snapshot {
-  struct timespec start __attribute__((aligned (64)));
-  struct timespec *end __attribute__((aligned (64)));
-  volatile int *complete __attribute__((aligned (64)));
+  struct timespec start __attribute__((aligned (128)));
+  struct timespec *end __attribute__((aligned (128)));
+  volatile int *complete __attribute__((aligned (128)));
 };
 
 struct Thread {
   int thread_index;
   struct Thread *sender;
   struct Snapshot * data;
-  volatile int start __attribute__((aligned (64)));
-  volatile int end __attribute__((aligned (64)));
+  volatile int start __attribute__((aligned (128)));
+  volatile int end __attribute__((aligned (128)));
   volatile int mode;
   long size;
   volatile int running;
   cpu_set_t *cpu_set;
-  struct Thread **readers __attribute__((aligned (64)));
+  struct Thread **readers __attribute__((aligned (128)));
   int readers_count;
   int reader_index;
 };
@@ -100,9 +100,10 @@ void * disruptor_thread(void * arg) {
               data->data[data->end].complete[n] = 0;
             }
             // data->data[data->end] = item;
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
+            int changed = data->end;
             data->end = (data->end + 1) % data->size;
             next = (data->end + 1) % data->size;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[changed].start);
             // asm volatile ("sfence" ::: "memory");
             /*if (next == mina) { break; } */
           
