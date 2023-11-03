@@ -138,8 +138,10 @@ This barrier creates the following rhythm. The threads can arrive in any order, 
 
 ```
 
+See [volatile considered harmful](https://www.kernel.org/doc/html/latest/process/volatile-considered-harmful.html).
 
-I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
+These algorithms use memory barriers and happens before relationships. I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
+
 
 
 # THROUGHPUT vs LATENCY

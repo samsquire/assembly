@@ -147,7 +147,7 @@ struct BarrierTask {
   int task_index;
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
-  int prearrive __attribute__((aligned (64))); 
+  int prearrive __attribute__((aligned (128))); 
   long n; 
   long v; 
   int (*run)(struct BarrierTask*);
