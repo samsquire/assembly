@@ -157,7 +157,7 @@ struct BarrierTask {
   int thread_count;
   int available;
   int task_count;
-  volatile int scheduled;
+  int scheduled;
   struct Snapshot *snapshots;
   long snapshot_count;
   long current_snapshot;
@@ -851,6 +851,7 @@ int barriered_work(struct BarrierTask *data) {
     while (data->scheduled == 1) {
       data->n++;
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
+      asm volatile ("sfence" ::: "memory");
     } 
   
     if (modcount != data->thread->protected_state->modcount) {
@@ -865,6 +866,7 @@ int barriered_work(struct BarrierTask *data) {
     
     while (data->scheduled == 1) {
       data->n++;
+      asm volatile ("sfence" ::: "memory");
     }
   
     sendm(data);

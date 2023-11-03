@@ -123,40 +123,18 @@ Disassembly of section .plt.sec:
 Disassembly of section .text:
 
 0000000000001180 <main>:
-  } 
-  printf("Finished\n");
-  return 0;
-}
-
-int main() {
     1180:	f3 0f 1e fa          	endbr64
     1184:	41 57                	push   %r15
-}
-
-__fortify_function int
-printf (const char *__restrict __fmt, ...)
-{
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     1186:	ba 00 10 00 00       	mov    $0x1000,%edx
     118b:	bf 01 00 00 00       	mov    $0x1,%edi
-    int coreend = corestart + 3; 
-    int receiver = sender + 1; 
-    printf("%d is linked to %d\n", receiver, sender);
-    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
-    CPU_ZERO(sendercpu);
-    for (int j = 0 ; j < cores; j++) {
     1190:	45 31 ff             	xor    %r15d,%r15d
-int main() {
     1193:	41 56                	push   %r14
     1195:	48 8d 35 df 0e 00 00 	lea    0xedf(%rip),%rsi        # 207b <_IO_stdin_used+0x7b>
     119c:	4c 8d 35 8d 0e 00 00 	lea    0xe8d(%rip),%r14        # 2030 <_IO_stdin_used+0x30>
     11a3:	41 55                	push   %r13
     11a5:	41 54                	push   %r12
     11a7:	55                   	push   %rbp
-      printf("assigning sender %d to core %d\n", sender, j);
-      CPU_SET(j, sendercpu);
     11a8:	bd 01 00 00 00       	mov    $0x1,%ebp
-int main() {
     11ad:	53                   	push   %rbx
     11ae:	48 83 ec 48          	sub    $0x48,%rsp
     11b2:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
@@ -168,23 +146,16 @@ int main() {
     11d3:	31 c0                	xor    %eax,%eax
     11d5:	bf 01 00 00 00       	mov    $0x1,%edi
     11da:	e8 61 ff ff ff       	call   1140 <__printf_chk@plt>
-  struct Thread *thread_data = calloc(groups * 2, sizeof(struct Thread)); 
     11df:	be c0 00 00 00       	mov    $0xc0,%esi
     11e4:	bf 02 00 00 00       	mov    $0x2,%edi
     11e9:	e8 42 ff ff ff       	call   1130 <calloc@plt>
-  pthread_attr_t      *attr = calloc(groups * 2, sizeof(pthread_attr_t));
     11ee:	be 38 00 00 00       	mov    $0x38,%esi
     11f3:	bf 02 00 00 00       	mov    $0x2,%edi
-  struct Thread *thread_data = calloc(groups * 2, sizeof(struct Thread)); 
     11f8:	49 89 c4             	mov    %rax,%r12
-  pthread_attr_t      *attr = calloc(groups * 2, sizeof(pthread_attr_t));
     11fb:	e8 30 ff ff ff       	call   1130 <calloc@plt>
-  pthread_t *thread = calloc(groups * 2, sizeof(pthread_t));
     1200:	be 08 00 00 00       	mov    $0x8,%esi
     1205:	bf 02 00 00 00       	mov    $0x2,%edi
-  pthread_attr_t      *attr = calloc(groups * 2, sizeof(pthread_attr_t));
     120a:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-  pthread_t *thread = calloc(groups * 2, sizeof(pthread_t));
     120f:	e8 1c ff ff ff       	call   1130 <calloc@plt>
     1214:	31 c9                	xor    %ecx,%ecx
     1216:	ba 01 00 00 00       	mov    $0x1,%edx
@@ -193,12 +164,10 @@ int main() {
     1227:	49 89 c5             	mov    %rax,%r13
     122a:	31 c0                	xor    %eax,%eax
     122c:	e8 0f ff ff ff       	call   1140 <__printf_chk@plt>
-    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
     1231:	be 80 00 00 00       	mov    $0x80,%esi
     1236:	bf 01 00 00 00       	mov    $0x1,%edi
     123b:	e8 f0 fe ff ff       	call   1130 <calloc@plt>
     1240:	48 89 c3             	mov    %rax,%rbx
-    for (int j = 0 ; j < cores; j++) {
     1243:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
     1248:	44 89 f9             	mov    %r15d,%ecx
     124b:	31 d2                	xor    %edx,%edx
@@ -206,31 +175,19 @@ int main() {
     1250:	bf 01 00 00 00       	mov    $0x1,%edi
     1255:	31 c0                	xor    %eax,%eax
     1257:	e8 e4 fe ff ff       	call   1140 <__printf_chk@plt>
-      CPU_SET(j, sendercpu);
     125c:	44 89 f9             	mov    %r15d,%ecx
     125f:	48 89 e8             	mov    %rbp,%rax
-    for (int j = 0 ; j < cores; j++) {
     1262:	41 83 c7 01          	add    $0x1,%r15d
-      CPU_SET(j, sendercpu);
     1266:	48 d3 e0             	shl    %cl,%rax
     1269:	48 09 03             	or     %rax,(%rbx)
-    for (int j = 0 ; j < cores; j++) {
     126c:	41 83 ff 06          	cmp    $0x6,%r15d
     1270:	75 d6                	jne    1248 <main+0xc8>
-    }
-    cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     1272:	be 80 00 00 00       	mov    $0x80,%esi
     1277:	bf 01 00 00 00       	mov    $0x1,%edi
-    CPU_ZERO(receivercpu);
-    for (int j = 0 ; j < cores ; j++) {
     127c:	45 31 f6             	xor    %r14d,%r14d
-      printf("assigning receiver %d to core %d\n", receiver, j);
-      CPU_SET(j, receivercpu);
     127f:	bd 01 00 00 00       	mov    $0x1,%ebp
-    cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     1284:	e8 a7 fe ff ff       	call   1130 <calloc@plt>
     1289:	49 89 c7             	mov    %rax,%r15
-    for (int j = 0 ; j < cores ; j++) {
     128c:	0f 1f 40 00          	nopl   0x0(%rax)
     1290:	44 89 f1             	mov    %r14d,%ecx
     1293:	ba 01 00 00 00       	mov    $0x1,%edx
@@ -238,37 +195,20 @@ int main() {
     129d:	31 c0                	xor    %eax,%eax
     129f:	48 8d 35 aa 0d 00 00 	lea    0xdaa(%rip),%rsi        # 2050 <_IO_stdin_used+0x50>
     12a6:	e8 95 fe ff ff       	call   1140 <__printf_chk@plt>
-      CPU_SET(j, receivercpu);
     12ab:	44 89 f1             	mov    %r14d,%ecx
     12ae:	48 89 e8             	mov    %rbp,%rax
-    for (int j = 0 ; j < cores ; j++) {
     12b1:	41 83 c6 01          	add    $0x1,%r14d
-      CPU_SET(j, receivercpu);
     12b5:	48 d3 e0             	shl    %cl,%rax
     12b8:	49 09 07             	or     %rax,(%r15)
-    for (int j = 0 ; j < cores ; j++) {
     12bb:	41 83 fe 06          	cmp    $0x6,%r14d
     12bf:	75 cf                	jne    1290 <main+0x110>
-    }
-     
-    thread_data[sender].thread_index = sender;
     12c1:	41 c7 04 24 00 00 00 00 	movl   $0x0,(%r12)
-    thread_data[sender].cpu_set = sendercpu;
-    thread_data[sender].mode = WRITER;
-    thread_data[sender].running = 1;
-    thread_data[sender].size = buffer_size;
-    thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
     12c9:	be 28 00 00 00       	mov    $0x28,%esi
     12ce:	bf 00 10 00 00       	mov    $0x1000,%edi
-    thread_data[sender].mode = WRITER;
     12d3:	41 c7 84 24 84 00 00 00 00 00 00 00 	movl   $0x0,0x84(%r12)
-    thread_data[sender].cpu_set = sendercpu;
     12df:	49 89 9c 24 98 00 00 00 	mov    %rbx,0x98(%r12)
-    thread_data[sender].running = 1;
     12e7:	41 c7 84 24 90 00 00 00 01 00 00 00 	movl   $0x1,0x90(%r12)
-    thread_data[sender].size = buffer_size;
     12f3:	49 c7 84 24 88 00 00 00 00 10 00 00 	movq   $0x1000,0x88(%r12)
-    thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
     12ff:	e8 2c fe ff ff       	call   1130 <calloc@plt>
     1304:	31 d2                	xor    %edx,%edx
     1306:	bf 01 00 00 00       	mov    $0x1,%edi
@@ -279,20 +219,12 @@ int main() {
     131e:	31 d2                	xor    %edx,%edx
     1320:	48 8d 35 ab 0d 00 00 	lea    0xdab(%rip),%rsi        # 20d2 <_IO_stdin_used+0xd2>
     1327:	31 c0                	xor    %eax,%eax
-    printf("Created data for %d\n", sender);
-    thread_data[receiver].thread_index = receiver;
-    thread_data[receiver].cpu_set = receivercpu;
     1329:	4d 89 bc 24 58 01 00 00 	mov    %r15,0x158(%r12)
     1331:	bf 01 00 00 00       	mov    $0x1,%edi
-    thread_data[receiver].running = 1;
     1336:	41 c7 84 24 50 01 00 00 01 00 00 00 	movl   $0x1,0x150(%r12)
-    thread_data[receiver].thread_index = receiver;
     1342:	41 c7 84 24 c0 00 00 00 01 00 00 00 	movl   $0x1,0xc0(%r12)
-    thread_data[receiver].mode = READER;
     134e:	41 c7 84 24 44 01 00 00 01 00 00 00 	movl   $0x1,0x144(%r12)
-    thread_data[receiver].size = buffer_size;
     135a:	49 c7 84 24 48 01 00 00 00 10 00 00 	movq   $0x1000,0x148(%r12)
-    thread_data[receiver].sender = &thread_data[sender];
     1366:	4d 89 a4 24 c8 00 00 00 	mov    %r12,0xc8(%r12)
     136e:	e8 cd fd ff ff       	call   1140 <__printf_chk@plt>
     1373:	ba 01 00 00 00       	mov    $0x1,%edx
@@ -300,16 +232,7 @@ int main() {
     137f:	31 c0                	xor    %eax,%eax
     1381:	bf 01 00 00 00       	mov    $0x1,%edi
     1386:	e8 b5 fd ff ff       	call   1140 <__printf_chk@plt>
-    printf("Creating sender thread %d\n", sender);
-    printf("Creating receiver thread %d\n", receiver);
-    asm volatile ("mfence" ::: "memory");
     138b:	0f ae f0             	mfence
-  }
-  for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 2; 
-    int receiver = sender + 1; 
-    
-    pthread_create(&thread[receiver], &attr[receiver], &disruptor_thread, &thread_data[receiver]);
     138e:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
     1393:	48 8d 1d a6 02 00 00 	lea    0x2a6(%rip),%rbx        # 1640 <disruptor_thread>
     139a:	49 8d 7d 08          	lea    0x8(%r13),%rdi
@@ -318,40 +241,26 @@ int main() {
     13a9:	48 8d 68 38          	lea    0x38(%rax),%rbp
     13ad:	48 89 ee             	mov    %rbp,%rsi
     13b0:	e8 9b fd ff ff       	call   1150 <pthread_create@plt>
-    int ret = pthread_attr_setschedpolicy(&attr[receiver], SCHED_RR);
     13b5:	be 02 00 00 00       	mov    $0x2,%esi
     13ba:	48 89 ef             	mov    %rbp,%rdi
     13bd:	e8 5e fd ff ff       	call   1120 <pthread_attr_setschedpolicy@plt>
-    if (ret) {
     13c2:	85 c0                	test   %eax,%eax
     13c4:	0f 85 61 01 00 00    	jne    152b <main+0x3ab>
-            printf("pthread setschedpolicy failed\n");
-            exit(1);
-    }
-    pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
     13ca:	48 89 da             	mov    %rbx,%rdx
     13cd:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
     13d2:	4c 89 e1             	mov    %r12,%rcx
     13d5:	4c 89 ef             	mov    %r13,%rdi
     13d8:	48 89 de             	mov    %rbx,%rsi
     13db:	e8 70 fd ff ff       	call   1150 <pthread_create@plt>
-    ret = pthread_attr_setschedpolicy(&attr[sender], SCHED_RR);
     13e0:	be 02 00 00 00       	mov    $0x2,%esi
     13e5:	48 89 df             	mov    %rbx,%rdi
     13e8:	e8 33 fd ff ff       	call   1120 <pthread_attr_setschedpolicy@plt>
     13ed:	89 c5                	mov    %eax,%ebp
-    if (ret) {
     13ef:	85 c0                	test   %eax,%eax
     13f1:	0f 85 34 01 00 00    	jne    152b <main+0x3ab>
     13f7:	48 8d 3d 2a 0d 00 00 	lea    0xd2a(%rip),%rdi        # 2128 <_IO_stdin_used+0x128>
     13fe:	31 db                	xor    %ebx,%ebx
     1400:	e8 db fc ff ff       	call   10e0 <puts@plt>
-    // printf("Waiting before starting next disruptor %ld ns\n", TICK);
-    // nanosleep(&preempt , &rem2);
-    }
-  int seconds = 10;
-  struct timespec rem2;
-  struct timespec preempt = {
     1405:	66 0f 6f 05 93 0d 00 00 	movdqa 0xd93(%rip),%xmm0        # 21a0 <_IO_stdin_used+0x1a0>
     140d:	ba 0a 00 00 00       	mov    $0xa,%edx
     1412:	31 c0                	xor    %eax,%eax
@@ -359,28 +268,14 @@ int main() {
     141b:	bf 01 00 00 00       	mov    $0x1,%edi
     1420:	0f 29 44 24 20       	movaps %xmm0,0x20(%rsp)
     1425:	e8 16 fd ff ff       	call   1140 <__printf_chk@plt>
-    seconds,
-    0 };
-  printf("Sleeping for %d seconds\n", seconds);
-  nanosleep(&preempt , &rem2);
     142a:	48 8d 74 24 10       	lea    0x10(%rsp),%rsi
     142f:	48 8d 7c 24 20       	lea    0x20(%rsp),%rdi
     1434:	e8 d7 fc ff ff       	call   1110 <nanosleep@plt>
-  for (int x = 0 ; x < groups ; x++) {
-    void * res1;
-    void * res2;
-    int sender = x * 2; 
-    int receiver = sender + 1; 
-    pthread_join(thread[sender], res1);
     1439:	49 8b 7d 00          	mov    0x0(%r13),%rdi
     143d:	31 f6                	xor    %esi,%esi
-    thread_data[sender].running = 0;
     143f:	41 c7 84 24 90 00 00 00 00 00 00 00 	movl   $0x0,0x90(%r12)
-    thread_data[receiver].running = 0;
     144b:	41 c7 84 24 50 01 00 00 00 00 00 00 	movl   $0x0,0x150(%r12)
-    pthread_join(thread[sender], res1);
     1457:	e8 14 fd ff ff       	call   1170 <pthread_join@plt>
-    pthread_join(thread[receiver], res2);
     145c:	49 8b 7d 08          	mov    0x8(%r13),%rdi
     1460:	31 f6                	xor    %esi,%esi
     1462:	4c 8d 2d 04 0d 00 00 	lea    0xd04(%rip),%r13        # 216d <_IO_stdin_used+0x16d>
@@ -390,41 +285,24 @@ int main() {
     1477:	31 c0                	xor    %eax,%eax
     1479:	bf 01 00 00 00       	mov    $0x1,%edi
     147e:	e8 bd fc ff ff       	call   1140 <__printf_chk@plt>
-  for (int x = 0 ; x < groups ; x++) {
-    int sender = x * 2; 
-    int receiver = sender + 1;
-    int incompletes = 0;
-    printf("Inspecting sender %d\n", sender);
-    printf("%d %d\n", thread_data[sender].start, thread_data[sender].end);
     1483:	41 8b 8c 24 80 00 00 00 	mov    0x80(%r12),%ecx
     148b:	41 8b 54 24 40       	mov    0x40(%r12),%edx
     1490:	31 c0                	xor    %eax,%eax
     1492:	48 8d 35 cd 0c 00 00 	lea    0xccd(%rip),%rsi        # 2166 <_IO_stdin_used+0x166>
     1499:	bf 01 00 00 00       	mov    $0x1,%edi
     149e:	e8 9d fc ff ff       	call   1140 <__printf_chk@plt>
-    for (int y = 0 ; y < buffer_size; y++) {
     14a3:	eb 13                	jmp    14b8 <main+0x338>
     14a5:	0f 1f 00             	nopl   (%rax)
     14a8:	48 83 c3 28          	add    $0x28,%rbx
-        struct timespec end = thread_data[sender].data[y].end;
-        const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-        const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-        printf("rb %d Read %ld %ld\n", sender, seconds, seconds2);
-      } else {
-        incompletes++;
     14ac:	83 c5 01             	add    $0x1,%ebp
-    for (int y = 0 ; y < buffer_size; y++) {
     14af:	48 81 fb 00 80 02 00 	cmp    $0x28000,%rbx
     14b6:	74 3d                	je     14f5 <main+0x375>
-      if (thread_data[sender].data[y].complete == 1) {
     14b8:	49 8b 44 24 10       	mov    0x10(%r12),%rax
     14bd:	48 01 d8             	add    %rbx,%rax
     14c0:	8b 50 20             	mov    0x20(%rax),%edx
     14c3:	83 fa 01             	cmp    $0x1,%edx
     14c6:	75 e0                	jne    14a8 <main+0x328>
-        const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
     14c8:	4c 8b 40 18          	mov    0x18(%rax),%r8
-        const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
     14cc:	48 8b 48 10          	mov    0x10(%rax),%rcx
     14d0:	31 d2                	xor    %edx,%edx
     14d2:	4c 89 ee             	mov    %r13,%rsi
@@ -433,7 +311,6 @@ int main() {
     14dc:	bf 01 00 00 00       	mov    $0x1,%edi
     14e1:	31 c0                	xor    %eax,%eax
     14e3:	e8 58 fc ff ff       	call   1140 <__printf_chk@plt>
-    for (int y = 0 ; y < buffer_size; y++) {
     14e8:	48 83 c3 28          	add    $0x28,%rbx
     14ec:	48 81 fb 00 80 02 00 	cmp    $0x28000,%rbx
     14f3:	75 c3                	jne    14b8 <main+0x338>
@@ -442,12 +319,6 @@ int main() {
     14f9:	48 8d 35 81 0c 00 00 	lea    0xc81(%rip),%rsi        # 2181 <_IO_stdin_used+0x181>
     1500:	bf 01 00 00 00       	mov    $0x1,%edi
     1505:	e8 36 fc ff ff       	call   1140 <__printf_chk@plt>
-    }
-    printf("Incompletes %d\n", incompletes);
-  }
-
-  return 0;
-}
     150a:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
     150f:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     1518:	75 27                	jne    1541 <main+0x3c1>
@@ -462,10 +333,8 @@ int main() {
     152a:	c3                   	ret
     152b:	48 8d 3d d8 0b 00 00 	lea    0xbd8(%rip),%rdi        # 210a <_IO_stdin_used+0x10a>
     1532:	e8 a9 fb ff ff       	call   10e0 <puts@plt>
-            exit(1);
     1537:	bf 01 00 00 00       	mov    $0x1,%edi
     153c:	e8 1f fc ff ff       	call   1160 <exit@plt>
-}
     1541:	e8 ba fb ff ff       	call   1100 <__stack_chk_fail@plt>
     1546:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
@@ -540,7 +409,6 @@ int main() {
     1639:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 0000000000001640 <disruptor_thread>:
-void * disruptor_thread(void * arg) {
     1640:	f3 0f 1e fa          	endbr64
     1644:	55                   	push   %rbp
     1645:	48 8d 35 bc 09 00 00 	lea    0x9bc(%rip),%rsi        # 2008 <_IO_stdin_used+0x8>
@@ -548,29 +416,24 @@ void * disruptor_thread(void * arg) {
     164e:	53                   	push   %rbx
     164f:	48 89 fb             	mov    %rdi,%rbx
     1652:	48 83 ec 08          	sub    $0x8,%rsp
-  printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
     1656:	8b 8f 84 00 00 00    	mov    0x84(%rdi),%ecx
     165c:	8b 17                	mov    (%rdi),%edx
     165e:	bf 01 00 00 00       	mov    $0x1,%edi
     1663:	e8 d8 fa ff ff       	call   1140 <__printf_chk@plt>
-  if (data->mode == WRITER) {
     1668:	8b 83 84 00 00 00    	mov    0x84(%rbx),%eax
     166e:	85 c0                	test   %eax,%eax
     1670:	74 4b                	je     16bd <disruptor_thread+0x7d>
-  else if (data->mode == READER) {
     1672:	8b 83 84 00 00 00    	mov    0x84(%rbx),%eax
     1678:	83 f8 01             	cmp    $0x1,%eax
     167b:	0f 84 af 00 00 00    	je     1730 <disruptor_thread+0xf0>
     1681:	48 8d 3d ea 09 00 00 	lea    0x9ea(%rip),%rdi        # 2072 <_IO_stdin_used+0x72>
     1688:	e8 53 fa ff ff       	call   10e0 <puts@plt>
-}
     168d:	48 83 c4 08          	add    $0x8,%rsp
     1691:	31 c0                	xor    %eax,%eax
     1693:	5b                   	pop    %rbx
     1694:	5d                   	pop    %rbp
     1695:	c3                   	ret
     1696:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-      if ((data->end + 1) % data->size == data->start) {
     16a0:	8b 83 80 00 00 00    	mov    0x80(%rbx),%eax
     16a6:	48 63 4b 40          	movslq 0x40(%rbx),%rcx
     16aa:	83 c0 01             	add    $0x1,%eax
@@ -579,80 +442,64 @@ void * disruptor_thread(void * arg) {
     16b1:	48 f7 bb 88 00 00 00 	idivq  0x88(%rbx)
     16b8:	48 39 ca             	cmp    %rcx,%rdx
     16bb:	75 13                	jne    16d0 <disruptor_thread+0x90>
-    while (data->running == 1) {
     16bd:	8b 83 90 00 00 00    	mov    0x90(%rbx),%eax
     16c3:	83 f8 01             	cmp    $0x1,%eax
     16c6:	74 d8                	je     16a0 <disruptor_thread+0x60>
     16c8:	eb b7                	jmp    1681 <disruptor_thread+0x41>
     16ca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-        clock_gettime(CLOCK_MONOTONIC_RAW, &data->data[data->end].start);
     16d0:	48 63 83 80 00 00 00 	movslq 0x80(%rbx),%rax
     16d7:	bf 04 00 00 00       	mov    $0x4,%edi
     16dc:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
     16e0:	48 8b 43 10          	mov    0x10(%rbx),%rax
     16e4:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
     16e8:	e8 03 fa ff ff       	call   10f0 <clock_gettime@plt>
-        data->data[data->end].complete = 0;
     16ed:	48 63 83 80 00 00 00 	movslq 0x80(%rbx),%rax
     16f4:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
     16f8:	48 8b 43 10          	mov    0x10(%rbx),%rax
     16fc:	48 8d 04 d0          	lea    (%rax,%rdx,8),%rax
     1700:	c7 40 20 00 00 00 00 	movl   $0x0,0x20(%rax)
-        data->end = (data->end + 1) % data->size;
     1707:	8b 83 80 00 00 00    	mov    0x80(%rbx),%eax
     170d:	83 c0 01             	add    $0x1,%eax
     1710:	48 98                	cltq
     1712:	48 99                	cqto
     1714:	48 f7 bb 88 00 00 00 	idivq  0x88(%rbx)
     171b:	89 93 80 00 00 00    	mov    %edx,0x80(%rbx)
-        asm volatile ("mfence" ::: "memory");
     1721:	0f ae f0             	mfence
     1724:	eb 97                	jmp    16bd <disruptor_thread+0x7d>
     1726:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-    while (data->running == 1) {
     1730:	8b 83 90 00 00 00    	mov    0x90(%rbx),%eax
-    struct Thread *sender = data->sender;
     1736:	48 8b 6b 08          	mov    0x8(%rbx),%rbp
-    while (data->running == 1) {
     173a:	83 f8 01             	cmp    $0x1,%eax
     173d:	0f 85 3e ff ff ff    	jne    1681 <disruptor_thread+0x41>
-      if (sender->end == sender->start) {
     1743:	8b 95 80 00 00 00    	mov    0x80(%rbp),%edx
     1749:	8b 45 40             	mov    0x40(%rbp),%eax
     174c:	39 c2                	cmp    %eax,%edx
     174e:	75 1f                	jne    176f <disruptor_thread+0x12f>
-        asm volatile ("mfence" ::: "memory");
     1750:	0f ae f0             	mfence
-    while (data->running == 1) {
     1753:	8b 83 90 00 00 00    	mov    0x90(%rbx),%eax
     1759:	83 f8 01             	cmp    $0x1,%eax
     175c:	0f 85 1f ff ff ff    	jne    1681 <disruptor_thread+0x41>
-      if (sender->end == sender->start) {
     1762:	8b 95 80 00 00 00    	mov    0x80(%rbp),%edx
     1768:	8b 45 40             	mov    0x40(%rbp),%eax
     176b:	39 c2                	cmp    %eax,%edx
     176d:	74 e1                	je     1750 <disruptor_thread+0x110>
-        clock_gettime(CLOCK_MONOTONIC_RAW, &sender->data[sender->start].end);
     176f:	48 63 45 40          	movslq 0x40(%rbp),%rax
     1773:	bf 04 00 00 00       	mov    $0x4,%edi
     1778:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
     177c:	48 8b 45 10          	mov    0x10(%rbp),%rax
     1780:	48 8d 74 d0 10       	lea    0x10(%rax,%rdx,8),%rsi
     1785:	e8 66 f9 ff ff       	call   10f0 <clock_gettime@plt>
-        sender->data[sender->start].complete = 1;
     178a:	48 63 45 40          	movslq 0x40(%rbp),%rax
     178e:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
     1792:	48 8b 45 10          	mov    0x10(%rbp),%rax
     1796:	48 8d 04 d0          	lea    (%rax,%rdx,8),%rax
     179a:	c7 40 20 01 00 00 00 	movl   $0x1,0x20(%rax)
-        sender->start = (sender->start + 1) % data->size;
     17a1:	8b 45 40             	mov    0x40(%rbp),%eax
     17a4:	83 c0 01             	add    $0x1,%eax
     17a7:	48 98                	cltq
     17a9:	48 99                	cqto
     17ab:	48 f7 bb 88 00 00 00 	idivq  0x88(%rbx)
     17b2:	89 55 40             	mov    %edx,0x40(%rbp)
-    while (data->running == 1) {
     17b5:	8b 83 90 00 00 00    	mov    0x90(%rbx),%eax
     17bb:	83 f8 01             	cmp    $0x1,%eax
     17be:	74 83                	je     1743 <disruptor_thread+0x103>

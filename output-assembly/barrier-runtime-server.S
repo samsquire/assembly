@@ -384,19 +384,7 @@ Disassembly of section .plt.sec:
 Disassembly of section .text:
 
 0000000000002520 <add_write_request.cold>:
-    iov->iov_base = buf;
-    iov->iov_len = file_size;
-}
-int add_write_request(struct Request *req, struct io_uring *ring) {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    req->event_type = EVENT_TYPE_WRITE;
     2520:	c7 02 02 00 00 00    	movl   $0x2,(%rdx)
-
-static inline void io_uring_prep_rw(int op, struct io_uring_sqe *sqe, int fd,
-				    const void *addr, unsigned len,
-				    __u64 offset)
-{
-	sqe->opcode = (__u8) op;
     2526:	c6 04 25 00 00 00 00 00 	movb   $0x0,0x0
     252e:	0f 0b                	ud2
 
@@ -419,20 +407,8 @@ static inline void io_uring_prep_rw(int op, struct io_uring_sqe *sqe, int fd,
     255e:	66 90                	xchg   %ax,%ax
 
 0000000000002560 <main>:
-
-
-  return 0;
-}
-
-int main() {
     2560:	f3 0f 1e fa          	endbr64
     2564:	41 57                	push   %r15
-}
-
-__fortify_function int
-printf (const char *__restrict __fmt, ...)
-{
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     2566:	48 8d 3d 83 3e 00 00 	lea    0x3e83(%rip),%rdi        # 63f0 <_IO_stdin_used+0x3f0>
     256d:	41 56                	push   %r14
     256f:	41 55                	push   %r13
@@ -459,212 +435,117 @@ printf (const char *__restrict __fmt, ...)
     25ca:	31 c0                	xor    %eax,%eax
     25cc:	bf 01 00 00 00       	mov    $0x1,%edi
     25d1:	e8 5a fe ff ff       	call   2430 <__printf_chk@plt>
-  printf("Multithreaded lock free barrier parameters:\n");
-  printf("thread_count = %d\n", thread_count);
-  printf("external thread ingest buffer size = %d\n", buffer_size);
-  printf("intrathread message buffer size = %ld\n", messages_limit);
-  int total_threads = thread_count + timer_count + io_threads + external_threads;
-  struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
     25d6:	be 18 00 00 00       	mov    $0x18,%esi
     25db:	bf 01 00 00 00       	mov    $0x1,%edi
     25e0:	e8 9b fd ff ff       	call   2380 <calloc@plt>
-  struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
     25e5:	be 78 00 00 00       	mov    $0x78,%esi
     25ea:	bf 09 00 00 00       	mov    $0x9,%edi
-  struct ProtectedState *protected_state = calloc(1, sizeof(struct ProtectedState));
     25ef:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
-  struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
     25f4:	e8 87 fd ff ff       	call   2380 <calloc@plt>
-  int barrier_count = thread_count;
-  int total_barrier_count = barrier_count + 1;
-  int timer_index = thread_count;
-  int io_index = timer_index + timer_count;
-
-  struct Buffers *buffers = calloc(external_threads, sizeof(struct Buffers));
     25f9:	be 10 00 00 00       	mov    $0x10,%esi
     25fe:	bf 03 00 00 00       	mov    $0x3,%edi
-  struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
     2603:	49 89 c4             	mov    %rax,%r12
-  struct Buffers *buffers = calloc(external_threads, sizeof(struct Buffers));
     2606:	e8 75 fd ff ff       	call   2380 <calloc@plt>
-  
-  for (int x = 0 ; x < external_threads; x++) {
     260b:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
     2610:	48 8d 58 30          	lea    0x30(%rax),%rbx
-  struct Buffers *buffers = calloc(external_threads, sizeof(struct Buffers));
     2614:	48 89 c5             	mov    %rax,%rbp
     2617:	49 89 c5             	mov    %rax,%r13
-    buffers[x].count = buffer_size;
     261a:	c7 45 00 0f 27 00 00 	movl   $0x270f,0x0(%rbp)
-    buffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
     2621:	be 10 00 00 00       	mov    $0x10,%esi
     2626:	bf 0f 27 00 00       	mov    $0x270f,%edi
     262b:	e8 50 fd ff ff       	call   2380 <calloc@plt>
     2630:	48 89 45 08          	mov    %rax,0x8(%rbp)
-    for (int y = 0 ; y < buffer_size; y++) {
     2634:	48 8d 90 f0 70 02 00 	lea    0x270f0(%rax),%rdx
     263b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-      buffers[x].buffer[y].available = 0;
     2640:	c7 40 08 00 00 00 00 	movl   $0x0,0x8(%rax)
-    for (int y = 0 ; y < buffer_size; y++) {
     2647:	48 83 c0 10          	add    $0x10,%rax
     264b:	48 39 d0             	cmp    %rdx,%rax
     264e:	75 f0                	jne    2640 <main+0xe0>
-  for (int x = 0 ; x < external_threads; x++) {
     2650:	48 83 c5 10          	add    $0x10,%rbp
     2654:	48 39 dd             	cmp    %rbx,%rbp
     2657:	75 c1                	jne    261a <main+0xba>
-    }
-  }
-  int external_thread_index = 0;
     2659:	c7 44 24 28 00 00 00 00 	movl   $0x0,0x28(%rsp)
-  for (int x = 0 ; x < external_threads; x++) {
     2661:	31 d2                	xor    %edx,%edx
-              a       x
-              s         x
-              k           x
-        */
-        if (x == y) {
-            thread_data[x].tasks[y].protected = do_protected_write; 
     2663:	4d 89 e7             	mov    %r12,%r15
     2666:	4c 89 64 24 38       	mov    %r12,0x38(%rsp)
     266b:	49 89 d0             	mov    %rdx,%r8
     266e:	4c 89 6c 24 40       	mov    %r13,0x40(%rsp)
     2673:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    thread_data[x].threads = thread_data;
     2678:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-    thread_data[x].thread_index = x;
     267d:	45 89 07             	mov    %r8d,(%r15)
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
     2680:	be 98 00 00 00       	mov    $0x98,%esi
-      for (int y = 0 ; y < total_barrier_count ; y++) {
     2685:	31 db                	xor    %ebx,%ebx
-    thread_data[x].task_count = total_barrier_count;
     2687:	41 c7 47 28 05 00 00 00 	movl   $0x5,0x28(%r15)
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
     268f:	bf 05 00 00 00       	mov    $0x5,%edi
-    thread_data[x].threads = thread_data;
     2694:	49 89 47 10          	mov    %rax,0x10(%r15)
-    thread_data[x].thread_count = thread_count;
     2698:	48 8b 05 d9 41 00 00 	mov    0x41d9(%rip),%rax        # 6878 <_IO_stdin_used+0x878>
     269f:	44 89 44 24 20       	mov    %r8d,0x20(%rsp)
     26a4:	49 89 47 18          	mov    %rax,0x18(%r15)
-    thread_data[x].protected_state = protected_state;
     26a8:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
-    thread_data[x].thread_index = x;
     26ad:	4c 89 44 24 08       	mov    %r8,0x8(%rsp)
-    thread_data[x].protected_state = protected_state;
     26b2:	49 89 47 30          	mov    %rax,0x30(%r15)
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
     26b6:	e8 c5 fc ff ff       	call   2380 <calloc@plt>
-            thread_data[x].tasks[y].run = barriered_nulltask; 
-          }
-          */
-          thread_data[x].tasks[y].run = barriered_work; 
-        } else {
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
     26bb:	4c 8b 44 24 08       	mov    0x8(%rsp),%r8
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
     26c0:	49 89 c5             	mov    %rax,%r13
-      thread_data[x].tasks = barriers;
     26c3:	49 89 47 20          	mov    %rax,0x20(%r15)
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
     26c7:	b8 ab aa aa aa       	mov    $0xaaaaaaab,%eax
     26cc:	44 89 c6             	mov    %r8d,%esi
     26cf:	44 89 44 24 24       	mov    %r8d,0x24(%rsp)
-            printf("Ingest thread %d\n", x);
-            thread_data[x].buffers = &buffers[external_thread_index++];
-            thread_data[x].tasks[y].run = barriered_work_ingest; 
-          } else {
-            thread_data[x].tasks[y].run = barriered_work; 
     26d4:	4c 89 ea             	mov    %r13,%rdx
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
     26d7:	48 0f af f0          	imul   %rax,%rsi
     26db:	48 c1 ee 21          	shr    $0x21,%rsi
     26df:	8d 04 76             	lea    (%rsi,%rsi,2),%eax
     26e2:	44 89 c6             	mov    %r8d,%esi
     26e5:	29 c6                	sub    %eax,%esi
-            thread_data[x].tasks[y].run = barriered_work; 
     26e7:	89 74 24 2c          	mov    %esi,0x2c(%rsp)
     26eb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-            thread_data[x].tasks[y].protected = do_protected_write; 
     26f0:	4c 63 e3             	movslq %ebx,%r12
     26f3:	4b 8d 04 e4          	lea    (%r12,%r12,8),%rax
     26f7:	49 8d 2c 44          	lea    (%r12,%rax,2),%rbp
-        if (x == y) {
     26fb:	8b 44 24 08          	mov    0x8(%rsp),%eax
-            thread_data[x].tasks[y].protected = do_protected_write; 
     26ff:	48 c1 e5 03          	shl    $0x3,%rbp
     2703:	4c 8d 2c 2a          	lea    (%rdx,%rbp,1),%r13
-        if (x == y) {
     2707:	39 c3                	cmp    %eax,%ebx
     2709:	0f 84 e9 01 00 00    	je     28f8 <main+0x398>
-        struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
     270f:	be 20 00 00 00       	mov    $0x20,%esi
     2714:	bf 04 00 00 00       	mov    $0x4,%edi
     2719:	e8 62 fc ff ff       	call   2380 <calloc@plt>
-        thread_data[x].tasks[y].mailboxes = mailboxes;
     271e:	89 5c 24 10          	mov    %ebx,0x10(%rsp)
     2722:	48 89 6c 24 18       	mov    %rbp,0x18(%rsp)
     2727:	49 89 c6             	mov    %rax,%r14
     272a:	49 89 45 70          	mov    %rax,0x70(%r13)
-        for (int b = 0 ; b < thread_count ; b++) {
     272e:	4c 8d a8 80 00 00 00 	lea    0x80(%rax),%r13
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
     2735:	be 08 00 00 00       	mov    $0x8,%esi
     273a:	bf 0f 27 00 00       	mov    $0x270f,%edi
-        for (int b = 0 ; b < thread_count ; b++) {
     273f:	49 83 c6 20          	add    $0x20,%r14
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
     2743:	e8 38 fc ff ff       	call   2380 <calloc@plt>
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
     2748:	be 08 00 00 00       	mov    $0x8,%esi
     274d:	bf 0f 27 00 00       	mov    $0x270f,%edi
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
     2752:	48 89 c5             	mov    %rax,%rbp
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
     2755:	e8 26 fc ff ff       	call   2380 <calloc@plt>
-          struct Data *data = calloc(2, sizeof(struct Data));
     275a:	be 18 00 00 00       	mov    $0x18,%esi
     275f:	bf 02 00 00 00       	mov    $0x2,%edi
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
     2764:	48 89 c3             	mov    %rax,%rbx
-          struct Data *data = calloc(2, sizeof(struct Data));
     2767:	e8 14 fc ff ff       	call   2380 <calloc@plt>
-          mailboxes[b].higher = &data[1];
     276c:	48 8d 70 18          	lea    0x18(%rax),%rsi
-          data[0].messages_count = 0;
     2770:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
-          mailboxes[b].lower = &data[0];
     2778:	49 89 46 e0          	mov    %rax,-0x20(%r14)
-          mailboxes[b].higher = &data[1];
     277c:	49 89 76 e8          	mov    %rsi,-0x18(%r14)
-          data[0].messages = messages;
     2780:	48 89 28             	mov    %rbp,(%rax)
-          data[1].messages = messages2;
     2783:	48 89 58 18          	mov    %rbx,0x18(%rax)
-          data[0].messages_limit = messages_limit;
     2787:	48 c7 40 10 0f 27 00 00 	movq   $0x270f,0x10(%rax)
-          data[1].messages_count = 0;
     278f:	48 c7 40 20 00 00 00 00 	movq   $0x0,0x20(%rax)
-          data[1].messages_limit = messages_limit;
     2797:	48 c7 40 28 0f 27 00 00 	movq   $0x270f,0x28(%rax)
-        for (int b = 0 ; b < thread_count ; b++) {
     279f:	4d 39 ee             	cmp    %r13,%r14
     27a2:	75 91                	jne    2735 <main+0x1d5>
-        char *message = malloc(sizeof(char) * 256);
     27a4:	be 01 00 00 00       	mov    $0x1,%esi
     27a9:	bf 00 01 00 00       	mov    $0x100,%edi
     27ae:	8b 5c 24 10          	mov    0x10(%rsp),%ebx
     27b2:	48 8b 6c 24 18       	mov    0x18(%rsp),%rbp
     27b7:	e8 c4 fb ff ff       	call   2380 <calloc@plt>
-        struct Message *messaged = malloc(sizeof(struct Message));
     27bc:	bf 18 00 00 00       	mov    $0x18,%edi
-        char *message = malloc(sizeof(char) * 256);
     27c1:	49 89 c5             	mov    %rax,%r13
-        struct Message *messaged = malloc(sizeof(struct Message));
     27c4:	e8 27 fc ff ff       	call   23f0 <malloc@plt>
-  return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
     27c9:	44 8b 74 24 20       	mov    0x20(%rsp),%r14d
     27ce:	4c 89 ef             	mov    %r13,%rdi
     27d1:	41 89 d9             	mov    %ebx,%r9d
@@ -675,66 +556,37 @@ printf (const char *__restrict __fmt, ...)
     27e7:	45 89 f0             	mov    %r14d,%r8d
     27ea:	be 01 00 00 00       	mov    $0x1,%esi
     27ef:	e8 0c fd ff ff       	call   2500 <__sprintf_chk@plt>
-        messaged->message = message;
     27f4:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-        messaged->thread_index = x;
     27f9:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
     27fe:	be 20 00 00 00       	mov    $0x20,%esi
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
     2803:	49 8b 57 20          	mov    0x20(%r15),%rdx
-        messaged->message = message;
     2807:	4d 89 2a             	mov    %r13,(%r10)
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
     280a:	44 8d 6b 01          	lea    0x1(%rbx),%r13d
-        messaged->thread_index = x;
     280e:	49 89 42 08          	mov    %rax,0x8(%r10)
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
     2812:	44 89 e8             	mov    %r13d,%eax
-        messaged->task_index = y;
     2815:	4d 89 62 10          	mov    %r12,0x10(%r10)
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
     2819:	83 e0 03             	and    $0x3,%eax
     281c:	4c 8d 24 2a          	lea    (%rdx,%rbp,1),%r12
     2820:	41 89 84 24 90 00 00 00 	mov    %eax,0x90(%r12)
-        thread_data[x].tasks[y].message = messaged;
     2828:	4d 89 94 24 88 00 00 00 	mov    %r10,0x88(%r12)
-        thread_data[x].tasks[y].sending = 1;
     2830:	41 c7 84 24 80 00 00 00 01 00 00 00 	movl   $0x1,0x80(%r12)
-        thread_data[x].tasks[y].snapshot_count = 999999;
     283c:	49 c7 44 24 58 3f 42 0f 00 	movq   $0xf423f,0x58(%r12)
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
     2845:	49 8b 7c 24 58       	mov    0x58(%r12),%rdi
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
     284a:	48 89 54 24 10       	mov    %rdx,0x10(%rsp)
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
     284f:	e8 2c fb ff ff       	call   2380 <calloc@plt>
-        if (y == barrier_count - 1) {
     2854:	83 fb 03             	cmp    $0x3,%ebx
     2857:	48 8b 54 24 10       	mov    0x10(%rsp),%rdx
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
     285c:	49 89 44 24 50       	mov    %rax,0x50(%r12)
-        thread_data[x].tasks[y].current_snapshot = 0;
     2861:	49 c7 44 24 60 00 00 00 00 	movq   $0x0,0x60(%r12)
-        thread_data[x].tasks[y].thread_index = x;
     286a:	45 89 74 24 38       	mov    %r14d,0x38(%r12)
-        thread_data[x].tasks[y].thread = &thread_data[x]; 
     286f:	4d 89 7c 24 30       	mov    %r15,0x30(%r12)
-        thread_data[x].tasks[y].available = 1;
     2874:	41 c7 44 24 40 01 00 00 00 	movl   $0x1,0x40(%r12)
-        thread_data[x].tasks[y].arrived = 0;
     287d:	41 c7 44 24 08 00 00 00 00 	movl   $0x0,0x8(%r12)
-        thread_data[x].tasks[y].thread_count = thread_count;
     2886:	41 c7 44 24 3c 04 00 00 00 	movl   $0x4,0x3c(%r12)
-        thread_data[x].tasks[y].task_count = total_barrier_count;
     288f:	41 c7 44 24 44 05 00 00 00 	movl   $0x5,0x44(%r12)
-        thread_data[x].tasks[y].worker_count = thread_count;
     2898:	41 c7 84 24 84 00 00 00 04 00 00 00 	movl   $0x4,0x84(%r12)
-        thread_data[x].tasks[y].task_index = y;
     28a4:	41 89 1c 24          	mov    %ebx,(%r12)
-        if (y == barrier_count - 1) {
     28a8:	74 36                	je     28e0 <main+0x380>
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 1)) { 
     28aa:	8b 44 24 24          	mov    0x24(%rsp),%eax
     28ae:	39 c3                	cmp    %eax,%ebx
     28b0:	75 12                	jne    28c4 <main+0x364>
@@ -742,101 +594,50 @@ printf (const char *__restrict __fmt, ...)
     28b7:	7f 0b                	jg     28c4 <main+0x364>
     28b9:	83 7c 24 2c 01       	cmpl   $0x1,0x2c(%rsp)
     28be:	0f 84 8c 06 00 00    	je     2f50 <main+0x9f0>
-            thread_data[x].tasks[y].run = barriered_work; 
     28c4:	48 8d 05 f5 25 00 00 	lea    0x25f5(%rip),%rax        # 4ec0 <barriered_work>
     28cb:	49 89 44 24 20       	mov    %rax,0x20(%r12)
-      for (int y = 0 ; y < total_barrier_count ; y++) {
     28d0:	41 83 fd 05          	cmp    $0x5,%r13d
     28d4:	74 3a                	je     2910 <main+0x3b0>
-  int external_thread_index = 0;
     28d6:	44 89 eb             	mov    %r13d,%ebx
     28d9:	e9 12 fe ff ff       	jmp    26f0 <main+0x190>
     28de:	66 90                	xchg   %ax,%ax
-          thread_data[x].tasks[y].run = barriered_work; 
     28e0:	48 8d 05 d9 25 00 00 	lea    0x25d9(%rip),%rax        # 4ec0 <barriered_work>
     28e7:	41 bd 04 00 00 00    	mov    $0x4,%r13d
     28ed:	49 89 44 24 20       	mov    %rax,0x20(%r12)
-      for (int y = 0 ; y < total_barrier_count ; y++) {
     28f2:	eb e2                	jmp    28d6 <main+0x376>
     28f4:	0f 1f 40 00          	nopl   0x0(%rax)
-            thread_data[x].tasks[y].protected = do_protected_write; 
     28f8:	48 8d 05 a1 07 00 00 	lea    0x7a1(%rip),%rax        # 30a0 <do_protected_write>
     28ff:	49 89 45 28          	mov    %rax,0x28(%r13)
     2903:	e9 07 fe ff ff       	jmp    270f <main+0x1af>
     2908:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-
-          }
-        }
-      }
-      thread_data[x].tasks[barrier_count].run = barriered_reset; 
     2910:	48 8d 05 c9 07 00 00 	lea    0x7c9(%rip),%rax        # 30e0 <barriered_reset>
     2917:	4c 8b 44 24 08       	mov    0x8(%rsp),%r8
     291c:	48 89 82 80 02 00 00 	mov    %rax,0x280(%rdx)
-      thread_data[x].tasks[barrier_count].thread = &thread_data[x]; 
-      thread_data[x].tasks[barrier_count].available = 1; 
-      thread_data[x].tasks[barrier_count].arrived = 0; 
-      thread_data[x].tasks[barrier_count].task_index = barrier_count; 
-      thread_data[x].tasks[barrier_count].thread_count = thread_count; 
-      thread_data[x].tasks[barrier_count].thread_index = x; 
     2923:	8b 44 24 20          	mov    0x20(%rsp),%eax
-  for (int x = 0 ; x < total_threads ; x++) {
     2927:	49 83 c0 01          	add    $0x1,%r8
-      thread_data[x].tasks[barrier_count].thread = &thread_data[x]; 
     292b:	4c 89 ba 90 02 00 00 	mov    %r15,0x290(%rdx)
-  for (int x = 0 ; x < total_threads ; x++) {
     2932:	49 83 c7 78          	add    $0x78,%r15
-      thread_data[x].tasks[barrier_count].available = 1; 
     2936:	c7 82 a0 02 00 00 01 00 00 00 	movl   $0x1,0x2a0(%rdx)
-      thread_data[x].tasks[barrier_count].arrived = 0; 
     2940:	c7 82 68 02 00 00 00 00 00 00 	movl   $0x0,0x268(%rdx)
-      thread_data[x].tasks[barrier_count].task_index = barrier_count; 
     294a:	c7 82 60 02 00 00 04 00 00 00 	movl   $0x4,0x260(%rdx)
-      thread_data[x].tasks[barrier_count].thread_count = thread_count; 
     2954:	c7 82 9c 02 00 00 04 00 00 00 	movl   $0x4,0x29c(%rdx)
-      thread_data[x].tasks[barrier_count].thread_index = x; 
     295e:	89 82 98 02 00 00    	mov    %eax,0x298(%rdx)
-      thread_data[x].tasks[barrier_count].worker_count = thread_count; 
     2964:	c7 82 e4 02 00 00 04 00 00 00 	movl   $0x4,0x2e4(%rdx)
-      thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
     296e:	c7 82 a4 02 00 00 05 00 00 00 	movl   $0x5,0x2a4(%rdx)
-  for (int x = 0 ; x < total_threads ; x++) {
     2978:	49 83 f8 09          	cmp    $0x9,%r8
     297c:	0f 85 f6 fc ff ff    	jne    2678 <main+0x118>
-  }
-  for (int x = io_index ; x < io_index + io_threads ; x++) {
-    thread_data[x].threads = thread_data;
     2982:	4c 8b 64 24 38       	mov    0x38(%rsp),%r12
-  // schedule first task
-  for (int n = 0 ; n < thread_count ; n++) {
-    thread_data[n].tasks[0].scheduled = 1;
-  }
-
-  pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2987:	be 38 00 00 00       	mov    $0x38,%esi
     298c:	bf 09 00 00 00       	mov    $0x9,%edi
-  thread_data[thread_count].threads = thread_data;
-  thread_data[thread_count].thread_count = thread_count;
-  thread_data[thread_count].thread_index = 0;
-
-  pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
-  for (int x = 0 ; x < thread_count ; x++) {
     2991:	45 31 f6             	xor    %r14d,%r14d
-    thread_data[x].threads = thread_data;
     2994:	49 8d 84 24 58 02 00 00 	lea    0x258(%r12),%rax
-  pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
     299c:	4d 89 e7             	mov    %r12,%r15
-    thread_data[x].threads = thread_data;
     299f:	4d 89 a4 24 68 02 00 00 	mov    %r12,0x268(%r12)
     29a7:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
-    thread_data[n].tasks[0].scheduled = 1;
     29ac:	49 8b 44 24 20       	mov    0x20(%r12),%rax
-    thread_data[x].thread_count = thread_count;
     29b1:	41 c7 84 24 70 02 00 00 04 00 00 00 	movl   $0x4,0x270(%r12)
-    thread_data[x].thread_index = x;
     29bd:	41 c7 84 24 58 02 00 00 05 00 00 00 	movl   $0x5,0x258(%r12)
-    thread_data[x].task_count = total_barrier_count;
     29c9:	41 c7 84 24 80 02 00 00 05 00 00 00 	movl   $0x5,0x280(%r12)
-    thread_data[n].tasks[0].scheduled = 1;
     29d5:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
     29dc:	49 8b 84 24 98 00 00 00 	mov    0x98(%r12),%rax
     29e4:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
@@ -844,132 +645,78 @@ printf (const char *__restrict __fmt, ...)
     29f3:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
     29fa:	49 8b 84 24 88 01 00 00 	mov    0x188(%r12),%rax
     2a02:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
-  pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a09:	e8 72 f9 ff ff       	call   2380 <calloc@plt>
-  pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a0e:	be 38 00 00 00       	mov    $0x38,%esi
     2a13:	bf 09 00 00 00       	mov    $0x9,%edi
-  pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a18:	48 89 c3             	mov    %rax,%rbx
-  pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a1b:	e8 60 f9 ff ff       	call   2380 <calloc@plt>
-  pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a20:	be 38 00 00 00       	mov    $0x38,%esi
     2a25:	bf 09 00 00 00       	mov    $0x9,%edi
-  pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a2a:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-  pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a2f:	e8 4c f9 ff ff       	call   2380 <calloc@plt>
-  pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
     2a34:	be 08 00 00 00       	mov    $0x8,%esi
     2a39:	bf 09 00 00 00       	mov    $0x9,%edi
-  pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
     2a3e:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
-  pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
     2a43:	e8 38 f9 ff ff       	call   2380 <calloc@plt>
-  thread_data[thread_count].threads = thread_data;
     2a48:	4d 89 a4 24 f0 01 00 00 	mov    %r12,0x1f0(%r12)
-  pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
     2a50:	49 8d 8c 24 e0 01 00 00 	lea    0x1e0(%r12),%rcx
     2a58:	48 8d b3 e0 00 00 00 	lea    0xe0(%rbx),%rsi
-  thread_data[thread_count].type = TIMER;
     2a5f:	41 c7 84 24 e4 01 00 00 00 00 00 00 	movl   $0x0,0x1e4(%r12)
-  pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
     2a6b:	48 89 c5             	mov    %rax,%rbp
-  pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
     2a6e:	48 8d 78 20          	lea    0x20(%rax),%rdi
     2a72:	48 8d 15 57 09 00 00 	lea    0x957(%rip),%rdx        # 33d0 <timer_thread>
-  thread_data[thread_count].running = 1;
     2a79:	41 c7 84 24 0c 02 00 00 01 00 00 00 	movl   $0x1,0x20c(%r12)
-  thread_data[thread_count].task_count = total_barrier_count;
     2a85:	49 89 ed             	mov    %rbp,%r13
     2a88:	41 c7 84 24 08 02 00 00 05 00 00 00 	movl   $0x5,0x208(%r12)
-  thread_data[thread_count].thread_count = thread_count;
     2a94:	41 c7 84 24 f8 01 00 00 04 00 00 00 	movl   $0x4,0x1f8(%r12)
-  thread_data[thread_count].thread_index = 0;
     2aa0:	41 c7 84 24 e0 01 00 00 00 00 00 00 	movl   $0x0,0x1e0(%r12)
-  pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
     2aac:	e8 9f f9 ff ff       	call   2450 <pthread_create@plt>
-    thread_data[x].type = WORKER;
     2ab1:	41 c7 47 04 01 00 00 00 	movl   $0x1,0x4(%r15)
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     2ab9:	44 89 f2             	mov    %r14d,%edx
     2abc:	bf 01 00 00 00       	mov    $0x1,%edi
     2ac1:	31 c0                	xor    %eax,%eax
-    thread_data[x].running = 1;
     2ac3:	41 c7 47 2c 01 00 00 00 	movl   $0x1,0x2c(%r15)
     2acb:	48 8d 35 ce 39 00 00 	lea    0x39ce(%rip),%rsi        # 64a0 <_IO_stdin_used+0x4a0>
-  for (int x = 0 ; x < thread_count ; x++) {
     2ad2:	41 83 c6 01          	add    $0x1,%r14d
     2ad6:	e8 55 f9 ff ff       	call   2430 <__printf_chk@plt>
-    printf("Creating kernel worker thread %d\n", x);
-    pthread_create(&thread[x], &timer_attr[x], &barriered_thread, &thread_data[x]);
     2adb:	4c 89 f9             	mov    %r15,%rcx
     2ade:	48 89 de             	mov    %rbx,%rsi
     2ae1:	4c 89 ef             	mov    %r13,%rdi
     2ae4:	48 8d 15 65 06 00 00 	lea    0x665(%rip),%rdx        # 3150 <barriered_thread>
-  for (int x = 0 ; x < thread_count ; x++) {
     2aeb:	49 83 c7 78          	add    $0x78,%r15
     2aef:	49 83 c5 08          	add    $0x8,%r13
     2af3:	48 83 c3 38          	add    $0x38,%rbx
-    pthread_create(&thread[x], &timer_attr[x], &barriered_thread, &thread_data[x]);
     2af7:	e8 54 f9 ff ff       	call   2450 <pthread_create@plt>
-  for (int x = 0 ; x < thread_count ; x++) {
     2afc:	41 83 fe 04          	cmp    $0x4,%r14d
     2b00:	75 af                	jne    2ab1 <main+0x551>
-  for (int x = io_index ; x < io_index + io_threads ; x++) {
-    thread_data[x].type = IO;
-    thread_data[x].running = 1;
-    thread_data[x].task_count = 0;
-
-    thread_data[x].ring = calloc(1, sizeof(struct io_uring));
     2b02:	be d8 00 00 00       	mov    $0xd8,%esi
     2b07:	bf 01 00 00 00       	mov    $0x1,%edi
-    thread_data[x].type = IO;
     2b0c:	41 c7 84 24 5c 02 00 00 02 00 00 00 	movl   $0x2,0x25c(%r12)
-    thread_data[x].thread_index = x;
-    printf("Creating IO thread %d\n", x);
-    pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
-  }
-  int external_index = io_index + io_threads;
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2b18:	41 be 06 00 00 00    	mov    $0x6,%r14d
-    thread_data[x].running = 1;
     2b1e:	41 c7 84 24 84 02 00 00 01 00 00 00 	movl   $0x1,0x284(%r12)
-    thread_data[x].task_count = 0;
     2b2a:	4c 8d 6d 30          	lea    0x30(%rbp),%r13
     2b2e:	4d 8d bc 24 d0 02 00 00 	lea    0x2d0(%r12),%r15
     2b36:	41 c7 84 24 80 02 00 00 00 00 00 00 	movl   $0x0,0x280(%r12)
-    thread_data[x].ring = calloc(1, sizeof(struct io_uring));
     2b42:	e8 39 f8 ff ff       	call   2380 <calloc@plt>
-    thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
     2b47:	be 00 08 00 00       	mov    $0x800,%esi
     2b4c:	31 ff                	xor    %edi,%edi
-    thread_data[x].ring = calloc(1, sizeof(struct io_uring));
     2b4e:	49 89 84 24 98 02 00 00 	mov    %rax,0x298(%r12)
-    thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
     2b56:	e8 35 f9 ff ff       	call   2490 <eventfd@plt>
     2b5b:	ba 05 00 00 00       	mov    $0x5,%edx
     2b60:	bf 01 00 00 00       	mov    $0x1,%edi
-    thread_data[x].threads = thread_data;
     2b65:	4d 89 a4 24 68 02 00 00 	mov    %r12,0x268(%r12)
-    thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
     2b6d:	41 89 84 24 a0 02 00 00 	mov    %eax,0x2a0(%r12)
     2b75:	48 8d 35 db 36 00 00 	lea    0x36db(%rip),%rsi        # 6257 <_IO_stdin_used+0x257>
     2b7c:	31 c0                	xor    %eax,%eax
-    thread_data[x].thread_count = thread_count;
     2b7e:	41 c7 84 24 70 02 00 00 04 00 00 00 	movl   $0x4,0x270(%r12)
-    thread_data[x].thread_index = x;
     2b8a:	41 c7 84 24 58 02 00 00 05 00 00 00 	movl   $0x5,0x258(%r12)
     2b96:	e8 95 f8 ff ff       	call   2430 <__printf_chk@plt>
-    pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
     2b9b:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
     2ba0:	48 8d 7d 28          	lea    0x28(%rbp),%rdi
     2ba4:	48 8b 4c 24 18       	mov    0x18(%rsp),%rcx
     2ba9:	48 8d 15 e0 1a 00 00 	lea    0x1ae0(%rip),%rdx        # 4690 <io_thread>
     2bb0:	48 81 c6 18 01 00 00 	add    $0x118,%rsi
     2bb7:	e8 94 f8 ff ff       	call   2450 <pthread_create@plt>
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2bbc:	48 8b 5c 24 10       	mov    0x10(%rsp),%rbx
     2bc1:	48 89 6c 24 08       	mov    %rbp,0x8(%rsp)
     2bc6:	44 89 f5             	mov    %r14d,%ebp
@@ -981,49 +728,24 @@ printf (const char *__restrict __fmt, ...)
     2be1:	bf 01 00 00 00       	mov    $0x1,%edi
     2be6:	31 c0                	xor    %eax,%eax
     2be8:	e8 43 f8 ff ff       	call   2430 <__printf_chk@plt>
-    printf("Creating external thread %d\n", x);
-    thread_data[x].type = EXTERNAL;
-    thread_data[x].running = 1;
-    thread_data[x].task_count = 0;
-    thread_data[x].buffers = &buffers[buffer_index];
     2bed:	49 89 5f 38          	mov    %rbx,0x38(%r15)
-
-    thread_data[x].threads = thread_data;
-    thread_data[x].thread_count = thread_count;
-    thread_data[x].total_thread_count = total_threads;
-    thread_data[x].thread_index = x;
-    pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
     2bf1:	4c 89 f9             	mov    %r15,%rcx
     2bf4:	4c 89 f6             	mov    %r14,%rsi
-    thread_data[x].thread_index = x;
     2bf7:	41 89 2f             	mov    %ebp,(%r15)
-    thread_data[x].thread_count = thread_count;
     2bfa:	48 8b 05 77 3c 00 00 	mov    0x3c77(%rip),%rax        # 6878 <_IO_stdin_used+0x878>
-    pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
     2c01:	4c 89 ef             	mov    %r13,%rdi
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2c04:	83 c5 01             	add    $0x1,%ebp
-    thread_data[x].threads = thread_data;
     2c07:	4d 89 67 10          	mov    %r12,0x10(%r15)
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2c0b:	48 83 c3 10          	add    $0x10,%rbx
     2c0f:	49 83 c7 78          	add    $0x78,%r15
     2c13:	49 83 c5 08          	add    $0x8,%r13
-    thread_data[x].thread_count = thread_count;
     2c17:	49 89 47 a0          	mov    %rax,-0x60(%r15)
-    pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
     2c1b:	48 8d 15 ee 06 00 00 	lea    0x6ee(%rip),%rdx        # 3310 <external_thread>
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2c22:	49 83 c6 38          	add    $0x38,%r14
-    thread_data[x].type = EXTERNAL;
     2c26:	41 c7 47 8c 03 00 00 00 	movl   $0x3,-0x74(%r15)
-    thread_data[x].running = 1;
     2c2e:	41 c7 47 b4 01 00 00 00 	movl   $0x1,-0x4c(%r15)
-    thread_data[x].task_count = 0;
     2c36:	41 c7 47 b0 00 00 00 00 	movl   $0x0,-0x50(%r15)
-    pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
     2c3e:	e8 0d f8 ff ff       	call   2450 <pthread_create@plt>
-  for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     2c43:	83 fd 09             	cmp    $0x9,%ebp
     2c46:	75 90                	jne    2bd8 <main+0x678>
     2c48:	48 8d 3d 3c 36 00 00 	lea    0x363c(%rip),%rdi        # 628b <_IO_stdin_used+0x28b>
@@ -1031,13 +753,8 @@ printf (const char *__restrict __fmt, ...)
     2c54:	31 db                	xor    %ebx,%ebx
     2c56:	4c 8d 74 24 50       	lea    0x50(%rsp),%r14
     2c5b:	e8 70 f6 ff ff       	call   22d0 <puts@plt>
-  }
-  printf("Waiting for threads to finish\n");  
-  for (int x = 0 ; x < total_threads ; x++) {
     2c60:	4c 8d 2d 42 36 00 00 	lea    0x3642(%rip),%r13        # 62a9 <_IO_stdin_used+0x2a9>
     2c67:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-    void * result; 
-    pthread_join(thread[x], &result);
     2c70:	48 8b 7c dd 00       	mov    0x0(%rbp,%rbx,8),%rdi
     2c75:	4c 89 f6             	mov    %r14,%rsi
     2c78:	e8 53 f8 ff ff       	call   24d0 <pthread_join@plt>
@@ -1045,35 +762,20 @@ printf (const char *__restrict __fmt, ...)
     2c7f:	4c 89 ee             	mov    %r13,%rsi
     2c82:	bf 01 00 00 00       	mov    $0x1,%edi
     2c87:	31 c0                	xor    %eax,%eax
-  for (int x = 0 ; x < total_threads ; x++) {
     2c89:	48 83 c3 01          	add    $0x1,%rbx
     2c8d:	e8 9e f7 ff ff       	call   2430 <__printf_chk@plt>
     2c92:	48 83 fb 09          	cmp    $0x9,%rbx
     2c96:	75 d8                	jne    2c70 <main+0x710>
     2c98:	49 8d 84 24 00 02 00 00 	lea    0x200(%r12),%rax
-    printf("Finished thread %d\n", x);
-  }
-  long total = 0;
-  long v = 0;
-  long ingests = 0;
-  long sends = 0;
     2ca0:	45 31 f6             	xor    %r14d,%r14d
-  long sents = 0;
-  long received = 0;
     2ca3:	31 db                	xor    %ebx,%ebx
-  long sents = 0;
     2ca5:	31 ed                	xor    %ebp,%ebp
     2ca7:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
     2cac:	4d 8d 54 24 20       	lea    0x20(%r12),%r10
-  long ingests = 0;
     2cb1:	45 31 ff             	xor    %r15d,%r15d
-  long total = 0;
     2cb4:	45 31 ed             	xor    %r13d,%r13d
     2cb7:	4c 89 74 24 08       	mov    %r14,0x8(%rsp)
     2cbc:	4d 89 d4             	mov    %r10,%r12
-  for (int x = 0 ; x < thread_count ; x++) {
-
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
     2cbf:	49 63 54 24 08       	movslq 0x8(%r12),%rdx
     2cc4:	85 d2                	test   %edx,%edx
     2cc6:	0f 8e 88 00 00 00    	jle    2d54 <main+0x7f4>
@@ -1083,65 +785,39 @@ printf (const char *__restrict __fmt, ...)
     2cd9:	48 8d 14 4a          	lea    (%rdx,%rcx,2),%rdx
     2cdd:	48 8d 14 d0          	lea    (%rax,%rdx,8),%rdx
     2ce1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-      total += thread_data[x].tasks[n].n;
     2ce8:	48 8b 48 10          	mov    0x10(%rax),%rcx
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
     2cec:	48 05 98 00 00 00    	add    $0x98,%rax
-      total += thread_data[x].tasks[n].n;
     2cf2:	49 01 cd             	add    %rcx,%r13
-      v += thread_data[x].tasks[n].v;
     2cf5:	48 8b 48 80          	mov    -0x80(%rax),%rcx
     2cf9:	49 01 ce             	add    %rcx,%r14
-      ingests += thread_data[x].tasks[n].ingest_count;
     2cfc:	48 8b 48 d0          	mov    -0x30(%rax),%rcx
     2d00:	49 01 cf             	add    %rcx,%r15
-      sends += thread_data[x].tasks[n].sends;
     2d03:	48 8b 48 e0          	mov    -0x20(%rax),%rcx
     2d07:	49 01 c8             	add    %rcx,%r8
-      for (int k = 0 ; k < thread_count ; k++) {
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
     2d0a:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d0e:	48 03 69 10          	add    0x10(%rcx),%rbp
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
     2d12:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d16:	48 03 59 18          	add    0x18(%rcx),%rbx
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
     2d1a:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d1e:	48 03 69 30          	add    0x30(%rcx),%rbp
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
     2d22:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d26:	48 03 59 38          	add    0x38(%rcx),%rbx
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
     2d2a:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d2e:	48 03 69 50          	add    0x50(%rcx),%rbp
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
     2d32:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d36:	48 03 59 58          	add    0x58(%rcx),%rbx
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
     2d3a:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d3e:	48 03 69 70          	add    0x70(%rcx),%rbp
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
     2d42:	48 8b 48 d8          	mov    -0x28(%rax),%rcx
     2d46:	48 03 59 78          	add    0x78(%rcx),%rbx
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
     2d4a:	48 39 d0             	cmp    %rdx,%rax
     2d4d:	75 99                	jne    2ce8 <main+0x788>
     2d4f:	4c 89 44 24 08       	mov    %r8,0x8(%rsp)
-      }
-    }
-    struct timespec start = thread_data[x].start;
-    struct timespec end = thread_data[x].end;
-    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-    const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
     2d54:	49 8b 4c 24 48       	mov    0x48(%r12),%rcx
-    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
     2d59:	49 8b 54 24 40       	mov    0x40(%r12),%rdx
     2d5e:	31 c0                	xor    %eax,%eax
-  for (int x = 0 ; x < thread_count ; x++) {
     2d60:	49 83 c4 78          	add    $0x78,%r12
-    const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
     2d64:	49 2b 4c 24 c0       	sub    -0x40(%r12),%rcx
-    const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
     2d69:	49 2b 54 24 b8       	sub    -0x48(%r12),%rdx
     2d6e:	bf 01 00 00 00       	mov    $0x1,%edi
     2d73:	48 8d 35 43 35 00 00 	lea    0x3543(%rip),%rsi        # 62bd <_IO_stdin_used+0x2bd>
@@ -1151,7 +827,6 @@ printf (const char *__restrict __fmt, ...)
     2d8b:	31 c0                	xor    %eax,%eax
     2d8d:	bf 01 00 00 00       	mov    $0x1,%edi
     2d92:	e8 99 f6 ff ff       	call   2430 <__printf_chk@plt>
-  for (int x = 0 ; x < thread_count ; x++) {
     2d97:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     2d9c:	49 39 c4             	cmp    %rax,%r12
     2d9f:	0f 85 1a ff ff ff    	jne    2cbf <main+0x75f>
@@ -1174,12 +849,6 @@ printf (const char *__restrict __fmt, ...)
     2deb:	bf 01 00 00 00       	mov    $0x1,%edi
     2df0:	31 c0                	xor    %eax,%eax
     2df2:	48 8d 35 1b 35 00 00 	lea    0x351b(%rip),%rsi        # 6314 <_IO_stdin_used+0x314>
-  printf("Total Requests %ld\n", total);
-  printf("\n");
-  printf("Total Protected %ld\n", protected_state->protected);
-  printf("Total V %ld\n", v);
-  printf("\n");
-  printf("Total Protected per second %ld\n", protected_state->protected / DURATION);
     2df9:	49 bc 89 88 88 88 88 88 88 88 	movabs $0x8888888888888889,%r12
     2e03:	e8 28 f6 ff ff       	call   2430 <__printf_chk@plt>
     2e08:	bf 0a 00 00 00       	mov    $0xa,%edi
@@ -1202,8 +871,6 @@ printf (const char *__restrict __fmt, ...)
     2e52:	48 8b 50 08          	mov    0x8(%rax),%rdx
     2e56:	31 c0                	xor    %eax,%eax
     2e58:	e8 d3 f5 ff ff       	call   2430 <__printf_chk@plt>
-  printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
-  printf("Total external thread ingests per second %ld\n", ingests / DURATION);
     2e5d:	4c 89 f8             	mov    %r15,%rax
     2e60:	4d 89 f9             	mov    %r15,%r9
     2e63:	bf 01 00 00 00       	mov    $0x1,%edi
@@ -1215,7 +882,6 @@ printf (const char *__restrict __fmt, ...)
     2e7b:	48 c1 fa 04          	sar    $0x4,%rdx
     2e7f:	4c 29 ca             	sub    %r9,%rdx
     2e82:	e8 a9 f5 ff ff       	call   2430 <__printf_chk@plt>
-  printf("Total intra thread sends per second %ld\n", sends / DURATION);
     2e87:	4c 89 f0             	mov    %r14,%rax
     2e8a:	4d 89 f0             	mov    %r14,%r8
     2e8d:	bf 01 00 00 00       	mov    $0x1,%edi
@@ -1227,7 +893,6 @@ printf (const char *__restrict __fmt, ...)
     2ea5:	48 c1 fa 04          	sar    $0x4,%rdx
     2ea9:	4c 29 c2             	sub    %r8,%rdx
     2eac:	e8 7f f5 ff ff       	call   2430 <__printf_chk@plt>
-  printf("Total Requests per second %ld\n", total / DURATION);
     2eb1:	4c 89 e8             	mov    %r13,%rax
     2eb4:	bf 01 00 00 00       	mov    $0x1,%edi
     2eb9:	48 8d 35 b0 36 00 00 	lea    0x36b0(%rip),%rsi        # 6570 <_IO_stdin_used+0x570>
@@ -1238,7 +903,6 @@ printf (const char *__restrict __fmt, ...)
     2ecc:	48 c1 fa 04          	sar    $0x4,%rdx
     2ed0:	4c 29 ea             	sub    %r13,%rdx
     2ed3:	e8 58 f5 ff ff       	call   2430 <__printf_chk@plt>
-  printf("Total sents %ld\n", sents / DURATION);
     2ed8:	48 89 e8             	mov    %rbp,%rax
     2edb:	bf 01 00 00 00       	mov    $0x1,%edi
     2ee0:	48 8d 35 3a 34 00 00 	lea    0x343a(%rip),%rsi        # 6321 <_IO_stdin_used+0x321>
@@ -1249,7 +913,6 @@ printf (const char *__restrict __fmt, ...)
     2ef3:	48 c1 fa 04          	sar    $0x4,%rdx
     2ef7:	48 29 ea             	sub    %rbp,%rdx
     2efa:	e8 31 f5 ff ff       	call   2430 <__printf_chk@plt>
-  printf("Total receives %ld\n", received / DURATION);
     2eff:	48 89 d8             	mov    %rbx,%rax
     2f02:	bf 01 00 00 00       	mov    $0x1,%edi
     2f07:	48 8d 35 24 34 00 00 	lea    0x3424(%rip),%rsi        # 6332 <_IO_stdin_used+0x332>
@@ -1260,10 +923,6 @@ printf (const char *__restrict __fmt, ...)
     2f1a:	48 c1 fa 04          	sar    $0x4,%rdx
     2f1e:	48 29 da             	sub    %rbx,%rdx
     2f21:	e8 0a f5 ff ff       	call   2430 <__printf_chk@plt>
-  // verify(thread_data, thread_count);
-  return 0;
-
-}
     2f26:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
     2f2b:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     2f34:	75 67                	jne    2f9d <main+0xa3d>
@@ -1282,26 +941,19 @@ printf (const char *__restrict __fmt, ...)
     2f59:	48 8d 35 e5 32 00 00 	lea    0x32e5(%rip),%rsi        # 6245 <_IO_stdin_used+0x245>
     2f60:	31 c0                	xor    %eax,%eax
     2f62:	e8 c9 f4 ff ff       	call   2430 <__printf_chk@plt>
-            thread_data[x].buffers = &buffers[external_thread_index++];
     2f67:	48 63 44 24 28       	movslq 0x28(%rsp),%rax
     2f6c:	48 8b 54 24 40       	mov    0x40(%rsp),%rdx
     2f71:	48 89 c7             	mov    %rax,%rdi
     2f74:	48 c1 e0 04          	shl    $0x4,%rax
     2f78:	48 01 d0             	add    %rdx,%rax
-            thread_data[x].tasks[y].run = barriered_work_ingest; 
     2f7b:	49 8b 57 20          	mov    0x20(%r15),%rdx
-            thread_data[x].buffers = &buffers[external_thread_index++];
     2f7f:	49 89 47 38          	mov    %rax,0x38(%r15)
-            thread_data[x].tasks[y].run = barriered_work_ingest; 
     2f83:	48 8d 05 b6 21 00 00 	lea    0x21b6(%rip),%rax        # 5140 <barriered_work_ingest>
     2f8a:	48 01 d5             	add    %rdx,%rbp
     2f8d:	48 89 45 20          	mov    %rax,0x20(%rbp)
-            thread_data[x].buffers = &buffers[external_thread_index++];
     2f91:	8d 47 01             	lea    0x1(%rdi),%eax
     2f94:	89 44 24 28          	mov    %eax,0x28(%rsp)
-            thread_data[x].tasks[y].run = barriered_work_ingest; 
     2f98:	e9 33 f9 ff ff       	jmp    28d0 <main+0x370>
-}
     2f9d:	e8 6e f3 ff ff       	call   2310 <__stack_chk_fail@plt>
     2fa2:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
     2fac:	0f 1f 40 00          	nopl   0x0(%rax)
@@ -1377,51 +1029,35 @@ printf (const char *__restrict __fmt, ...)
     3099:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 00000000000030a0 <do_protected_write>:
-int do_protected_write(volatile struct BarrierTask *data) {
     30a0:	f3 0f 1e fa          	endbr64
-  struct ProtectedState *protected = data->thread->protected_state;
     30a4:	48 8b 47 30          	mov    0x30(%rdi),%rax
-  data->v++; // thread local
     30a8:	48 8b 57 18          	mov    0x18(%rdi),%rdx
-  struct ProtectedState *protected = data->thread->protected_state;
     30ac:	48 8b 40 30          	mov    0x30(%rax),%rax
-  data->v++; // thread local
     30b0:	48 83 c2 01          	add    $0x1,%rdx
     30b4:	48 89 57 18          	mov    %rdx,0x18(%rdi)
-  if (protected->balance > 0) {
     30b8:	48 8b 48 08          	mov    0x8(%rax),%rcx
-  protected->protected++; // shared between all threads
     30bc:	48 83 00 01          	addq   $0x1,(%rax)
-    protected->balance -= 500; // shared between all threads
     30c0:	48 8d b1 0c fe ff ff 	lea    -0x1f4(%rcx),%rsi
     30c7:	48 85 c9             	test   %rcx,%rcx
     30ca:	48 8d 91 f4 01 00 00 	lea    0x1f4(%rcx),%rdx
     30d1:	48 0f 4f d6          	cmovg  %rsi,%rdx
     30d5:	48 89 50 08          	mov    %rdx,0x8(%rax)
-}
     30d9:	31 c0                	xor    %eax,%eax
     30db:	c3                   	ret
     30dc:	0f 1f 40 00          	nopl   0x0(%rax)
 
 00000000000030e0 <barriered_reset>:
-int barriered_reset(volatile struct BarrierTask *data) {
     30e0:	f3 0f 1e fa          	endbr64
-    for (int x = 0 ; x < data->task_count ; x++) {
     30e4:	8b 47 44             	mov    0x44(%rdi),%eax
-int barriered_reset(volatile struct BarrierTask *data) {
     30e7:	48 89 f9             	mov    %rdi,%rcx
-    for (int x = 0 ; x < data->task_count ; x++) {
     30ea:	85 c0                	test   %eax,%eax
     30ec:	7e 57                	jle    3145 <barriered_reset+0x65>
     30ee:	31 f6                	xor    %esi,%esi
     30f0:	31 ff                	xor    %edi,%edi
     30f2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-      data->thread->threads[data->thread_index].tasks[x].arrived++; 
     30f8:	4c 8b 41 30          	mov    0x30(%rcx),%r8
     30fc:	48 63 51 38          	movslq 0x38(%rcx),%rdx
-    for (int x = 0 ; x < data->task_count ; x++) {
     3100:	83 c7 01             	add    $0x1,%edi
-      data->thread->threads[data->thread_index].tasks[x].arrived++; 
     3103:	48 89 d0             	mov    %rdx,%rax
     3106:	48 c1 e0 04          	shl    $0x4,%rax
     310a:	48 29 d0             	sub    %rdx,%rax
@@ -1432,53 +1068,37 @@ int barriered_reset(volatile struct BarrierTask *data) {
     311c:	8b 42 08             	mov    0x8(%rdx),%eax
     311f:	83 c0 01             	add    $0x1,%eax
     3122:	89 42 08             	mov    %eax,0x8(%rdx)
-      data->thread->tasks[x].available = 1; 
     3125:	48 8b 41 30          	mov    0x30(%rcx),%rax
     3129:	48 8b 50 20          	mov    0x20(%rax),%rdx
     312d:	48 01 f2             	add    %rsi,%rdx
-    for (int x = 0 ; x < data->task_count ; x++) {
     3130:	48 81 c6 98 00 00 00 	add    $0x98,%rsi
-      data->thread->tasks[x].available = 1; 
     3137:	c7 42 40 01 00 00 00 	movl   $0x1,0x40(%rdx)
-    for (int x = 0 ; x < data->task_count ; x++) {
     313e:	8b 41 44             	mov    0x44(%rcx),%eax
     3141:	39 f8                	cmp    %edi,%eax
     3143:	7f b3                	jg     30f8 <barriered_reset+0x18>
-  asm volatile ("mfence" ::: "memory");
     3145:	0f ae f0             	mfence
-}
     3148:	31 c0                	xor    %eax,%eax
     314a:	c3                   	ret
     314b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
 0000000000003150 <barriered_thread>:
-void* barriered_thread(void *arg) {
     3150:	f3 0f 1e fa          	endbr64
-  while (data->running == 1) {
     3154:	8b 47 2c             	mov    0x2c(%rdi),%eax
     3157:	83 f8 01             	cmp    $0x1,%eax
     315a:	0f 85 9f 01 00 00    	jne    32ff <barriered_thread+0x1af>
-void* barriered_thread(void *arg) {
     3160:	41 55                	push   %r13
     3162:	49 89 fd             	mov    %rdi,%r13
     3165:	41 54                	push   %r12
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->end);
     3167:	4c 8d 67 60          	lea    0x60(%rdi),%r12
-void* barriered_thread(void *arg) {
     316b:	55                   	push   %rbp
     316c:	53                   	push   %rbx
-  int t = 0;
     316d:	31 db                	xor    %ebx,%ebx
-void* barriered_thread(void *arg) {
     316f:	48 83 ec 08          	sub    $0x8,%rsp
-    if (t >= data->task_count) {
     3173:	44 8b 57 28          	mov    0x28(%rdi),%r10d
     3177:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
     3180:	44 39 d3             	cmp    %r10d,%ebx
     3183:	7c 0b                	jl     3190 <barriered_thread+0x40>
-      t = 0;
     3185:	31 db                	xor    %ebx,%ebx
-    for (; t < data->task_count; t++) {
     3187:	45 85 d2             	test   %r10d,%r10d
     318a:	0f 8e 20 01 00 00    	jle    32b0 <barriered_thread+0x160>
     3190:	48 63 c3             	movslq %ebx,%rax
@@ -1491,23 +1111,17 @@ void* barriered_thread(void *arg) {
     31ab:	48 81 c5 98 00 00 00 	add    $0x98,%rbp
     31b2:	44 39 d3             	cmp    %r10d,%ebx
     31b5:	0f 8d f5 00 00 00    	jge    32b0 <barriered_thread+0x160>
-      if (data->tasks[t].available == 1) {
     31bb:	49 8b 55 20          	mov    0x20(%r13),%rdx
     31bf:	48 01 ea             	add    %rbp,%rdx
     31c2:	8b 42 40             	mov    0x40(%rdx),%eax
     31c5:	83 f8 01             	cmp    $0x1,%eax
     31c8:	75 de                	jne    31a8 <barriered_thread+0x58>
-        if (t > 0) {
     31ca:	85 db                	test   %ebx,%ebx
     31cc:	0f 8e fe 00 00 00    	jle    32d0 <barriered_thread+0x180>
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     31d2:	45 8b 5d 18          	mov    0x18(%r13),%r11d
-          previous = t - 1;
     31d6:	8d 43 ff             	lea    -0x1(%rbx),%eax
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     31d9:	45 85 db             	test   %r11d,%r11d
     31dc:	7e 6e                	jle    324c <barriered_thread+0xfc>
-          if (data->threads[thread].tasks[previous].arrived == data->tasks[t].arrived) {
     31de:	48 98                	cltq
     31e0:	49 63 f3             	movslq %r11d,%rsi
     31e3:	48 8d 0c c0          	lea    (%rax,%rax,8),%rcx
@@ -1518,42 +1132,31 @@ void* barriered_thread(void *arg) {
     31f6:	49 c1 e0 03          	shl    $0x3,%r8
     31fa:	48 29 f1             	sub    %rsi,%rcx
     31fd:	4c 8d 0c c8          	lea    (%rax,%rcx,8),%r9
-        int arrived = 0; 
     3201:	31 c9                	xor    %ecx,%ecx
     3203:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-          if (data->threads[thread].tasks[previous].arrived == data->tasks[t].arrived) {
     3208:	48 8b 70 20          	mov    0x20(%rax),%rsi
     320c:	4c 01 c6             	add    %r8,%rsi
     320f:	8b 76 08             	mov    0x8(%rsi),%esi
     3212:	8b 7a 08             	mov    0x8(%rdx),%edi
-            arrived++;
     3215:	39 f7                	cmp    %esi,%edi
     3217:	40 0f 94 c6          	sete   %sil
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     321b:	48 83 c0 78          	add    $0x78,%rax
-            arrived++;
     321f:	40 0f b6 f6          	movzbl %sil,%esi
     3223:	01 f1                	add    %esi,%ecx
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     3225:	4c 39 c8             	cmp    %r9,%rax
     3228:	75 de                	jne    3208 <barriered_thread+0xb8>
-        if (arrived == 0 || arrived == data->thread_count) {
     322a:	44 39 d9             	cmp    %r11d,%ecx
     322d:	74 04                	je     3233 <barriered_thread+0xe3>
     322f:	85 c9                	test   %ecx,%ecx
     3231:	75 7d                	jne    32b0 <barriered_thread+0x160>
-          if (t == 0) {
     3233:	85 db                	test   %ebx,%ebx
     3235:	75 15                	jne    324c <barriered_thread+0xfc>
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->start);
     3237:	49 8d 75 50          	lea    0x50(%r13),%rsi
     323b:	bf 04 00 00 00       	mov    $0x4,%edi
     3240:	e8 ab f0 ff ff       	call   22f0 <clock_gettime@plt>
-          data->tasks[t].available = 0;
     3245:	49 8b 55 20          	mov    0x20(%r13),%rdx
     3249:	48 01 ea             	add    %rbp,%rdx
     324c:	c7 42 40 00 00 00 00 	movl   $0x0,0x40(%rdx)
-          data->tasks[t].run(&data->threads[data->thread_index].tasks[t]);
     3253:	48 8b 4a 20          	mov    0x20(%rdx),%rcx
     3257:	49 63 55 00          	movslq 0x0(%r13),%rdx
     325b:	48 89 d0             	mov    %rdx,%rax
@@ -1564,33 +1167,25 @@ void* barriered_thread(void *arg) {
     326d:	48 8b 78 20          	mov    0x20(%rax),%rdi
     3271:	48 01 ef             	add    %rbp,%rdi
     3274:	ff d1                	call   *%rcx
-          data->tasks[t].arrived++;
     3276:	49 8b 55 20          	mov    0x20(%r13),%rdx
     327a:	48 01 ea             	add    %rbp,%rdx
     327d:	8b 42 08             	mov    0x8(%rdx),%eax
     3280:	83 c0 01             	add    $0x1,%eax
     3283:	89 42 08             	mov    %eax,0x8(%rdx)
-          if (t == data->task_count - 1) {
     3286:	41 8b 45 28          	mov    0x28(%r13),%eax
-          data->iteration_count++;
     328a:	49 83 45 70 01       	addq   $0x1,0x70(%r13)
-          if (t == data->task_count - 1) {
     328f:	83 e8 01             	sub    $0x1,%eax
     3292:	39 d8                	cmp    %ebx,%eax
     3294:	74 5a                	je     32f0 <barriered_thread+0x1a0>
-          asm volatile ("mfence" ::: "memory");
     3296:	0f ae f0             	mfence
-    for (; t < data->task_count; t++) {
     3299:	45 8b 55 28          	mov    0x28(%r13),%r10d
     329d:	83 c3 01             	add    $0x1,%ebx
     32a0:	48 81 c5 98 00 00 00 	add    $0x98,%rbp
     32a7:	44 39 d3             	cmp    %r10d,%ebx
     32aa:	0f 8c 0b ff ff ff    	jl     31bb <barriered_thread+0x6b>
-  while (data->running == 1) {
     32b0:	41 8b 45 2c          	mov    0x2c(%r13),%eax
     32b4:	83 f8 01             	cmp    $0x1,%eax
     32b7:	0f 84 c3 fe ff ff    	je     3180 <barriered_thread+0x30>
-}
     32bd:	48 83 c4 08          	add    $0x8,%rsp
     32c1:	31 c0                	xor    %eax,%eax
     32c3:	5b                   	pop    %rbx
@@ -1599,57 +1194,44 @@ void* barriered_thread(void *arg) {
     32c7:	41 5d                	pop    %r13
     32c9:	c3                   	ret
     32ca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     32d0:	45 8b 5d 18          	mov    0x18(%r13),%r11d
-          previous = data->task_count - 1;
     32d4:	41 8d 42 ff          	lea    -0x1(%r10),%eax
-        for (int thread = 0 ; thread < data->thread_count; thread++) {
     32d8:	45 85 db             	test   %r11d,%r11d
     32db:	0f 8f fd fe ff ff    	jg     31de <barriered_thread+0x8e>
     32e1:	e9 4d ff ff ff       	jmp    3233 <barriered_thread+0xe3>
     32e6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-            clock_gettime(CLOCK_MONOTONIC_RAW, &data->end);
     32f0:	4c 89 e6             	mov    %r12,%rsi
     32f3:	bf 04 00 00 00       	mov    $0x4,%edi
     32f8:	e8 f3 ef ff ff       	call   22f0 <clock_gettime@plt>
     32fd:	eb 97                	jmp    3296 <barriered_thread+0x146>
-}
     32ff:	31 c0                	xor    %eax,%eax
     3301:	c3                   	ret
     3302:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     330d:	0f 1f 00             	nopl   (%rax)
 
 0000000000003310 <external_thread>:
-void * external_thread(void *arg) {
     3310:	f3 0f 1e fa          	endbr64
     3314:	41 55                	push   %r13
     3316:	41 54                	push   %r12
     3318:	55                   	push   %rbp
     3319:	53                   	push   %rbx
     331a:	48 83 ec 38          	sub    $0x38,%rsp
-  struct timespec req = {
     331e:	66 0f 6f 05 6a 34 00 00 	movdqa 0x346a(%rip),%xmm0        # 6790 <_IO_stdin_used+0x790>
-void * external_thread(void *arg) {
     3326:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     332f:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
     3334:	31 c0                	xor    %eax,%eax
-  struct timespec req = {
     3336:	0f 29 04 24          	movaps %xmm0,(%rsp)
-  while (data->running == 1) {
     333a:	8b 47 2c             	mov    0x2c(%rdi),%eax
     333d:	83 f8 01             	cmp    $0x1,%eax
     3340:	75 64                	jne    33a6 <external_thread+0x96>
     3342:	49 89 fd             	mov    %rdi,%r13
     3345:	48 8d 6c 24 10       	lea    0x10(%rsp),%rbp
     334a:	48 89 e3             	mov    %rsp,%rbx
-        data->buffers->buffer[x].data = "Hello world";
     334d:	4c 8d 25 b0 2c 00 00 	lea    0x2cb0(%rip),%r12        # 6004 <_IO_stdin_used+0x4>
     3354:	0f 1f 40 00          	nopl   0x0(%rax)
-    nanosleep(&req , &rem);
     3358:	48 89 ee             	mov    %rbp,%rsi
     335b:	48 89 df             	mov    %rbx,%rdi
     335e:	e8 cd ef ff ff       	call   2330 <nanosleep@plt>
-    for (int x = 0; x < data->buffers->count; x++) {
     3363:	49 8b 45 38          	mov    0x38(%r13),%rax
     3367:	48 63 08             	movslq (%rax),%rcx
     336a:	85 c9                	test   %ecx,%ecx
@@ -1658,25 +1240,18 @@ void * external_thread(void *arg) {
     3372:	48 c1 e1 04          	shl    $0x4,%rcx
     3376:	48 01 c1             	add    %rax,%rcx
     3379:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-      if (data->buffers->buffer[x].available == 0) {
     3380:	8b 50 08             	mov    0x8(%rax),%edx
     3383:	85 d2                	test   %edx,%edx
     3385:	75 0a                	jne    3391 <external_thread+0x81>
-        data->buffers->buffer[x].data = "Hello world";
     3387:	4c 89 20             	mov    %r12,(%rax)
-        data->buffers->buffer[x].available = 1;
     338a:	c7 40 08 01 00 00 00 	movl   $0x1,0x8(%rax)
-    for (int x = 0; x < data->buffers->count; x++) {
     3391:	48 83 c0 10          	add    $0x10,%rax
     3395:	48 39 c1             	cmp    %rax,%rcx
     3398:	75 e6                	jne    3380 <external_thread+0x70>
-    asm volatile ("mfence" ::: "memory");
     339a:	0f ae f0             	mfence
-  while (data->running == 1) {
     339d:	41 8b 45 2c          	mov    0x2c(%r13),%eax
     33a1:	83 f8 01             	cmp    $0x1,%eax
     33a4:	74 b2                	je     3358 <external_thread+0x48>
-}
     33a6:	48 8b 44 24 28       	mov    0x28(%rsp),%rax
     33ab:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     33b4:	75 0d                	jne    33c3 <external_thread+0xb3>
@@ -1691,7 +1266,6 @@ void * external_thread(void *arg) {
     33c8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
 
 00000000000033d0 <timer_thread>:
-void* timer_thread(void *arg) {
     33d0:	f3 0f 1e fa          	endbr64
     33d4:	41 57                	push   %r15
     33d6:	48 8d 35 33 2c 00 00 	lea    0x2c33(%rip),%rsi        # 6010 <_IO_stdin_used+0x10>
@@ -1708,7 +1282,6 @@ void* timer_thread(void *arg) {
     33fc:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
     3401:	31 c0                	xor    %eax,%eax
     3403:	e8 28 f0 ff ff       	call   2430 <__printf_chk@plt>
-  struct timespec preempt = {
     3408:	66 0f 6f 05 80 33 00 00 	movdqa 0x3380(%rip),%xmm0        # 6790 <_IO_stdin_used+0x790>
     3410:	ba 30 75 00 00       	mov    $0x7530,%edx
     3415:	31 c0                	xor    %eax,%eax
@@ -1716,33 +1289,22 @@ void* timer_thread(void *arg) {
     341e:	bf 01 00 00 00       	mov    $0x1,%edi
     3423:	0f 29 44 24 10       	movaps %xmm0,0x10(%rsp)
     3428:	e8 03 f0 ff ff       	call   2430 <__printf_chk@plt>
-  while (data->running && n < times) {
     342d:	4d 63 77 2c          	movslq 0x2c(%r15),%r14
     3431:	45 85 f6             	test   %r14d,%r14d
     3434:	0f 84 a6 00 00 00    	je     34e0 <timer_thread+0x110>
-  int n = 0;
     343a:	45 31 ed             	xor    %r13d,%r13d
-  int y = 0;
     343d:	45 31 f6             	xor    %r14d,%r14d
     3440:	49 89 e4             	mov    %rsp,%r12
-    if (y >= data->threads[0].task_count) {
     3443:	31 db                	xor    %ebx,%ebx
     3445:	48 8d 6c 24 10       	lea    0x10(%rsp),%rbp
-    nanosleep(&preempt , &rem2);
     344a:	48 89 ef             	mov    %rbp,%rdi
     344d:	4c 89 e6             	mov    %r12,%rsi
-    n++;
     3450:	41 83 c5 01          	add    $0x1,%r13d
-    nanosleep(&preempt , &rem2);
     3454:	e8 d7 ee ff ff       	call   2330 <nanosleep@plt>
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3459:	49 63 47 18          	movslq 0x18(%r15),%rax
-    y++;
     345d:	41 8d 7e 01          	lea    0x1(%r14),%edi
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3461:	85 c0                	test   %eax,%eax
     3463:	7e 56                	jle    34bb <timer_thread+0xeb>
-        data->threads[x].tasks[y].scheduled = 0;
     3465:	4b 8d 14 f6          	lea    (%r14,%r14,8),%rdx
     3469:	49 8b 4f 10          	mov    0x10(%r15),%rcx
     346d:	4d 8d 04 56          	lea    (%r14,%rdx,2),%r8
@@ -1752,56 +1314,39 @@ void* timer_thread(void *arg) {
     347c:	48 29 c2             	sub    %rax,%rdx
     347f:	4c 8d 0c d1          	lea    (%rcx,%rdx,8),%r9
     3483:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-        int next = (y + 1) % data->threads[x].task_count;
     3488:	89 f8                	mov    %edi,%eax
-        data->threads[x].tasks[next].scheduled = 1;
     348a:	48 8b 71 20          	mov    0x20(%rcx),%rsi
-        int next = (y + 1) % data->threads[x].task_count;
     348e:	99                   	cltd
     348f:	f7 79 28             	idivl  0x28(%rcx)
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3492:	48 83 c1 78          	add    $0x78,%rcx
-        data->threads[x].tasks[next].scheduled = 1;
     3496:	48 63 d2             	movslq %edx,%rdx
     3499:	48 8d 04 d2          	lea    (%rdx,%rdx,8),%rax
     349d:	48 8d 04 42          	lea    (%rdx,%rax,2),%rax
     34a1:	48 8d 04 c6          	lea    (%rsi,%rax,8),%rax
-        data->threads[x].tasks[y].scheduled = 0;
     34a5:	4c 01 c6             	add    %r8,%rsi
-        data->threads[x].tasks[next].scheduled = 1;
     34a8:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
-        data->threads[x].tasks[y].scheduled = 0;
     34af:	c7 46 48 00 00 00 00 	movl   $0x0,0x48(%rsi)
-    for (int x = 0 ; x < data->thread_count ; x++) {
     34b6:	4c 39 c9             	cmp    %r9,%rcx
     34b9:	75 cd                	jne    3488 <timer_thread+0xb8>
-    asm volatile ("mfence" ::: "memory");
     34bb:	0f ae f0             	mfence
-    if (y >= data->threads[0].task_count) {
     34be:	49 8b 47 10          	mov    0x10(%r15),%rax
     34c2:	39 78 28             	cmp    %edi,0x28(%rax)
-  while (data->running && n < times) {
     34c5:	41 8b 47 2c          	mov    0x2c(%r15),%eax
-    if (y >= data->threads[0].task_count) {
     34c9:	0f 4e fb             	cmovle %ebx,%edi
     34cc:	4c 63 f7             	movslq %edi,%r14
-  while (data->running && n < times) {
     34cf:	85 c0                	test   %eax,%eax
     34d1:	74 0d                	je     34e0 <timer_thread+0x110>
     34d3:	41 81 fd 30 75 00 00 	cmp    $0x7530,%r13d
     34da:	0f 85 6a ff ff ff    	jne    344a <timer_thread+0x7a>
     34e0:	48 8d 3d 51 2b 00 00 	lea    0x2b51(%rip),%rdi        # 6038 <_IO_stdin_used+0x38>
     34e7:	e8 e4 ed ff ff       	call   22d0 <puts@plt>
-  for (int x = 0 ; x < data->total_thread_count ; x++) {
     34ec:	49 63 57 1c          	movslq 0x1c(%r15),%rdx
     34f0:	85 d2                	test   %edx,%edx
     34f2:	7e 52                	jle    3546 <timer_thread+0x176>
-    for (int y = 0 ; y < data->task_count ; y++) {
     34f4:	49 63 47 28          	movslq 0x28(%r15),%rax
     34f8:	85 c0                	test   %eax,%eax
     34fa:	7e 4a                	jle    3546 <timer_thread+0x176>
     34fc:	48 89 d1             	mov    %rdx,%rcx
-      data->threads[x].tasks[y].sending = 0;
     34ff:	4d 8b 47 10          	mov    0x10(%r15),%r8
     3503:	31 f6                	xor    %esi,%esi
     3505:	48 c1 e1 04          	shl    $0x4,%rcx
@@ -1810,34 +1355,24 @@ void* timer_thread(void *arg) {
     3510:	48 8d 3c 50          	lea    (%rax,%rdx,2),%rdi
     3514:	48 c1 e1 03          	shl    $0x3,%rcx
     3518:	48 c1 e7 03          	shl    $0x3,%rdi
-    for (int y = 0 ; y < data->task_count ; y++) {
     351c:	49 8b 44 30 20       	mov    0x20(%r8,%rsi,1),%rax
     3521:	48 8d 14 07          	lea    (%rdi,%rax,1),%rdx
     3525:	0f 1f 00             	nopl   (%rax)
-      data->threads[x].tasks[y].sending = 0;
     3528:	c7 80 80 00 00 00 00 00 00 00 	movl   $0x0,0x80(%rax)
-    for (int y = 0 ; y < data->task_count ; y++) {
     3532:	48 05 98 00 00 00    	add    $0x98,%rax
     3538:	48 39 d0             	cmp    %rdx,%rax
     353b:	75 eb                	jne    3528 <timer_thread+0x158>
-  for (int x = 0 ; x < data->total_thread_count ; x++) {
     353d:	48 83 c6 78          	add    $0x78,%rsi
     3541:	48 39 ce             	cmp    %rcx,%rsi
     3544:	75 d6                	jne    351c <timer_thread+0x14c>
-  asm volatile ("mfence" ::: "memory");
     3546:	0f ae f0             	mfence
-  struct timespec drain = {
     3549:	66 0f 6f 05 4f 32 00 00 	movdqa 0x324f(%rip),%xmm0        # 67a0 <_IO_stdin_used+0x7a0>
     3551:	48 8d 2d 05 2b 00 00 	lea    0x2b05(%rip),%rbp        # 605d <_IO_stdin_used+0x5d>
     3558:	0f 29 44 24 30       	movaps %xmm0,0x30(%rsp)
-    for (int x = 0 ; x < data->thread_count ; x++) {
     355d:	49 63 47 18          	movslq 0x18(%r15),%rax
-    y++;
     3561:	45 8d 6e 01          	lea    0x1(%r14),%r13d
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3565:	85 c0                	test   %eax,%eax
     3567:	7e 5b                	jle    35c4 <timer_thread+0x1f4>
-        data->threads[x].tasks[y].scheduled = 0;
     3569:	4b 8d 14 f6          	lea    (%r14,%r14,8),%rdx
     356d:	49 8b 4f 10          	mov    0x10(%r15),%rcx
     3571:	49 8d 3c 56          	lea    (%r14,%rdx,2),%rdi
@@ -1847,53 +1382,36 @@ void* timer_thread(void *arg) {
     3580:	48 29 c2             	sub    %rax,%rdx
     3583:	4c 8d 04 d1          	lea    (%rcx,%rdx,8),%r8
     3587:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-        int next = (y + 1) % data->threads[x].task_count;
     3590:	44 89 e8             	mov    %r13d,%eax
-        data->threads[x].tasks[next].scheduled = 1;
     3593:	48 8b 71 20          	mov    0x20(%rcx),%rsi
-        int next = (y + 1) % data->threads[x].task_count;
     3597:	99                   	cltd
     3598:	f7 79 28             	idivl  0x28(%rcx)
-    for (int x = 0 ; x < data->thread_count ; x++) {
     359b:	48 83 c1 78          	add    $0x78,%rcx
-        data->threads[x].tasks[next].scheduled = 1;
     359f:	48 63 c2             	movslq %edx,%rax
     35a2:	48 8d 14 c0          	lea    (%rax,%rax,8),%rdx
     35a6:	48 8d 04 50          	lea    (%rax,%rdx,2),%rax
     35aa:	48 8d 04 c6          	lea    (%rsi,%rax,8),%rax
-        data->threads[x].tasks[y].scheduled = 0;
     35ae:	48 01 fe             	add    %rdi,%rsi
-        data->threads[x].tasks[next].scheduled = 1;
     35b1:	c7 40 48 01 00 00 00 	movl   $0x1,0x48(%rax)
-        data->threads[x].tasks[y].scheduled = 0;
     35b8:	c7 46 48 00 00 00 00 	movl   $0x0,0x48(%rsi)
-    for (int x = 0 ; x < data->thread_count ; x++) {
     35bf:	49 39 c8             	cmp    %rcx,%r8
     35c2:	75 cc                	jne    3590 <timer_thread+0x1c0>
-    asm volatile ("mfence" ::: "memory");
     35c4:	0f ae f0             	mfence
-    if (y >= data->threads[0].task_count) {
     35c7:	49 8b 47 10          	mov    0x10(%r15),%rax
     35cb:	44 39 68 28          	cmp    %r13d,0x28(%rax)
     35cf:	7f 03                	jg     35d4 <timer_thread+0x204>
-      y = 0;
     35d1:	45 31 ed             	xor    %r13d,%r13d
-    for (int x = 0 ; x < data->thread_count ; x++) {
     35d4:	45 8b 47 18          	mov    0x18(%r15),%r8d
     35d8:	45 85 c0             	test   %r8d,%r8d
     35db:	0f 8e dd 00 00 00    	jle    36be <timer_thread+0x2ee>
     35e1:	31 db                	xor    %ebx,%ebx
     35e3:	45 31 e4             	xor    %r12d,%r12d
-    int all_empty = 1;
     35e6:	41 b9 01 00 00 00    	mov    $0x1,%r9d
     35ec:	0f 1f 40 00          	nopl   0x0(%rax)
-            all_empty = 0;
     35f0:	45 31 f6             	xor    %r14d,%r14d
     35f3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-        for (int k = 0 ; k < data->thread_count; k++) {
     35f8:	45 85 c0             	test   %r8d,%r8d
     35fb:	0f 8e 81 00 00 00    	jle    3682 <timer_thread+0x2b2>
-          if (((struct Data*)data->threads[x].tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x].tasks[y].mailboxes[k].higher)->messages_count > 0) {
     3601:	49 8b 47 10          	mov    0x10(%r15),%rax
     3605:	4b 8d 14 f6          	lea    (%r14,%r14,8),%rdx
     3609:	49 63 f8             	movslq %r8d,%rdi
@@ -1908,11 +1426,9 @@ void* timer_thread(void *arg) {
     3629:	48 8b 76 08          	mov    0x8(%rsi),%rsi
     362d:	48 85 f6             	test   %rsi,%rsi
     3630:	7f 21                	jg     3653 <timer_thread+0x283>
-        for (int k = 0 ; k < data->thread_count; k++) {
     3632:	48 83 c2 01          	add    $0x1,%rdx
     3636:	48 39 d7             	cmp    %rdx,%rdi
     3639:	74 47                	je     3682 <timer_thread+0x2b2>
-          if (((struct Data*)data->threads[x].tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x].tasks[y].mailboxes[k].higher)->messages_count > 0) {
     363b:	48 8b 71 70          	mov    0x70(%rcx),%rsi
     363f:	48 89 d0             	mov    %rdx,%rax
     3642:	48 c1 e0 05          	shl    $0x5,%rax
@@ -1920,7 +1436,6 @@ void* timer_thread(void *arg) {
     364a:	48 8b 76 08          	mov    0x8(%rsi),%rsi
     364e:	48 85 f6             	test   %rsi,%rsi
     3651:	7e cd                	jle    3620 <timer_thread+0x250>
-            printf("%d %ld %ld left\n", k, ((struct Data*)data->threads[x].tasks[y].mailboxes[k].lower)->messages_count, ((struct Data*)data->threads[x].tasks[y].mailboxes[k].higher)->messages_count);
     3653:	48 8b 71 70          	mov    0x70(%rcx),%rsi
     3657:	bf 01 00 00 00       	mov    $0x1,%edi
     365c:	48 8b 74 06 08       	mov    0x8(%rsi,%rax,1),%rsi
@@ -1931,25 +1446,18 @@ void* timer_thread(void *arg) {
     3670:	48 8b 48 08          	mov    0x8(%rax),%rcx
     3674:	31 c0                	xor    %eax,%eax
     3676:	e8 b5 ed ff ff       	call   2430 <__printf_chk@plt>
-      for (int y = 0 ; y < data->thread_count ; y++) {
     367b:	45 8b 47 18          	mov    0x18(%r15),%r8d
-            all_empty = 0;
     367f:	45 31 c9             	xor    %r9d,%r9d
-      for (int y = 0 ; y < data->thread_count ; y++) {
     3682:	49 83 c6 01          	add    $0x1,%r14
     3686:	45 39 f0             	cmp    %r14d,%r8d
     3689:	0f 8f 69 ff ff ff    	jg     35f8 <timer_thread+0x228>
-    for (int x = 0 ; x < data->thread_count ; x++) {
     368f:	41 83 c4 01          	add    $0x1,%r12d
     3693:	45 39 c4             	cmp    %r8d,%r12d
     3696:	7d 09                	jge    36a1 <timer_thread+0x2d1>
     3698:	48 83 c3 78          	add    $0x78,%rbx
-      for (int y = 0 ; y < data->thread_count ; y++) {
     369c:	e9 4f ff ff ff       	jmp    35f0 <timer_thread+0x220>
-    if (all_empty == 1) {
     36a1:	41 83 f9 01          	cmp    $0x1,%r9d
     36a5:	74 17                	je     36be <timer_thread+0x2ee>
-      nanosleep(&drain , &drainrem);
     36a7:	48 8d 74 24 20       	lea    0x20(%rsp),%rsi
     36ac:	48 8d 7c 24 30       	lea    0x30(%rsp),%rdi
     36b1:	4d 63 f5             	movslq %r13d,%r14
@@ -1958,41 +1466,31 @@ void* timer_thread(void *arg) {
     36be:	48 8d 3d 8f 29 00 00 	lea    0x298f(%rip),%rdi        # 6054 <_IO_stdin_used+0x54>
     36c5:	48 8d 2d b4 29 00 00 	lea    0x29b4(%rip),%rbp        # 6080 <_IO_stdin_used+0x80>
     36cc:	e8 ff eb ff ff       	call   22d0 <puts@plt>
-  while (data->running) {
     36d1:	41 8b 47 2c          	mov    0x2c(%r15),%eax
     36d5:	48 8d 1d 92 29 00 00 	lea    0x2992(%rip),%rbx        # 606e <_IO_stdin_used+0x6e>
     36dc:	85 c0                	test   %eax,%eax
     36de:	0f 84 b6 00 00 00    	je     379a <timer_thread+0x3ca>
-    for (int x = 0 ; x < data->total_thread_count ; x++) {
     36e4:	41 8b 57 1c          	mov    0x1c(%r15),%edx
     36e8:	45 31 e4             	xor    %r12d,%r12d
     36eb:	45 31 ed             	xor    %r13d,%r13d
     36ee:	85 d2                	test   %edx,%edx
     36f0:	7e 26                	jle    3718 <timer_thread+0x348>
     36f2:	49 8b 4f 10          	mov    0x10(%r15),%rcx
-      data->threads[x].running = 0;
     36f6:	4a 8d 04 21          	lea    (%rcx,%r12,1),%rax
-      if (data->threads[x].type == IO) {
     36fa:	83 78 04 02          	cmpl   $0x2,0x4(%rax)
-      data->threads[x].running = 0;
     36fe:	c7 40 2c 00 00 00 00 	movl   $0x0,0x2c(%rax)
-      if (data->threads[x].type == IO) {
     3705:	0f 84 bc 00 00 00    	je     37c7 <timer_thread+0x3f7>
-    for (int x = 0 ; x < data->total_thread_count ; x++) {
     370b:	41 83 c5 01          	add    $0x1,%r13d
     370f:	49 83 c4 78          	add    $0x78,%r12
     3713:	41 39 d5             	cmp    %edx,%r13d
     3716:	7c de                	jl     36f6 <timer_thread+0x326>
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3718:	49 63 57 18          	movslq 0x18(%r15),%rdx
     371c:	85 d2                	test   %edx,%edx
     371e:	7e 5b                	jle    377b <timer_thread+0x3ab>
-      for (int y = 0 ; y < data->task_count ; y++) {
     3720:	49 63 47 28          	movslq 0x28(%r15),%rax
     3724:	85 c0                	test   %eax,%eax
     3726:	7e 53                	jle    377b <timer_thread+0x3ab>
     3728:	48 89 d6             	mov    %rdx,%rsi
-        data->threads[x].tasks[y].scheduled = 0;
     372b:	4d 8b 47 10          	mov    0x10(%r15),%r8
     372f:	31 c9                	xor    %ecx,%ecx
     3731:	48 c1 e6 04          	shl    $0x4,%rsi
@@ -2002,33 +1500,25 @@ void* timer_thread(void *arg) {
     3740:	48 c1 e6 03          	shl    $0x3,%rsi
     3744:	48 c1 e7 03          	shl    $0x3,%rdi
     3748:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-      for (int y = 0 ; y < data->task_count ; y++) {
     3750:	49 8b 44 08 20       	mov    0x20(%r8,%rcx,1),%rax
     3755:	48 8d 14 38          	lea    (%rax,%rdi,1),%rdx
     3759:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-        data->threads[x].tasks[y].scheduled = 0;
     3760:	c7 40 48 00 00 00 00 	movl   $0x0,0x48(%rax)
-      for (int y = 0 ; y < data->task_count ; y++) {
     3767:	48 05 98 00 00 00    	add    $0x98,%rax
     376d:	48 39 d0             	cmp    %rdx,%rax
     3770:	75 ee                	jne    3760 <timer_thread+0x390>
-    for (int x = 0 ; x < data->thread_count ; x++) {
     3772:	48 83 c1 78          	add    $0x78,%rcx
     3776:	48 39 f1             	cmp    %rsi,%rcx
     3779:	75 d5                	jne    3750 <timer_thread+0x380>
-    asm volatile ("mfence" ::: "memory");
     377b:	0f ae f0             	mfence
     377e:	48 89 ef             	mov    %rbp,%rdi
     3781:	e8 4a eb ff ff       	call   22d0 <puts@plt>
-    data->running = 0;
     3786:	41 c7 47 2c 00 00 00 00 	movl   $0x0,0x2c(%r15)
-  while (data->running) {
     378e:	41 8b 47 2c          	mov    0x2c(%r15),%eax
     3792:	85 c0                	test   %eax,%eax
     3794:	0f 85 4a ff ff ff    	jne    36e4 <timer_thread+0x314>
     379a:	48 8d 3d e6 28 00 00 	lea    0x28e6(%rip),%rdi        # 6087 <_IO_stdin_used+0x87>
     37a1:	e8 2a eb ff ff       	call   22d0 <puts@plt>
-}
     37a6:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
     37ab:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     37b4:	75 46                	jne    37fc <timer_thread+0x42c>
@@ -2042,65 +1532,49 @@ void* timer_thread(void *arg) {
     37c4:	41 5f                	pop    %r15
     37c6:	c3                   	ret
     37c7:	48 89 df             	mov    %rbx,%rdi
-    for (int x = 0 ; x < data->total_thread_count ; x++) {
     37ca:	41 83 c5 01          	add    $0x1,%r13d
     37ce:	e8 fd ea ff ff       	call   22d0 <puts@plt>
-        eventfd_write(data->threads[x]._eventfd, 1);
     37d3:	49 8b 47 10          	mov    0x10(%r15),%rax
     37d7:	be 01 00 00 00       	mov    $0x1,%esi
     37dc:	42 8b 7c 20 48       	mov    0x48(%rax,%r12,1),%edi
-    for (int x = 0 ; x < data->total_thread_count ; x++) {
     37e1:	49 83 c4 78          	add    $0x78,%r12
-        eventfd_write(data->threads[x]._eventfd, 1);
     37e5:	e8 f6 eb ff ff       	call   23e0 <eventfd_write@plt>
-    for (int x = 0 ; x < data->total_thread_count ; x++) {
     37ea:	41 8b 57 1c          	mov    0x1c(%r15),%edx
     37ee:	41 39 d5             	cmp    %edx,%r13d
     37f1:	0f 8c fb fe ff ff    	jl     36f2 <timer_thread+0x322>
     37f7:	e9 1c ff ff ff       	jmp    3718 <timer_thread+0x348>
-}
     37fc:	e8 0f eb ff ff       	call   2310 <__stack_chk_fail@plt>
     3801:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     380c:	0f 1f 40 00          	nopl   0x0(%rax)
 
 0000000000003810 <fatal_error>:
-void fatal_error(const char *syscall) {
     3810:	f3 0f 1e fa          	endbr64
     3814:	50                   	push   %rax
     3815:	58                   	pop    %rax
     3816:	48 83 ec 08          	sub    $0x8,%rsp
-    perror(syscall);
     381a:	e8 51 ec ff ff       	call   2470 <perror@plt>
-    exit(1);
     381f:	bf 01 00 00 00       	mov    $0x1,%edi
     3824:	e8 57 ec ff ff       	call   2480 <exit@plt>
     3829:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 0000000000003830 <strtolower>:
-void strtolower(char *str) {
     3830:	f3 0f 1e fa          	endbr64
     3834:	55                   	push   %rbp
     3835:	53                   	push   %rbx
     3836:	48 83 ec 08          	sub    $0x8,%rsp
-    for (; *str; ++str)
     383a:	48 0f be 1f          	movsbq (%rdi),%rbx
     383e:	84 db                	test   %bl,%bl
     3840:	74 24                	je     3866 <strtolower+0x36>
     3842:	48 89 fd             	mov    %rdi,%rbp
-        *str = (char)tolower(*str);
     3845:	e8 a6 ec ff ff       	call   24f0 <__ctype_tolower_loc@plt>
     384a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
     3850:	48 8b 10             	mov    (%rax),%rdx
-    for (; *str; ++str)
     3853:	48 83 c5 01          	add    $0x1,%rbp
-        *str = (char)tolower(*str);
     3857:	8b 14 9a             	mov    (%rdx,%rbx,4),%edx
     385a:	88 55 ff             	mov    %dl,-0x1(%rbp)
-    for (; *str; ++str)
     385d:	48 0f be 5d 00       	movsbq 0x0(%rbp),%rbx
     3862:	84 db                	test   %bl,%bl
     3864:	75 ea                	jne    3850 <strtolower+0x20>
-}
     3866:	48 83 c4 08          	add    $0x8,%rsp
     386a:	5b                   	pop    %rbx
     386b:	5d                   	pop    %rbp
@@ -2108,68 +1582,46 @@ void strtolower(char *str) {
     386d:	0f 1f 00             	nopl   (%rax)
 
 0000000000003870 <zh_malloc>:
-void *zh_malloc(size_t size) {
     3870:	f3 0f 1e fa          	endbr64
     3874:	48 83 ec 08          	sub    $0x8,%rsp
-    void *buf = malloc(size);
     3878:	e8 73 eb ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     387d:	48 85 c0             	test   %rax,%rax
     3880:	74 05                	je     3887 <zh_malloc+0x17>
-}
     3882:	48 83 c4 08          	add    $0x8,%rsp
     3886:	c3                   	ret
-  return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
     3887:	48 8b 0d 92 57 00 00 	mov    0x5792(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     388e:	ba 28 00 00 00       	mov    $0x28,%edx
     3893:	be 01 00 00 00       	mov    $0x1,%esi
     3898:	48 8d 3d a9 2a 00 00 	lea    0x2aa9(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     389f:	e8 fc eb ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     38a4:	bf 01 00 00 00       	mov    $0x1,%edi
     38a9:	e8 d2 eb ff ff       	call   2480 <exit@plt>
     38ae:	66 90                	xchg   %ax,%ax
 
 00000000000038b0 <get_filename_ext>:
-const char *get_filename_ext(const char *filename) {
     38b0:	f3 0f 1e fa          	endbr64
     38b4:	53                   	push   %rbx
-    const char *dot = strrchr(filename, '.');
     38b5:	be 2e 00 00 00       	mov    $0x2e,%esi
-const char *get_filename_ext(const char *filename) {
     38ba:	48 89 fb             	mov    %rdi,%rbx
-    const char *dot = strrchr(filename, '.');
     38bd:	e8 7e ea ff ff       	call   2340 <strrchr@plt>
-    if (!dot || dot == filename)
     38c2:	48 85 c0             	test   %rax,%rax
     38c5:	74 11                	je     38d8 <get_filename_ext+0x28>
     38c7:	48 39 c3             	cmp    %rax,%rbx
     38ca:	74 0c                	je     38d8 <get_filename_ext+0x28>
-    return dot + 1;
     38cc:	48 83 c0 01          	add    $0x1,%rax
-}
     38d0:	5b                   	pop    %rbx
     38d1:	c3                   	ret
     38d2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-        return "";
     38d8:	48 8d 05 f0 27 00 00 	lea    0x27f0(%rip),%rax        # 60cf <_IO_stdin_used+0xcf>
-}
     38df:	5b                   	pop    %rbx
     38e0:	c3                   	ret
     38e1:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     38ec:	0f 1f 40 00          	nopl   0x0(%rax)
 
 00000000000038f0 <send_headers>:
-void send_headers(const char *path, off_t len, struct iovec *iov) {
     38f0:	f3 0f 1e fa          	endbr64
     38f4:	41 55                	push   %r13
     38f6:	49 89 f5             	mov    %rsi,%r13
-#endif
-
-__fortify_function char *
-__NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
-{
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     38f9:	48 89 fe             	mov    %rdi,%rsi
     38fc:	41 54                	push   %r12
     38fe:	55                   	push   %rbp
@@ -2183,77 +1635,55 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3922:	49 89 e4             	mov    %rsp,%r12
     3925:	4c 89 e7             	mov    %r12,%rdi
     3928:	e8 e3 ea ff ff       	call   2410 <__strcpy_chk@plt>
-    for (; *str; ++str)
     392d:	48 0f be 1c 24       	movsbq (%rsp),%rbx
     3932:	84 db                	test   %bl,%bl
     3934:	74 24                	je     395a <send_headers+0x6a>
-        *str = (char)tolower(*str);
     3936:	e8 b5 eb ff ff       	call   24f0 <__ctype_tolower_loc@plt>
     393b:	48 8b 08             	mov    (%rax),%rcx
     393e:	4c 89 e0             	mov    %r12,%rax
     3941:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     3948:	8b 14 99             	mov    (%rcx,%rbx,4),%edx
-    for (; *str; ++str)
     394b:	48 83 c0 01          	add    $0x1,%rax
-        *str = (char)tolower(*str);
     394f:	88 50 ff             	mov    %dl,-0x1(%rax)
-    for (; *str; ++str)
     3952:	48 0f be 18          	movsbq (%rax),%rbx
     3956:	84 db                	test   %bl,%bl
     3958:	75 ee                	jne    3948 <send_headers+0x58>
-    void *buf = malloc(size);
     395a:	bf 11 00 00 00       	mov    $0x11,%edi
     395f:	e8 8c ea ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3964:	48 85 c0             	test   %rax,%rax
     3967:	0f 84 7e 04 00 00    	je     3deb <send_headers+0x4fb>
-  return __builtin___memcpy_chk (__dest, __src, __len,
     396d:	66 0f 6f 05 3b 2e 00 00 	movdqa 0x2e3b(%rip),%xmm0        # 67b0 <_IO_stdin_used+0x7b0>
-    iov[0].iov_base = zh_malloc(slen);
     3975:	48 89 45 00          	mov    %rax,0x0(%rbp)
-    void *buf = malloc(size);
     3979:	bf 17 00 00 00       	mov    $0x17,%edi
-    iov[0].iov_len = slen;
     397e:	48 c7 45 08 11 00 00 00 	movq   $0x11,0x8(%rbp)
     3986:	c6 40 10 0a          	movb   $0xa,0x10(%rax)
     398a:	0f 11 00             	movups %xmm0,(%rax)
-    void *buf = malloc(size);
     398d:	e8 5e ea ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3992:	48 85 c0             	test   %rax,%rax
     3995:	0f 84 50 04 00 00    	je     3deb <send_headers+0x4fb>
     399b:	66 0f 6f 05 1d 2e 00 00 	movdqa 0x2e1d(%rip),%xmm0        # 67c0 <_IO_stdin_used+0x7c0>
-    iov[1].iov_base = zh_malloc(slen);
     39a3:	48 89 45 10          	mov    %rax,0x10(%rbp)
-    const char *dot = strrchr(filename, '.');
     39a7:	4c 89 e7             	mov    %r12,%rdi
     39aa:	48 be 70 64 2f 30 2e 31 0d 0a 	movabs $0xa0d312e302f6470,%rsi
-    iov[1].iov_len = slen;
     39b4:	48 c7 45 18 17 00 00 00 	movq   $0x17,0x18(%rbp)
     39bc:	0f 11 00             	movups %xmm0,(%rax)
     39bf:	48 89 70 0f          	mov    %rsi,0xf(%rax)
-    const char *dot = strrchr(filename, '.');
     39c3:	be 2e 00 00 00       	mov    $0x2e,%esi
     39c8:	e8 73 e9 ff ff       	call   2340 <strrchr@plt>
-    if (!dot || dot == filename)
     39cd:	48 85 c0             	test   %rax,%rax
     39d0:	0f 84 ea 02 00 00    	je     3cc0 <send_headers+0x3d0>
     39d6:	4c 39 e0             	cmp    %r12,%rax
     39d9:	0f 84 e1 02 00 00    	je     3cc0 <send_headers+0x3d0>
-    return dot + 1;
     39df:	48 8d 58 01          	lea    0x1(%rax),%rbx
-    if (strcmp("jpg", file_ext) == 0)
     39e3:	48 8d 3d b3 26 00 00 	lea    0x26b3(%rip),%rdi        # 609d <_IO_stdin_used+0x9d>
     39ea:	48 89 de             	mov    %rbx,%rsi
     39ed:	e8 9e e9 ff ff       	call   2390 <strcmp@plt>
     39f2:	85 c0                	test   %eax,%eax
     39f4:	75 20                	jne    3a16 <send_headers+0x126>
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     39f6:	66 0f 6f 05 d2 2d 00 00 	movdqa 0x2dd2(%rip),%xmm0        # 67d0 <_IO_stdin_used+0x7d0>
     39fe:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
     3a06:	66 0f 6f 05 d2 2d 00 00 	movdqa 0x2dd2(%rip),%xmm0        # 67e0 <_IO_stdin_used+0x7e0>
     3a0e:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
-    if (strcmp("jpeg", file_ext) == 0)
     3a16:	48 89 de             	mov    %rbx,%rsi
     3a19:	48 8d 3d 81 26 00 00 	lea    0x2681(%rip),%rdi        # 60a1 <_IO_stdin_used+0xa1>
     3a20:	e8 6b e9 ff ff       	call   2390 <strcmp@plt>
@@ -2263,63 +1693,48 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3a31:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
     3a39:	66 0f 6f 05 9f 2d 00 00 	movdqa 0x2d9f(%rip),%xmm0        # 67e0 <_IO_stdin_used+0x7e0>
     3a41:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
-    if (strcmp("png", file_ext) == 0)
     3a49:	48 89 de             	mov    %rbx,%rsi
     3a4c:	48 8d 3d 53 26 00 00 	lea    0x2653(%rip),%rdi        # 60a6 <_IO_stdin_used+0xa6>
     3a53:	e8 38 e9 ff ff       	call   2390 <strcmp@plt>
     3a58:	85 c0                	test   %eax,%eax
     3a5a:	0f 84 10 02 00 00    	je     3c70 <send_headers+0x380>
-    if (strcmp("gif", file_ext) == 0)
     3a60:	48 89 de             	mov    %rbx,%rsi
     3a63:	48 8d 3d 40 26 00 00 	lea    0x2640(%rip),%rdi        # 60aa <_IO_stdin_used+0xaa>
     3a6a:	e8 21 e9 ff ff       	call   2390 <strcmp@plt>
     3a6f:	85 c0                	test   %eax,%eax
     3a71:	0f 84 a9 02 00 00    	je     3d20 <send_headers+0x430>
-    if (strcmp("htm", file_ext) == 0)
     3a77:	48 89 de             	mov    %rbx,%rsi
     3a7a:	48 8d 3d 2d 26 00 00 	lea    0x262d(%rip),%rdi        # 60ae <_IO_stdin_used+0xae>
     3a81:	e8 0a e9 ff ff       	call   2390 <strcmp@plt>
     3a86:	85 c0                	test   %eax,%eax
     3a88:	0f 84 6a 02 00 00    	je     3cf8 <send_headers+0x408>
-    if (strcmp("html", file_ext) == 0)
     3a8e:	48 89 de             	mov    %rbx,%rsi
     3a91:	48 8d 3d 59 26 00 00 	lea    0x2659(%rip),%rdi        # 60f1 <_IO_stdin_used+0xf1>
     3a98:	e8 f3 e8 ff ff       	call   2390 <strcmp@plt>
     3a9d:	85 c0                	test   %eax,%eax
     3a9f:	0f 84 2b 02 00 00    	je     3cd0 <send_headers+0x3e0>
-    if (strcmp("js", file_ext) == 0)
     3aa5:	80 3b 6a             	cmpb   $0x6a,(%rbx)
     3aa8:	0f 84 52 01 00 00    	je     3c00 <send_headers+0x310>
-    if (strcmp("css", file_ext) == 0)
     3aae:	48 89 de             	mov    %rbx,%rsi
     3ab1:	48 8d 3d fa 25 00 00 	lea    0x25fa(%rip),%rdi        # 60b2 <_IO_stdin_used+0xb2>
     3ab8:	e8 d3 e8 ff ff       	call   2390 <strcmp@plt>
     3abd:	85 c0                	test   %eax,%eax
     3abf:	0f 84 ab 02 00 00    	je     3d70 <send_headers+0x480>
-    if (strcmp("txt", file_ext) == 0)
     3ac5:	48 89 de             	mov    %rbx,%rsi
     3ac8:	48 8d 3d e7 25 00 00 	lea    0x25e7(%rip),%rdi        # 60b6 <_IO_stdin_used+0xb6>
     3acf:	e8 bc e8 ff ff       	call   2390 <strcmp@plt>
     3ad4:	85 c0                	test   %eax,%eax
     3ad6:	0f 84 6c 02 00 00    	je     3d48 <send_headers+0x458>
-    slen = strlen(send_buffer);
     3adc:	4c 8d a4 24 00 04 00 00 	lea    0x400(%rsp),%r12
     3ae4:	4c 89 e7             	mov    %r12,%rdi
     3ae7:	e8 14 e8 ff ff       	call   2300 <strlen@plt>
-    void *buf = malloc(size);
     3aec:	48 89 c7             	mov    %rax,%rdi
-    slen = strlen(send_buffer);
     3aef:	48 89 c3             	mov    %rax,%rbx
-    void *buf = malloc(size);
     3af2:	e8 f9 e8 ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3af7:	48 85 c0             	test   %rax,%rax
     3afa:	0f 84 eb 02 00 00    	je     3deb <send_headers+0x4fb>
-    iov[2].iov_base = zh_malloc(slen);
     3b00:	48 89 45 20          	mov    %rax,0x20(%rbp)
-    iov[2].iov_len = slen;
     3b04:	48 89 5d 28          	mov    %rbx,0x28(%rbp)
-  return __builtin___memcpy_chk (__dest, __src, __len,
     3b08:	83 fb 08             	cmp    $0x8,%ebx
     3b0b:	0f 83 3f 01 00 00    	jae    3c50 <send_headers+0x360>
     3b11:	f6 c3 04             	test   $0x4,%bl
@@ -2330,7 +1745,6 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3b26:	88 10                	mov    %dl,(%rax)
     3b28:	f6 c3 02             	test   $0x2,%bl
     3b2b:	0f 85 96 02 00 00    	jne    3dc7 <send_headers+0x4d7>
-  return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
     3b31:	4d 89 e8             	mov    %r13,%r8
     3b34:	48 8d 0d 7f 25 00 00 	lea    0x257f(%rip),%rcx        # 60ba <_IO_stdin_used+0xba>
     3b3b:	4c 89 e7             	mov    %r12,%rdi
@@ -2338,21 +1752,14 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3b40:	ba 00 04 00 00       	mov    $0x400,%edx
     3b45:	be 01 00 00 00       	mov    $0x1,%esi
     3b4a:	e8 b1 e9 ff ff       	call   2500 <__sprintf_chk@plt>
-    slen = strlen(send_buffer);
     3b4f:	4c 89 e7             	mov    %r12,%rdi
     3b52:	e8 a9 e7 ff ff       	call   2300 <strlen@plt>
-    void *buf = malloc(size);
     3b57:	48 89 c7             	mov    %rax,%rdi
-    slen = strlen(send_buffer);
     3b5a:	48 89 c3             	mov    %rax,%rbx
-    void *buf = malloc(size);
     3b5d:	e8 8e e8 ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3b62:	48 85 c0             	test   %rax,%rax
     3b65:	0f 84 80 02 00 00    	je     3deb <send_headers+0x4fb>
-    iov[3].iov_base = zh_malloc(slen);
     3b6b:	48 89 45 30          	mov    %rax,0x30(%rbp)
-    iov[3].iov_len = slen;
     3b6f:	48 89 5d 38          	mov    %rbx,0x38(%rbp)
     3b73:	83 fb 08             	cmp    $0x8,%ebx
     3b76:	0f 83 1c 01 00 00    	jae    3c98 <send_headers+0x3a8>
@@ -2364,24 +1771,17 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3b91:	88 10                	mov    %dl,(%rax)
     3b93:	f6 c3 02             	test   $0x2,%bl
     3b96:	0f 85 3d 02 00 00    	jne    3dd9 <send_headers+0x4e9>
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     3b9c:	b8 0d 0a 00 00       	mov    $0xa0d,%eax
-    void *buf = malloc(size);
     3ba1:	bf 02 00 00 00       	mov    $0x2,%edi
     3ba6:	c6 84 24 02 04 00 00 00 	movb   $0x0,0x402(%rsp)
     3bae:	66 89 84 24 00 04 00 00 	mov    %ax,0x400(%rsp)
     3bb6:	e8 35 e8 ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3bbb:	48 85 c0             	test   %rax,%rax
     3bbe:	0f 84 27 02 00 00    	je     3deb <send_headers+0x4fb>
-  return __builtin___memcpy_chk (__dest, __src, __len,
     3bc4:	0f b7 94 24 00 04 00 00 	movzwl 0x400(%rsp),%edx
-    iov[4].iov_base = zh_malloc(slen);
     3bcc:	48 89 45 40          	mov    %rax,0x40(%rbp)
-    iov[4].iov_len = slen;
     3bd0:	48 c7 45 48 02 00 00 00 	movq   $0x2,0x48(%rbp)
     3bd8:	66 89 10             	mov    %dx,(%rax)
-}
     3bdb:	48 8b 84 24 08 08 00 00 	mov    0x808(%rsp),%rax
     3be3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     3bec:	0f 85 20 02 00 00    	jne    3e12 <send_headers+0x522>
@@ -2391,12 +1791,10 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3bfb:	41 5c                	pop    %r12
     3bfd:	41 5d                	pop    %r13
     3bff:	c3                   	ret
-    if (strcmp("js", file_ext) == 0)
     3c00:	80 7b 01 73          	cmpb   $0x73,0x1(%rbx)
     3c04:	0f 85 a4 fe ff ff    	jne    3aae <send_headers+0x1be>
     3c0a:	80 7b 02 00          	cmpb   $0x0,0x2(%rbx)
     3c0e:	0f 85 9a fe ff ff    	jne    3aae <send_headers+0x1be>
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     3c14:	66 0f 6f 05 14 2c 00 00 	movdqa 0x2c14(%rip),%xmm0        # 6830 <_IO_stdin_used+0x830>
     3c1c:	48 b8 63 72 69 70 74 0d 0a 00 	movabs $0xa0d7470697263,%rax
     3c26:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
@@ -2405,7 +1803,6 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3c3e:	48 89 84 24 1f 04 00 00 	mov    %rax,0x41f(%rsp)
     3c46:	e9 63 fe ff ff       	jmp    3aae <send_headers+0x1be>
     3c4b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-  return __builtin___memcpy_chk (__dest, __src, __len,
     3c50:	89 da                	mov    %ebx,%edx
     3c52:	48 89 c7             	mov    %rax,%rdi
     3c55:	4c 89 e6             	mov    %r12,%rsi
@@ -2415,14 +1812,12 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3c65:	c1 e9 03             	shr    $0x3,%ecx
     3c68:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
     3c6b:	e9 c1 fe ff ff       	jmp    3b31 <send_headers+0x241>
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     3c70:	66 0f 6f 05 58 2b 00 00 	movdqa 0x2b58(%rip),%xmm0        # 67d0 <_IO_stdin_used+0x7d0>
     3c78:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
     3c80:	66 0f 6f 05 68 2b 00 00 	movdqa 0x2b68(%rip),%xmm0        # 67f0 <_IO_stdin_used+0x7f0>
     3c88:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
     3c90:	e9 cb fd ff ff       	jmp    3a60 <send_headers+0x170>
     3c95:	0f 1f 00             	nopl   (%rax)
-  return __builtin___memcpy_chk (__dest, __src, __len,
     3c98:	89 da                	mov    %ebx,%edx
     3c9a:	48 89 c7             	mov    %rax,%rdi
     3c9d:	4c 89 e6             	mov    %r12,%rsi
@@ -2433,11 +1828,9 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3cb0:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
     3cb3:	e9 e4 fe ff ff       	jmp    3b9c <send_headers+0x2ac>
     3cb8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-        return "";
     3cc0:	48 8d 1d 08 24 00 00 	lea    0x2408(%rip),%rbx        # 60cf <_IO_stdin_used+0xcf>
     3cc7:	e9 94 fd ff ff       	jmp    3a60 <send_headers+0x170>
     3ccc:	0f 1f 40 00          	nopl   0x0(%rax)
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     3cd0:	66 0f 6f 05 38 2b 00 00 	movdqa 0x2b38(%rip),%xmm0        # 6810 <_IO_stdin_used+0x810>
     3cd8:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
     3ce0:	66 0f 6f 05 38 2b 00 00 	movdqa 0x2b38(%rip),%xmm0        # 6820 <_IO_stdin_used+0x820>
@@ -2467,7 +1860,6 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3d80:	66 0f 6f 05 c8 2a 00 00 	movdqa 0x2ac8(%rip),%xmm0        # 6850 <_IO_stdin_used+0x850>
     3d88:	0f 11 84 24 09 04 00 00 	movups %xmm0,0x409(%rsp)
     3d90:	e9 30 fd ff ff       	jmp    3ac5 <send_headers+0x1d5>
-  return __builtin___memcpy_chk (__dest, __src, __len,
     3d95:	8b 94 24 00 04 00 00 	mov    0x400(%rsp),%edx
     3d9c:	89 db                	mov    %ebx,%ebx
     3d9e:	89 10                	mov    %edx,(%rax)
@@ -2488,75 +1880,49 @@ __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
     3ddb:	41 0f b7 54 1c fe    	movzwl -0x2(%r12,%rbx,1),%edx
     3de1:	66 89 54 18 fe       	mov    %dx,-0x2(%rax,%rbx,1)
     3de6:	e9 b1 fd ff ff       	jmp    3b9c <send_headers+0x2ac>
-  return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
     3deb:	48 8b 0d 2e 52 00 00 	mov    0x522e(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     3df2:	ba 28 00 00 00       	mov    $0x28,%edx
     3df7:	be 01 00 00 00       	mov    $0x1,%esi
     3dfc:	48 8d 3d 45 25 00 00 	lea    0x2545(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     3e03:	e8 98 e6 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     3e08:	bf 01 00 00 00       	mov    $0x1,%edi
     3e0d:	e8 6e e6 ff ff       	call   2480 <exit@plt>
-}
     3e12:	e8 f9 e4 ff ff       	call   2310 <__stack_chk_fail@plt>
     3e17:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
 0000000000003e20 <copy_file_contents>:
-void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
     3e20:	f3 0f 1e fa          	endbr64
     3e24:	41 55                	push   %r13
     3e26:	49 89 d5             	mov    %rdx,%r13
     3e29:	41 54                	push   %r12
     3e2b:	49 89 fc             	mov    %rdi,%r12
-    void *buf = malloc(size);
     3e2e:	48 89 f7             	mov    %rsi,%rdi
-void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
     3e31:	55                   	push   %rbp
     3e32:	53                   	push   %rbx
     3e33:	48 89 f3             	mov    %rsi,%rbx
     3e36:	48 83 ec 08          	sub    $0x8,%rsp
-    void *buf = malloc(size);
     3e3a:	e8 b1 e5 ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     3e3f:	48 85 c0             	test   %rax,%rax
     3e42:	74 77                	je     3ebb <copy_file_contents+0x9b>
-      if (__OPEN_NEEDS_MODE (__oflag) && __va_arg_pack_len () < 1)
-	{
-	  __open_missing_mode ();
-	  return __open_2 (__path, __oflag);
-	}
-      return __open_alias (__path, __oflag, __va_arg_pack ());
     3e44:	4c 89 e7             	mov    %r12,%rdi
     3e47:	48 89 c5             	mov    %rax,%rbp
     3e4a:	31 f6                	xor    %esi,%esi
     3e4c:	31 c0                	xor    %eax,%eax
     3e4e:	e8 0d e6 ff ff       	call   2460 <open@plt>
     3e53:	41 89 c4             	mov    %eax,%r12d
-    if (fd < 0)
     3e56:	85 c0                	test   %eax,%eax
     3e58:	78 55                	js     3eaf <copy_file_contents+0x8f>
-		       "the destination buffer");
-
-__fortify_function __wur ssize_t
-read (int __fd, void *__buf, size_t __nbytes)
-{
-  return __glibc_fortify (read, __nbytes, sizeof (char),
     3e5a:	48 89 da             	mov    %rbx,%rdx
     3e5d:	48 89 ee             	mov    %rbp,%rsi
     3e60:	89 c7                	mov    %eax,%edi
     3e62:	e8 09 e5 ff ff       	call   2370 <read@plt>
-    if (ret < file_size) {
     3e67:	48 98                	cltq
     3e69:	48 39 d8             	cmp    %rbx,%rax
     3e6c:	7c 22                	jl     3e90 <copy_file_contents+0x70>
-    close(fd);
     3e6e:	44 89 e7             	mov    %r12d,%edi
     3e71:	e8 da e4 ff ff       	call   2350 <close@plt>
-    iov->iov_base = buf;
     3e76:	49 89 6d 00          	mov    %rbp,0x0(%r13)
-    iov->iov_len = file_size;
     3e7a:	49 89 5d 08          	mov    %rbx,0x8(%r13)
-}
     3e7e:	48 83 c4 08          	add    $0x8,%rsp
     3e82:	5b                   	pop    %rbx
     3e83:	5d                   	pop    %rbp
@@ -2570,7 +1936,6 @@ read (int __fd, void *__buf, size_t __nbytes)
     3ea1:	48 8d 3d 28 22 00 00 	lea    0x2228(%rip),%rdi        # 60d0 <_IO_stdin_used+0xd0>
     3ea8:	e8 f3 e5 ff ff       	call   24a0 <fwrite@plt>
     3ead:	eb bf                	jmp    3e6e <copy_file_contents+0x4e>
-        fatal_error("read");
     3eaf:	48 8d 3d 49 23 00 00 	lea    0x2349(%rip),%rdi        # 61ff <_IO_stdin_used+0x1ff>
     3eb6:	e8 55 f9 ff ff       	call   3810 <fatal_error>
     3ebb:	48 8b 0d 5e 51 00 00 	mov    0x515e(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
@@ -2578,98 +1943,56 @@ read (int __fd, void *__buf, size_t __nbytes)
     3ec7:	be 01 00 00 00       	mov    $0x1,%esi
     3ecc:	48 8d 3d 75 24 00 00 	lea    0x2475(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     3ed3:	e8 c8 e5 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     3ed8:	bf 01 00 00 00       	mov    $0x1,%edi
     3edd:	e8 9e e5 ff ff       	call   2480 <exit@plt>
     3ee2:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     3eed:	0f 1f 00             	nopl   (%rax)
 
 0000000000003ef0 <add_write_request>:
-int add_write_request(struct Request *req, struct io_uring *ring) {
     3ef0:	f3 0f 1e fa          	endbr64
- * Returns a vacant sqe, or NULL if we're full.
- */
-static inline struct io_uring_sqe *_io_uring_get_sqe(struct io_uring *ring)
-{
-	struct io_uring_sq *sq = &ring->sq;
-	unsigned int head, next = sq->sqe_tail + 1;
     3ef4:	8b 46 44             	mov    0x44(%rsi),%eax
     3ef7:	48 89 fa             	mov    %rdi,%rdx
     3efa:	48 89 f7             	mov    %rsi,%rdi
-	int shift = 0;
-
-	if (ring->flags & IORING_SETUP_SQE128)
     3efd:	8b 8f c0 00 00 00    	mov    0xc0(%rdi),%ecx
-	unsigned int head, next = sq->sqe_tail + 1;
     3f03:	8d 70 01             	lea    0x1(%rax),%esi
-		shift = 1;
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
-		head = IO_URING_READ_ONCE(*sq->khead);
     3f06:	48 8b 07             	mov    (%rdi),%rax
     3f09:	44 8b 00             	mov    (%rax),%r8d
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     3f0c:	f6 c1 02             	test   $0x2,%cl
     3f0f:	74 00                	je     3f11 <add_write_request+0x21>
-	else
-		head = io_uring_smp_load_acquire(sq->khead);
-
-	if (next - head <= sq->ring_entries) {
     3f11:	89 f0                	mov    %esi,%eax
     3f13:	44 29 c0             	sub    %r8d,%eax
     3f16:	39 47 5c             	cmp    %eax,0x5c(%rdi)
     3f19:	0f 82 01 e6 ff ff    	jb     2520 <add_write_request.cold>
-	if (ring->flags & IORING_SETUP_SQE128)
     3f1f:	c1 e9 0a             	shr    $0xa,%ecx
     3f22:	48 83 ec 08          	sub    $0x8,%rsp
-		struct io_uring_sqe *sqe;
-
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     3f26:	8b 47 44             	mov    0x44(%rdi),%eax
     3f29:	23 47 58             	and    0x58(%rdi),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     3f2c:	83 e1 01             	and    $0x1,%ecx
-		sq->sqe_tail = next;
     3f2f:	89 77 44             	mov    %esi,0x44(%rdi)
-    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
     3f32:	8b 72 08             	mov    0x8(%rdx),%esi
-	sqe->addr3 = 0;
     3f35:	66 0f ef c0          	pxor   %xmm0,%xmm0
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     3f39:	d3 e0                	shl    %cl,%eax
     3f3b:	8b 4a 04             	mov    0x4(%rdx),%ecx
     3f3e:	48 c1 e0 06          	shl    $0x6,%rax
     3f42:	48 03 47 38          	add    0x38(%rdi),%rax
-    req->event_type = EVENT_TYPE_WRITE;
     3f46:	c7 02 02 00 00 00    	movl   $0x2,(%rdx)
-	sqe->fd = fd;
     3f4c:	89 70 04             	mov    %esi,0x4(%rax)
-    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
     3f4f:	48 8d 72 10          	lea    0x10(%rdx),%rsi
-	sqe->opcode = (__u8) op;
     3f53:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
-	sqe->off = offset;
     3f59:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
     3f61:	48 89 70 10          	mov    %rsi,0x10(%rax)
-	sqe->len = len;
     3f65:	89 48 18             	mov    %ecx,0x18(%rax)
-	sqe->rw_flags = 0;
     3f68:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
-	sqe->buf_index = 0;
     3f6f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
-	sqe->user_data = (unsigned long) data;
     3f77:	48 89 50 20          	mov    %rdx,0x20(%rax)
-	sqe->addr3 = 0;
     3f7b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
-    io_uring_submit(ring);
     3f7f:	e8 9c e3 ff ff       	call   2320 <io_uring_submit@plt>
-}
     3f84:	31 c0                	xor    %eax,%eax
     3f86:	48 83 c4 08          	add    $0x8,%rsp
     3f8a:	c3                   	ret
     3f8b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
 0000000000003f90 <add_read_request>:
-int add_read_request(int client_socket, struct io_uring *ring) {
     3f90:	f3 0f 1e fa          	endbr64
     3f94:	41 55                	push   %r13
     3f96:	41 89 fd             	mov    %edi,%r13d
@@ -2678,80 +2001,47 @@ int add_read_request(int client_socket, struct io_uring *ring) {
     3f9c:	53                   	push   %rbx
     3f9d:	48 89 f3             	mov    %rsi,%rbx
     3fa0:	48 83 ec 08          	sub    $0x8,%rsp
-	unsigned int head, next = sq->sqe_tail + 1;
     3fa4:	8b 46 44             	mov    0x44(%rsi),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     3fa7:	8b 8e c0 00 00 00    	mov    0xc0(%rsi),%ecx
-		head = IO_URING_READ_ONCE(*sq->khead);
     3fad:	48 8b 16             	mov    (%rsi),%rdx
-	unsigned int head, next = sq->sqe_tail + 1;
     3fb0:	83 c0 01             	add    $0x1,%eax
-		head = IO_URING_READ_ONCE(*sq->khead);
     3fb3:	8b 32                	mov    (%rdx),%esi
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     3fb5:	f6 c1 02             	test   $0x2,%cl
     3fb8:	74 00                	je     3fba <add_read_request+0x2a>
-	if (next - head <= sq->ring_entries) {
     3fba:	89 c2                	mov    %eax,%edx
     3fbc:	29 f2                	sub    %esi,%edx
     3fbe:	39 53 5c             	cmp    %edx,0x5c(%rbx)
     3fc1:	0f 82 69 e5 ff ff    	jb     2530 <add_read_request.cold>
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     3fc7:	8b 6b 44             	mov    0x44(%rbx),%ebp
-	if (ring->flags & IORING_SETUP_SQE128)
     3fca:	c1 e9 0a             	shr    $0xa,%ecx
-		sq->sqe_tail = next;
     3fcd:	89 43 44             	mov    %eax,0x44(%rbx)
-    struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
     3fd0:	bf 20 00 00 00       	mov    $0x20,%edi
-	if (ring->flags & IORING_SETUP_SQE128)
     3fd5:	83 e1 01             	and    $0x1,%ecx
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     3fd8:	23 6b 58             	and    0x58(%rbx),%ebp
     3fdb:	d3 e5                	shl    %cl,%ebp
     3fdd:	48 c1 e5 06          	shl    $0x6,%rbp
     3fe1:	48 03 6b 38          	add    0x38(%rbx),%rbp
     3fe5:	e8 06 e4 ff ff       	call   23f0 <malloc@plt>
-    req->iov[0].iov_base = malloc(READ_SZ);
     3fea:	be 01 00 00 00       	mov    $0x1,%esi
     3fef:	bf 00 20 00 00       	mov    $0x2000,%edi
-    struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
     3ff4:	49 89 c4             	mov    %rax,%r12
-    req->iov[0].iov_base = malloc(READ_SZ);
     3ff7:	e8 84 e3 ff ff       	call   2380 <calloc@plt>
-    req->client_socket = client_socket;
     3ffc:	45 89 6c 24 08       	mov    %r13d,0x8(%r12)
-	sqe->addr3 = 0;
     4001:	66 0f ef c0          	pxor   %xmm0,%xmm0
-    io_uring_submit(ring);
     4005:	48 89 df             	mov    %rbx,%rdi
-    req->iov[0].iov_base = malloc(READ_SZ);
     4008:	49 89 44 24 10       	mov    %rax,0x10(%r12)
-    io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
     400d:	49 8d 44 24 10       	lea    0x10(%r12),%rax
-    req->iov[0].iov_len = READ_SZ;
     4012:	49 c7 44 24 18 00 20 00 00 	movq   $0x2000,0x18(%r12)
-    req->event_type = EVENT_TYPE_READ;
     401b:	41 c7 04 24 01 00 00 00 	movl   $0x1,(%r12)
-	sqe->fd = fd;
     4023:	44 89 6d 04          	mov    %r13d,0x4(%rbp)
-	sqe->user_data = (unsigned long) data;
     4027:	4c 89 65 20          	mov    %r12,0x20(%rbp)
-	sqe->opcode = (__u8) op;
     402b:	c7 45 00 01 00 00 00 	movl   $0x1,0x0(%rbp)
-	sqe->off = offset;
     4032:	48 c7 45 08 00 00 00 00 	movq   $0x0,0x8(%rbp)
-    io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
     403a:	48 89 45 10          	mov    %rax,0x10(%rbp)
-	sqe->len = len;
     403e:	48 c7 45 18 01 00 00 00 	movq   $0x1,0x18(%rbp)
-	sqe->buf_index = 0;
     4046:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
-	sqe->addr3 = 0;
     404e:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
-    io_uring_submit(ring);
     4052:	e8 c9 e2 ff ff       	call   2320 <io_uring_submit@plt>
-}
     4057:	48 83 c4 08          	add    $0x8,%rsp
     405b:	31 c0                	xor    %eax,%eax
     405d:	5b                   	pop    %rbx
@@ -2763,151 +2053,103 @@ int add_read_request(int client_socket, struct io_uring *ring) {
     406f:	90                   	nop
 
 0000000000004070 <_send_static_string_content>:
-void _send_static_string_content(const char *str, int client_socket, struct io_uring *ring) {
     4070:	f3 0f 1e fa          	endbr64
     4074:	41 56                	push   %r14
     4076:	41 89 f6             	mov    %esi,%r14d
     4079:	41 55                	push   %r13
     407b:	49 89 fd             	mov    %rdi,%r13
-    void *buf = malloc(size);
     407e:	bf 20 00 00 00       	mov    $0x20,%edi
-void _send_static_string_content(const char *str, int client_socket, struct io_uring *ring) {
     4083:	41 54                	push   %r12
     4085:	55                   	push   %rbp
     4086:	48 89 d5             	mov    %rdx,%rbp
     4089:	53                   	push   %rbx
-    void *buf = malloc(size);
     408a:	e8 61 e3 ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     408f:	48 85 c0             	test   %rax,%rax
     4092:	0f 84 dd 00 00 00    	je     4175 <_send_static_string_content+0x105>
     4098:	48 89 c3             	mov    %rax,%rbx
-    unsigned long slen = strlen(str);
     409b:	4c 89 ef             	mov    %r13,%rdi
     409e:	e8 5d e2 ff ff       	call   2300 <strlen@plt>
-    req->iovec_count = 1;
     40a3:	c7 43 04 01 00 00 00 	movl   $0x1,0x4(%rbx)
-    req->client_socket = client_socket;
     40aa:	44 89 73 08          	mov    %r14d,0x8(%rbx)
-    void *buf = malloc(size);
     40ae:	48 89 c7             	mov    %rax,%rdi
-    unsigned long slen = strlen(str);
     40b1:	49 89 c4             	mov    %rax,%r12
-    void *buf = malloc(size);
     40b4:	e8 37 e3 ff ff       	call   23f0 <malloc@plt>
     40b9:	48 89 c7             	mov    %rax,%rdi
-    if (!buf) {
     40bc:	48 85 c0             	test   %rax,%rax
     40bf:	0f 84 b0 00 00 00    	je     4175 <_send_static_string_content+0x105>
-    req->iov[0].iov_base = zh_malloc(slen);
     40c5:	48 89 43 10          	mov    %rax,0x10(%rbx)
     40c9:	4c 89 e2             	mov    %r12,%rdx
     40cc:	4c 89 ee             	mov    %r13,%rsi
-    req->iov[0].iov_len = slen;
     40cf:	4c 89 63 18          	mov    %r12,0x18(%rbx)
     40d3:	e8 e8 e2 ff ff       	call   23c0 <memcpy@plt>
-	unsigned int head, next = sq->sqe_tail + 1;
     40d8:	8b 45 44             	mov    0x44(%rbp),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     40db:	8b 8d c0 00 00 00    	mov    0xc0(%rbp),%ecx
-	unsigned int head, next = sq->sqe_tail + 1;
     40e1:	8d 50 01             	lea    0x1(%rax),%edx
-		head = IO_URING_READ_ONCE(*sq->khead);
     40e4:	48 8b 45 00          	mov    0x0(%rbp),%rax
     40e8:	8b 30                	mov    (%rax),%esi
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     40ea:	f6 c1 02             	test   $0x2,%cl
     40ed:	0f 85 7d 00 00 00    	jne    4170 <_send_static_string_content+0x100>
-	if (next - head <= sq->ring_entries) {
     40f3:	89 d0                	mov    %edx,%eax
     40f5:	29 f0                	sub    %esi,%eax
     40f7:	39 45 5c             	cmp    %eax,0x5c(%rbp)
     40fa:	0f 82 3a e4 ff ff    	jb     253a <_send_static_string_content.cold>
-	if (ring->flags & IORING_SETUP_SQE128)
     4100:	c1 e9 0a             	shr    $0xa,%ecx
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4103:	8b 45 44             	mov    0x44(%rbp),%eax
     4106:	23 45 58             	and    0x58(%rbp),%eax
-		sq->sqe_tail = next;
     4109:	89 55 44             	mov    %edx,0x44(%rbp)
-	if (ring->flags & IORING_SETUP_SQE128)
     410c:	83 e1 01             	and    $0x1,%ecx
-    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
     410f:	8b 53 04             	mov    0x4(%rbx),%edx
-    req->event_type = EVENT_TYPE_WRITE;
     4112:	c7 03 02 00 00 00    	movl   $0x2,(%rbx)
-	sqe->addr3 = 0;
     4118:	66 0f ef c0          	pxor   %xmm0,%xmm0
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     411c:	d3 e0                	shl    %cl,%eax
-    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
     411e:	8b 4b 08             	mov    0x8(%rbx),%ecx
-    io_uring_submit(ring);
     4121:	48 89 ef             	mov    %rbp,%rdi
     4124:	48 c1 e0 06          	shl    $0x6,%rax
     4128:	48 03 45 38          	add    0x38(%rbp),%rax
-	sqe->fd = fd;
     412c:	89 48 04             	mov    %ecx,0x4(%rax)
-    io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
     412f:	48 8d 4b 10          	lea    0x10(%rbx),%rcx
-	sqe->opcode = (__u8) op;
     4133:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
-	sqe->off = offset;
     4139:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
     4141:	48 89 48 10          	mov    %rcx,0x10(%rax)
-	sqe->len = len;
     4145:	89 50 18             	mov    %edx,0x18(%rax)
-	sqe->rw_flags = 0;
     4148:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
-	sqe->buf_index = 0;
     414f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
-	sqe->user_data = (unsigned long) data;
     4157:	48 89 58 20          	mov    %rbx,0x20(%rax)
-	sqe->addr3 = 0;
     415b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
-}
     415f:	5b                   	pop    %rbx
     4160:	5d                   	pop    %rbp
     4161:	41 5c                	pop    %r12
     4163:	41 5d                	pop    %r13
     4165:	41 5e                	pop    %r14
-    io_uring_submit(ring);
     4167:	e9 b4 e1 ff ff       	jmp    2320 <io_uring_submit@plt>
     416c:	0f 1f 40 00          	nopl   0x0(%rax)
-		head = io_uring_smp_load_acquire(sq->khead);
     4170:	e9 7e ff ff ff       	jmp    40f3 <_send_static_string_content+0x83>
     4175:	48 8b 0d a4 4e 00 00 	mov    0x4ea4(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     417c:	ba 28 00 00 00       	mov    $0x28,%edx
     4181:	be 01 00 00 00       	mov    $0x1,%esi
     4186:	48 8d 3d bb 21 00 00 	lea    0x21bb(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     418d:	e8 0e e3 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     4192:	bf 01 00 00 00       	mov    $0x1,%edi
     4197:	e8 e4 e2 ff ff       	call   2480 <exit@plt>
     419c:	0f 1f 40 00          	nopl   0x0(%rax)
 
 00000000000041a0 <handle_unimplemented_method>:
-void handle_unimplemented_method(int client_socket, struct io_uring *ring) {
     41a0:	f3 0f 1e fa          	endbr64
     41a4:	48 89 f2             	mov    %rsi,%rdx
-    _send_static_string_content(unimplemented_content, client_socket, ring);
     41a7:	89 fe                	mov    %edi,%esi
     41a9:	48 8b 3d 68 4e 00 00 	mov    0x4e68(%rip),%rdi        # 9018 <unimplemented_content>
     41b0:	e9 bb fe ff ff       	jmp    4070 <_send_static_string_content>
     41b5:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
 
 00000000000041c0 <handle_http_404>:
-void handle_http_404(int client_socket, struct io_uring *ring) {
     41c0:	f3 0f 1e fa          	endbr64
     41c4:	48 89 f2             	mov    %rsi,%rdx
-    _send_static_string_content(http_404_content, client_socket, ring);
     41c7:	89 fe                	mov    %edi,%esi
     41c9:	48 8b 3d 40 4e 00 00 	mov    0x4e40(%rip),%rdi        # 9010 <http_404_content>
     41d0:	e9 9b fe ff ff       	jmp    4070 <_send_static_string_content>
     41d5:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
 
 00000000000041e0 <handle_get_method>:
-void handle_get_method(char *path, int client_socket, struct io_uring *ring) {
     41e0:	f3 0f 1e fa          	endbr64
     41e4:	41 56                	push   %r14
     41e6:	41 55                	push   %r13
@@ -2921,52 +2163,37 @@ void handle_get_method(char *path, int client_socket, struct io_uring *ring) {
     41fc:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     4205:	48 89 84 24 98 04 00 00 	mov    %rax,0x498(%rsp)
     420d:	31 c0                	xor    %eax,%eax
-    if (path[strlen(path) - 1] == '/') {
     420f:	e8 ec e0 ff ff       	call   2300 <strlen@plt>
     4214:	80 7c 05 ff 2f       	cmpb   $0x2f,-0x1(%rbp,%rax,1)
     4219:	48 89 c3             	mov    %rax,%rbx
     421c:	0f 84 b6 00 00 00    	je     42d8 <handle_get_method+0xf8>
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     4222:	b8 69 63 00 00       	mov    $0x6369,%eax
-
-
-__fortify_function char *
-__NTH (strcat (char *__restrict __dest, const char *__restrict __src))
-{
-  return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
     4227:	48 89 ee             	mov    %rbp,%rsi
     422a:	48 8d 53 01          	lea    0x1(%rbx),%rdx
     422e:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
     4233:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
     423b:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     4243:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
     424e:	66 89 84 24 94 00 00 00 	mov    %ax,0x94(%rsp)
-  return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
     4256:	e8 45 e1 ff ff       	call   23a0 <__memcpy_chk@plt>
-    if (stat(final_path, &path_stat) == -1) {
     425b:	48 89 e6             	mov    %rsp,%rsi
     425e:	4c 89 f7             	mov    %r14,%rdi
     4261:	e8 4a e1 ff ff       	call   23b0 <stat@plt>
     4266:	83 f8 ff             	cmp    $0xffffffff,%eax
     4269:	0f 84 d3 00 00 00    	je     4342 <handle_get_method+0x162>
-        if (S_ISREG(path_stat.st_mode)) {
     426f:	8b 44 24 18          	mov    0x18(%rsp),%eax
     4273:	25 00 f0 00 00       	and    $0xf000,%eax
     4278:	3d 00 80 00 00       	cmp    $0x8000,%eax
     427d:	0f 84 f5 00 00 00    	je     4378 <handle_get_method+0x198>
-    _send_static_string_content(http_404_content, client_socket, ring);
     4283:	48 8b 3d 86 4d 00 00 	mov    0x4d86(%rip),%rdi        # 9010 <http_404_content>
     428a:	4c 89 ea             	mov    %r13,%rdx
     428d:	44 89 e6             	mov    %r12d,%esi
     4290:	e8 db fd ff ff       	call   4070 <_send_static_string_content>
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     4295:	4c 89 f2             	mov    %r14,%rdx
     4298:	bf 01 00 00 00       	mov    $0x1,%edi
     429d:	31 c0                	xor    %eax,%eax
     429f:	48 8d 35 7a 1e 00 00 	lea    0x1e7a(%rip),%rsi        # 6120 <_IO_stdin_used+0x120>
     42a6:	e8 85 e1 ff ff       	call   2430 <__printf_chk@plt>
-}
     42ab:	48 8b 84 24 98 04 00 00 	mov    0x498(%rsp),%rax
     42b3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     42bc:	0f 85 20 01 00 00    	jne    43e2 <handle_get_method+0x202>
@@ -2978,20 +2205,14 @@ __NTH (strcat (char *__restrict __dest, const char *__restrict __src))
     42cf:	41 5e                	pop    %r14
     42d1:	c3                   	ret
     42d2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     42d8:	ba 69 63 00 00       	mov    $0x6369,%edx
-  return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
     42dd:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
     42e5:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
     42ea:	48 89 ee             	mov    %rbp,%rsi
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     42ed:	66 89 94 24 94 00 00 00 	mov    %dx,0x94(%rsp)
-  return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
     42f5:	48 89 c2             	mov    %rax,%rdx
-  return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
     42f8:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
     4300:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
-  return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
     430b:	e8 90 e0 ff ff       	call   23a0 <__memcpy_chk@plt>
     4310:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
     4315:	49 8d 7c 1e 06       	lea    0x6(%r14,%rbx,1),%rdi
@@ -2999,7 +2220,6 @@ __NTH (strcat (char *__restrict __dest, const char *__restrict __src))
     4321:	48 29 d9             	sub    %rbx,%rcx
     4324:	ba 0b 00 00 00       	mov    $0xb,%edx
     4329:	e8 72 e0 ff ff       	call   23a0 <__memcpy_chk@plt>
-    if (stat(final_path, &path_stat) == -1) {
     432e:	48 89 e6             	mov    %rsp,%rsi
     4331:	4c 89 f7             	mov    %r14,%rdi
     4334:	e8 77 e0 ff ff       	call   23b0 <stat@plt>
@@ -3011,32 +2231,23 @@ __NTH (strcat (char *__restrict __dest, const char *__restrict __src))
     434f:	31 c0                	xor    %eax,%eax
     4351:	bf 01 00 00 00       	mov    $0x1,%edi
     4356:	e8 d5 e0 ff ff       	call   2430 <__printf_chk@plt>
-    _send_static_string_content(http_404_content, client_socket, ring);
     435b:	48 8b 3d ae 4c 00 00 	mov    0x4cae(%rip),%rdi        # 9010 <http_404_content>
     4362:	4c 89 ea             	mov    %r13,%rdx
     4365:	44 89 e6             	mov    %r12d,%esi
     4368:	e8 03 fd ff ff       	call   4070 <_send_static_string_content>
-}
     436d:	e9 39 ff ff ff       	jmp    42ab <handle_get_method+0xcb>
     4372:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    void *buf = malloc(size);
     4378:	bf 70 00 00 00       	mov    $0x70,%edi
     437d:	e8 6e e0 ff ff       	call   23f0 <malloc@plt>
     4382:	48 89 c3             	mov    %rax,%rbx
-    if (!buf) {
     4385:	48 85 c0             	test   %rax,%rax
     4388:	74 5d                	je     43e7 <handle_get_method+0x207>
-            req->client_socket = client_socket;
     438a:	44 89 60 08          	mov    %r12d,0x8(%rax)
-            send_headers(final_path, path_stat.st_size, req->iov);
     438e:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
     4393:	48 8d 50 10          	lea    0x10(%rax),%rdx
     4397:	4c 89 f7             	mov    %r14,%rdi
-            req->iovec_count = 6;
     439a:	c7 40 04 06 00 00 00 	movl   $0x6,0x4(%rax)
-            send_headers(final_path, path_stat.st_size, req->iov);
     43a1:	e8 4a f5 ff ff       	call   38f0 <send_headers>
-            copy_file_contents(final_path, path_stat.st_size, &req->iov[5]);
     43a6:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
     43ab:	48 8d 53 60          	lea    0x60(%rbx),%rdx
     43af:	4c 89 f7             	mov    %r14,%rdi
@@ -3047,91 +2258,66 @@ __NTH (strcat (char *__restrict __dest, const char *__restrict __src))
     43c1:	48 8d 35 46 1d 00 00 	lea    0x1d46(%rip),%rsi        # 610e <_IO_stdin_used+0x10e>
     43c8:	bf 01 00 00 00       	mov    $0x1,%edi
     43cd:	e8 5e e0 ff ff       	call   2430 <__printf_chk@plt>
-            add_write_request(req, ring);
     43d2:	4c 89 ee             	mov    %r13,%rsi
     43d5:	48 89 df             	mov    %rbx,%rdi
     43d8:	e8 13 fb ff ff       	call   3ef0 <add_write_request>
     43dd:	e9 c9 fe ff ff       	jmp    42ab <handle_get_method+0xcb>
-}
     43e2:	e8 29 df ff ff       	call   2310 <__stack_chk_fail@plt>
-  return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
     43e7:	48 8b 0d 32 4c 00 00 	mov    0x4c32(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     43ee:	ba 28 00 00 00       	mov    $0x28,%edx
     43f3:	be 01 00 00 00       	mov    $0x1,%esi
     43f8:	48 8d 3d 49 1f 00 00 	lea    0x1f49(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     43ff:	e8 9c e0 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     4404:	bf 01 00 00 00       	mov    $0x1,%edi
     4409:	e8 72 e0 ff ff       	call   2480 <exit@plt>
     440e:	66 90                	xchg   %ax,%ax
 
 0000000000004410 <handle_http_method>:
-void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
     4410:	f3 0f 1e fa          	endbr64
     4414:	41 57                	push   %r15
     4416:	41 56                	push   %r14
-    method = strtok_r(method_buffer, " ", &saveptr);
     4418:	4c 8d 35 66 1c 00 00 	lea    0x1c66(%rip),%r14        # 6085 <_IO_stdin_used+0x85>
-void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
     441f:	41 55                	push   %r13
     4421:	49 89 d5             	mov    %rdx,%r13
     4424:	41 54                	push   %r12
     4426:	41 89 f4             	mov    %esi,%r12d
-    method = strtok_r(method_buffer, " ", &saveptr);
     4429:	4c 89 f6             	mov    %r14,%rsi
-void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
     442c:	55                   	push   %rbp
     442d:	53                   	push   %rbx
     442e:	48 83 ec 18          	sub    $0x18,%rsp
     4432:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     443b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
     4440:	31 c0                	xor    %eax,%eax
-    method = strtok_r(method_buffer, " ", &saveptr);
     4442:	49 89 e7             	mov    %rsp,%r15
     4445:	4c 89 fa             	mov    %r15,%rdx
     4448:	e8 13 df ff ff       	call   2360 <strtok_r@plt>
-    for (; *str; ++str)
     444d:	48 0f be 18          	movsbq (%rax),%rbx
-    method = strtok_r(method_buffer, " ", &saveptr);
     4451:	48 89 c5             	mov    %rax,%rbp
-    for (; *str; ++str)
     4454:	84 db                	test   %bl,%bl
     4456:	74 1d                	je     4475 <handle_http_method+0x65>
-        *str = (char)tolower(*str);
     4458:	e8 93 e0 ff ff       	call   24f0 <__ctype_tolower_loc@plt>
     445d:	48 89 ea             	mov    %rbp,%rdx
     4460:	48 8b 08             	mov    (%rax),%rcx
-    for (; *str; ++str)
     4463:	48 83 c2 01          	add    $0x1,%rdx
-        *str = (char)tolower(*str);
     4467:	8b 0c 99             	mov    (%rcx,%rbx,4),%ecx
     446a:	88 4a ff             	mov    %cl,-0x1(%rdx)
-    for (; *str; ++str)
     446d:	48 0f be 1a          	movsbq (%rdx),%rbx
     4471:	84 db                	test   %bl,%bl
     4473:	75 eb                	jne    4460 <handle_http_method+0x50>
-    path = strtok_r(NULL, " ", &saveptr);
     4475:	4c 89 fa             	mov    %r15,%rdx
     4478:	4c 89 f6             	mov    %r14,%rsi
     447b:	31 ff                	xor    %edi,%edi
     447d:	e8 de de ff ff       	call   2360 <strtok_r@plt>
-    if (strcmp(method, "get") == 0) {
     4482:	48 8d 35 aa 1c 00 00 	lea    0x1caa(%rip),%rsi        # 6133 <_IO_stdin_used+0x133>
     4489:	48 89 ef             	mov    %rbp,%rdi
-    path = strtok_r(NULL, " ", &saveptr);
     448c:	48 89 c3             	mov    %rax,%rbx
-    if (strcmp(method, "get") == 0) {
     448f:	e8 fc de ff ff       	call   2390 <strcmp@plt>
-        handle_get_method(path, client_socket, ring);
     4494:	4c 89 ea             	mov    %r13,%rdx
     4497:	44 89 e6             	mov    %r12d,%esi
-    if (strcmp(method, "get") == 0) {
     449a:	85 c0                	test   %eax,%eax
     449c:	75 2a                	jne    44c8 <handle_http_method+0xb8>
-        handle_get_method(path, client_socket, ring);
     449e:	48 89 df             	mov    %rbx,%rdi
     44a1:	e8 3a fd ff ff       	call   41e0 <handle_get_method>
-}
     44a6:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
     44ab:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     44b4:	75 20                	jne    44d6 <handle_http_method+0xc6>
@@ -3144,18 +2330,14 @@ void handle_http_method(char *method_buffer, int client_socket, struct io_uring 
     44c2:	41 5f                	pop    %r15
     44c4:	c3                   	ret
     44c5:	0f 1f 00             	nopl   (%rax)
-    _send_static_string_content(unimplemented_content, client_socket, ring);
     44c8:	48 8b 3d 49 4b 00 00 	mov    0x4b49(%rip),%rdi        # 9018 <unimplemented_content>
     44cf:	e8 9c fb ff ff       	call   4070 <_send_static_string_content>
-}
     44d4:	eb d0                	jmp    44a6 <handle_http_method+0x96>
     44d6:	e8 35 de ff ff       	call   2310 <__stack_chk_fail@plt>
     44db:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
 00000000000044e0 <get_line>:
-int get_line(const char *src, char *dest, int dest_sz) {
     44e0:	f3 0f 1e fa          	endbr64
-    for (int i = 0; i < dest_sz; i++) {
     44e4:	85 d2                	test   %edx,%edx
     44e6:	7e 38                	jle    4520 <get_line+0x40>
     44e8:	48 63 d2             	movslq %edx,%rdx
@@ -3167,35 +2349,27 @@ int get_line(const char *src, char *dest, int dest_sz) {
     44fc:	48 83 c7 01          	add    $0x1,%rdi
     4500:	48 39 d6             	cmp    %rdx,%rsi
     4503:	74 1b                	je     4520 <get_line+0x40>
-        dest[i] = src[i];
     4505:	0f b6 47 ff          	movzbl -0x1(%rdi),%eax
     4509:	88 06                	mov    %al,(%rsi)
-        if (src[i] == '\r' && src[i+1] == '\n') {
     450b:	3c 0d                	cmp    $0xd,%al
     450d:	75 e9                	jne    44f8 <get_line+0x18>
     450f:	80 3f 0a             	cmpb   $0xa,(%rdi)
     4512:	75 e4                	jne    44f8 <get_line+0x18>
-            dest[i] = '\0';
     4514:	c6 06 00             	movb   $0x0,(%rsi)
-            return 0;
     4517:	31 c0                	xor    %eax,%eax
     4519:	c3                   	ret
     451a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    return 1;
     4520:	b8 01 00 00 00       	mov    $0x1,%eax
-}
     4525:	c3                   	ret
     4526:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
 0000000000004530 <handle_client_request>:
-int handle_client_request(struct Request *req, struct io_uring *ring) {
     4530:	f3 0f 1e fa          	endbr64
     4534:	48 81 ec 18 04 00 00 	sub    $0x418,%rsp
     453b:	48 8b 4f 10          	mov    0x10(%rdi),%rcx
     453f:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     4548:	48 89 84 24 08 04 00 00 	mov    %rax,0x408(%rsp)
     4550:	31 c0                	xor    %eax,%eax
-    for (int i = 0; i < dest_sz; i++) {
     4552:	49 89 e2             	mov    %rsp,%r10
     4555:	4c 8d 8c 24 00 04 00 00 	lea    0x400(%rsp),%r9
     455d:	4c 89 d0             	mov    %r10,%rax
@@ -3205,23 +2379,18 @@ int handle_client_request(struct Request *req, struct io_uring *ring) {
     456c:	48 83 c1 01          	add    $0x1,%rcx
     4570:	4c 39 c8             	cmp    %r9,%rax
     4573:	74 4b                	je     45c0 <handle_client_request+0x90>
-        dest[i] = src[i];
     4575:	44 0f b6 01          	movzbl (%rcx),%r8d
     4579:	44 88 00             	mov    %r8b,(%rax)
-        if (src[i] == '\r' && src[i+1] == '\n') {
     457c:	41 80 f8 0d          	cmp    $0xd,%r8b
     4580:	75 e6                	jne    4568 <handle_client_request+0x38>
     4582:	80 79 01 0a          	cmpb   $0xa,0x1(%rcx)
     4586:	75 e0                	jne    4568 <handle_client_request+0x38>
-            dest[i] = '\0';
     4588:	c6 00 00             	movb   $0x0,(%rax)
-    handle_http_method(http_request, req->client_socket, ring);
     458b:	8b 47 08             	mov    0x8(%rdi),%eax
     458e:	48 89 f2             	mov    %rsi,%rdx
     4591:	4c 89 d7             	mov    %r10,%rdi
     4594:	89 c6                	mov    %eax,%esi
     4596:	e8 75 fe ff ff       	call   4410 <handle_http_method>
-}
     459b:	48 8b 84 24 08 04 00 00 	mov    0x408(%rsp),%rax
     45a3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     45ac:	75 39                	jne    45e7 <handle_client_request+0xb7>
@@ -3234,91 +2403,59 @@ int handle_client_request(struct Request *req, struct io_uring *ring) {
     45cc:	be 01 00 00 00       	mov    $0x1,%esi
     45d1:	48 8d 3d 5f 1b 00 00 	lea    0x1b5f(%rip),%rdi        # 6137 <_IO_stdin_used+0x137>
     45d8:	e8 c3 de ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     45dd:	bf 01 00 00 00       	mov    $0x1,%edi
     45e2:	e8 99 de ff ff       	call   2480 <exit@plt>
-}
     45e7:	e8 24 dd ff ff       	call   2310 <__stack_chk_fail@plt>
     45ec:	0f 1f 40 00          	nopl   0x0(%rax)
 
 00000000000045f0 <add_accept_request>:
-                       socklen_t *client_addr_len, struct io_uring *ring) {
     45f0:	f3 0f 1e fa          	endbr64
     45f4:	55                   	push   %rbp
     45f5:	53                   	push   %rbx
     45f6:	48 89 cb             	mov    %rcx,%rbx
     45f9:	48 83 ec 08          	sub    $0x8,%rsp
-	unsigned int head, next = sq->sqe_tail + 1;
     45fd:	8b 41 44             	mov    0x44(%rcx),%eax
-		head = IO_URING_READ_ONCE(*sq->khead);
     4600:	4c 8b 03             	mov    (%rbx),%r8
-	if (ring->flags & IORING_SETUP_SQE128)
     4603:	8b 89 c0 00 00 00    	mov    0xc0(%rcx),%ecx
-	unsigned int head, next = sq->sqe_tail + 1;
     4609:	83 c0 01             	add    $0x1,%eax
-		head = IO_URING_READ_ONCE(*sq->khead);
     460c:	45 8b 08             	mov    (%r8),%r9d
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     460f:	f6 c1 02             	test   $0x2,%cl
     4612:	74 00                	je     4614 <add_accept_request+0x24>
-	if (next - head <= sq->ring_entries) {
     4614:	41 89 c0             	mov    %eax,%r8d
     4617:	45 29 c8             	sub    %r9d,%r8d
     461a:	44 39 43 5c          	cmp    %r8d,0x5c(%rbx)
     461e:	0f 82 26 df ff ff    	jb     254a <add_accept_request.cold>
-	if (ring->flags & IORING_SETUP_SQE128)
     4624:	c1 e9 0a             	shr    $0xa,%ecx
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4627:	8b 6b 44             	mov    0x44(%rbx),%ebp
     462a:	23 6b 58             	and    0x58(%rbx),%ebp
-		sq->sqe_tail = next;
     462d:	89 43 44             	mov    %eax,0x44(%rbx)
-	if (ring->flags & IORING_SETUP_SQE128)
     4630:	83 e1 01             	and    $0x1,%ecx
-	sqe->addr3 = 0;
     4633:	66 0f ef c0          	pxor   %xmm0,%xmm0
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4637:	d3 e5                	shl    %cl,%ebp
     4639:	48 c1 e5 06          	shl    $0x6,%rbp
     463d:	48 03 6b 38          	add    0x38(%rbx),%rbp
-	sqe->fd = fd;
     4641:	89 7d 04             	mov    %edi,0x4(%rbp)
-  struct Request *req = malloc(sizeof(*req));
     4644:	bf 10 00 00 00       	mov    $0x10,%edi
-	sqe->opcode = (__u8) op;
     4649:	c7 45 00 0d 00 00 00 	movl   $0xd,0x0(%rbp)
-	sqe->off = offset;
     4650:	48 89 55 08          	mov    %rdx,0x8(%rbp)
-	sqe->addr = (unsigned long) addr;
     4654:	48 89 75 10          	mov    %rsi,0x10(%rbp)
-	sqe->buf_index = 0;
     4658:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
-	sqe->len = len;
     4660:	48 c7 45 18 00 00 00 00 	movq   $0x0,0x18(%rbp)
-	sqe->addr3 = 0;
     4668:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
     466c:	e8 7f dd ff ff       	call   23f0 <malloc@plt>
-  io_uring_submit(ring);
     4671:	48 89 df             	mov    %rbx,%rdi
-  req->event_type = EVENT_TYPE_ACCEPT;
     4674:	c7 00 00 00 00 00    	movl   $0x0,(%rax)
-	sqe->user_data = (unsigned long) data;
     467a:	48 89 45 20          	mov    %rax,0x20(%rbp)
-}
     467e:	48 83 c4 08          	add    $0x8,%rsp
     4682:	5b                   	pop    %rbx
     4683:	5d                   	pop    %rbp
-  io_uring_submit(ring);
     4684:	e9 97 dc ff ff       	jmp    2320 <io_uring_submit@plt>
     4689:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 0000000000004690 <io_thread>:
-void* io_thread(void *arg) {
     4690:	f3 0f 1e fa          	endbr64
     4694:	41 57                	push   %r15
-  io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
     4696:	31 d2                	xor    %edx,%edx
-void* io_thread(void *arg) {
     4698:	41 56                	push   %r14
     469a:	41 55                	push   %r13
     469c:	41 54                	push   %r12
@@ -3326,15 +2463,12 @@ void* io_thread(void *arg) {
     469f:	48 89 fd             	mov    %rdi,%rbp
     46a2:	53                   	push   %rbx
     46a3:	48 81 ec 58 05 00 00 	sub    $0x558,%rsp
-  struct io_uring ring = *data->ring;
     46aa:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     46b3:	48 89 84 24 48 05 00 00 	mov    %rax,0x548(%rsp)
     46bb:	48 8b 47 40          	mov    0x40(%rdi),%rax
-  io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
     46bf:	48 8d 5c 24 60       	lea    0x60(%rsp),%rbx
     46c4:	bf 00 01 00 00       	mov    $0x100,%edi
     46c9:	48 89 de             	mov    %rbx,%rsi
-  struct io_uring ring = *data->ring;
     46cc:	f3 0f 6f 08          	movdqu (%rax),%xmm1
     46d0:	0f 29 4c 24 60       	movaps %xmm1,0x60(%rsp)
     46d5:	f3 0f 6f 50 10       	movdqu 0x10(%rax),%xmm2
@@ -3363,61 +2497,46 @@ void* io_thread(void *arg) {
     4775:	0f 29 b4 24 20 01 00 00 	movaps %xmm6,0x120(%rsp)
     477d:	48 8b 80 d0 00 00 00 	mov    0xd0(%rax),%rax
     4784:	48 89 84 24 30 01 00 00 	mov    %rax,0x130(%rsp)
-  io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
     478c:	e8 3f dc ff ff       	call   23d0 <io_uring_queue_init@plt>
-  io_uring_register_eventfd(data->ring, 0);
     4791:	48 8b 7d 40          	mov    0x40(%rbp),%rdi
     4795:	31 f6                	xor    %esi,%esi
     4797:	e8 24 dd ff ff       	call   24c0 <io_uring_register_eventfd@plt>
-  sock = socket(PF_INET, SOCK_STREAM, 0);
     479c:	31 d2                	xor    %edx,%edx
     479e:	be 01 00 00 00       	mov    $0x1,%esi
     47a3:	bf 02 00 00 00       	mov    $0x2,%edi
     47a8:	e8 63 dd ff ff       	call   2510 <socket@plt>
-  if (sock == -1)
     47ad:	83 f8 ff             	cmp    $0xffffffff,%eax
     47b0:	0f 84 08 06 00 00    	je     4dbe <io_thread+0x72e>
-  if (setsockopt(sock,
     47b6:	48 8d 4c 24 30       	lea    0x30(%rsp),%rcx
     47bb:	41 b8 04 00 00 00    	mov    $0x4,%r8d
     47c1:	89 c7                	mov    %eax,%edi
     47c3:	41 89 c4             	mov    %eax,%r12d
     47c6:	ba 02 00 00 00       	mov    $0x2,%edx
     47cb:	be 01 00 00 00       	mov    $0x1,%esi
-  int enable = 1;
     47d0:	c7 44 24 30 01 00 00 00 	movl   $0x1,0x30(%rsp)
-  if (setsockopt(sock,
     47d8:	e8 03 db ff ff       	call   22e0 <setsockopt@plt>
     47dd:	85 c0                	test   %eax,%eax
     47df:	0f 88 cd 05 00 00    	js     4db2 <io_thread+0x722>
-  srv_addr.sin_family = AF_INET;
     47e5:	8b 05 85 20 00 00    	mov    0x2085(%rip),%eax        # 6870 <_IO_stdin_used+0x870>
-  return __builtin___memset_chk (__dest, __ch, __len,
     47eb:	48 8d 74 24 40       	lea    0x40(%rsp),%rsi
-  if (bind(sock,
     47f0:	ba 10 00 00 00       	mov    $0x10,%edx
     47f5:	44 89 e7             	mov    %r12d,%edi
     47f8:	48 c7 44 24 44 00 00 00 00 	movq   $0x0,0x44(%rsp)
     4801:	c7 44 24 4c 00 00 00 00 	movl   $0x0,0x4c(%rsp)
-  srv_addr.sin_family = AF_INET;
     4809:	89 44 24 40          	mov    %eax,0x40(%rsp)
-  if (bind(sock,
     480d:	e8 2e dc ff ff       	call   2440 <bind@plt>
     4812:	85 c0                	test   %eax,%eax
     4814:	0f 88 8c 05 00 00    	js     4da6 <io_thread+0x716>
-  if (listen(sock, 10) < 0) {
     481a:	be 0a 00 00 00       	mov    $0xa,%esi
     481f:	44 89 e7             	mov    %r12d,%edi
     4822:	e8 d9 db ff ff       	call   2400 <listen@plt>
     4827:	85 c0                	test   %eax,%eax
     4829:	0f 88 6b 05 00 00    	js     4d9a <io_thread+0x70a>
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     482f:	ba 50 00 00 00       	mov    $0x50,%edx
     4834:	48 8d 35 41 19 00 00 	lea    0x1941(%rip),%rsi        # 617c <_IO_stdin_used+0x17c>
     483b:	bf 01 00 00 00       	mov    $0x1,%edi
     4840:	31 c0                	xor    %eax,%eax
     4842:	e8 e9 db ff ff       	call   2430 <__printf_chk@plt>
-  add_accept_request(sock, &client_addr, &client_addr_len, &ring);
     4847:	48 8d 44 24 50       	lea    0x50(%rsp),%rax
     484c:	48 89 d9             	mov    %rbx,%rcx
     484f:	44 89 e7             	mov    %r12d,%edi
@@ -3425,89 +2544,52 @@ void* io_thread(void *arg) {
     4857:	48 89 c6             	mov    %rax,%rsi
     485a:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
     485f:	48 89 54 24 10       	mov    %rdx,0x10(%rsp)
-  socklen_t client_addr_len = sizeof(client_addr);
     4864:	c7 44 24 34 10 00 00 00 	movl   $0x10,0x34(%rsp)
-  add_accept_request(sock, &client_addr, &client_addr_len, &ring);
     486c:	e8 7f fd ff ff       	call   45f0 <add_accept_request>
-  struct iovec *iov = calloc(1, sizeof(struct iovec));
     4871:	bf 01 00 00 00       	mov    $0x1,%edi
     4876:	be 10 00 00 00       	mov    $0x10,%esi
     487b:	e8 00 db ff ff       	call   2380 <calloc@plt>
-    void *buf = malloc(size);
     4880:	bf 0a 00 00 00       	mov    $0xa,%edi
-  struct iovec *iov = calloc(1, sizeof(struct iovec));
     4885:	49 89 c5             	mov    %rax,%r13
-    void *buf = malloc(size);
     4888:	e8 63 db ff ff       	call   23f0 <malloc@plt>
-    if (!buf) {
     488d:	48 85 c0             	test   %rax,%rax
     4890:	0f 84 dd 04 00 00    	je     4d73 <io_thread+0x6e3>
-  iov->iov_base = zh_malloc(10);
     4896:	49 89 45 00          	mov    %rax,0x0(%r13)
-	unsigned int head, next = sq->sqe_tail + 1;
     489a:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     48a1:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
-  iov->iov_len = 10;
     48a8:	49 c7 45 08 0a 00 00 00 	movq   $0xa,0x8(%r13)
-	unsigned int head, next = sq->sqe_tail + 1;
     48b0:	8d 50 01             	lea    0x1(%rax),%edx
-		head = IO_URING_READ_ONCE(*sq->khead);
     48b3:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
     48b8:	8b 30                	mov    (%rax),%esi
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     48ba:	f6 c1 02             	test   $0x2,%cl
     48bd:	0f 85 2d 04 00 00    	jne    4cf0 <io_thread+0x660>
-	if (next - head <= sq->ring_entries) {
     48c3:	89 d0                	mov    %edx,%eax
     48c5:	29 f0                	sub    %esi,%eax
     48c7:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
     48ce:	0f 82 80 dc ff ff    	jb     2554 <io_thread.cold>
-	if (ring->flags & IORING_SETUP_SQE128)
     48d4:	c1 e9 0a             	shr    $0xa,%ecx
-        io_uring_sqe_set_data(sqe, &data->_eventfd); 
     48d7:	48 8d 75 48          	lea    0x48(%rbp),%rsi
-	sqe->addr3 = 0;
     48db:	66 0f ef c0          	pxor   %xmm0,%xmm0
-  io_uring_submit(&ring);
     48df:	48 89 df             	mov    %rbx,%rdi
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     48e2:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     48e9:	83 e1 01             	and    $0x1,%ecx
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     48ec:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
-		sq->sqe_tail = next;
     48f3:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     48fa:	d3 e0                	shl    %cl,%eax
-        io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
     48fc:	8b 55 48             	mov    0x48(%rbp),%edx
-        io_uring_sqe_set_data(sqe, &data->_eventfd); 
     48ff:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
     4904:	48 c1 e0 06          	shl    $0x6,%rax
     4908:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
-	sqe->opcode = (__u8) op;
     4910:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
-	sqe->fd = fd;
     4916:	89 50 04             	mov    %edx,0x4(%rax)
-	sqe->off = offset;
     4919:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
-	sqe->addr = (unsigned long) addr;
     4921:	4c 89 68 10          	mov    %r13,0x10(%rax)
-	sqe->len = len;
     4925:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
-	sqe->buf_index = 0;
     492d:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
-	sqe->user_data = (unsigned long) data;
     4935:	48 89 70 20          	mov    %rsi,0x20(%rax)
-	sqe->addr3 = 0;
     4939:	0f 11 40 30          	movups %xmm0,0x30(%rax)
-  io_uring_submit(&ring);
     493d:	e8 de d9 ff ff       	call   2320 <io_uring_submit@plt>
-  while (data->running == 1) {
     4942:	8b 45 2c             	mov    0x2c(%rbp),%eax
-	return __io_uring_get_cqe(ring, cqe_ptr, 0, wait_nr, NULL);
     4945:	4c 8d 4c 24 38       	lea    0x38(%rsp),%r9
     494a:	4c 8d 94 24 40 01 00 00 	lea    0x140(%rsp),%r10
     4952:	83 f8 01             	cmp    $0x1,%eax
@@ -3518,46 +2600,32 @@ void* io_thread(void *arg) {
     4968:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
     4970:	48 8d 3d 1b 18 00 00 	lea    0x181b(%rip),%rdi        # 6192 <_IO_stdin_used+0x192>
     4977:	e8 54 d9 ff ff       	call   22d0 <puts@plt>
-	if (ring->flags & IORING_SETUP_CQE32)
     497c:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
-	unsigned mask = ring->cq.ring_mask;
     4983:	8b bc 24 10 01 00 00 	mov    0x110(%rsp),%edi
-	if (ring->flags & IORING_SETUP_CQE32)
     498a:	c1 e9 0b             	shr    $0xb,%ecx
     498d:	83 e1 01             	and    $0x1,%ecx
-		unsigned tail = io_uring_smp_load_acquire(ring->cq.ktail);
     4990:	48 8b 84 24 d0 00 00 00 	mov    0xd0(%rsp),%rax
     4998:	8b 00                	mov    (%rax),%eax
-		unsigned head = *ring->cq.khead;
     499a:	48 8b b4 24 c8 00 00 00 	mov    0xc8(%rsp),%rsi
     49a2:	8b 16                	mov    (%rsi),%edx
-		if (!available)
     49a4:	39 d0                	cmp    %edx,%eax
     49a6:	74 36                	je     49de <io_thread+0x34e>
-		cqe = &ring->cq.cqes[(head & mask) << shift];
     49a8:	89 f8                	mov    %edi,%eax
     49aa:	21 d0                	and    %edx,%eax
     49ac:	d3 e0                	shl    %cl,%eax
     49ae:	48 c1 e0 04          	shl    $0x4,%rax
     49b2:	48 03 84 24 f8 00 00 00 	add    0xf8(%rsp),%rax
-		if (!(ring->features & IORING_FEAT_EXT_ARG) &&
     49ba:	f6 84 24 29 01 00 00 01 	testb  $0x1,0x129(%rsp)
     49c2:	0f 85 88 01 00 00    	jne    4b50 <io_thread+0x4c0>
     49c8:	48 83 38 ff          	cmpq   $0xffffffffffffffff,(%rax)
     49cc:	0f 85 26 03 00 00    	jne    4cf8 <io_thread+0x668>
-			if (cqe->res < 0)
     49d2:	8b 40 08             	mov    0x8(%rax),%eax
-		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
     49d5:	83 c2 01             	add    $0x1,%edx
     49d8:	89 16                	mov    %edx,(%rsi)
-			if (!err)
     49da:	85 c0                	test   %eax,%eax
     49dc:	79 b2                	jns    4990 <io_thread+0x300>
-	*cqe_ptr = cqe;
     49de:	48 c7 44 24 38 00 00 00 00 	movq   $0x0,0x38(%rsp)
-	return err;
     49e7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-	return __io_uring_get_cqe(ring, cqe_ptr, 0, wait_nr, NULL);
     49f0:	45 31 c0             	xor    %r8d,%r8d
     49f3:	31 d2                	xor    %edx,%edx
     49f5:	b9 01 00 00 00       	mov    $0x1,%ecx
@@ -3565,101 +2633,66 @@ void* io_thread(void *arg) {
     49fd:	48 89 df             	mov    %rbx,%rdi
     4a00:	e8 1b da ff ff       	call   2420 <__io_uring_get_cqe@plt>
     4a05:	41 89 c7             	mov    %eax,%r15d
-      if (cqe->user_data == 1) {
     4a08:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
     4a0d:	48 83 38 01          	cmpq   $0x1,(%rax)
     4a11:	0f 84 f1 02 00 00    	je     4d08 <io_thread+0x678>
     4a17:	48 8d 3d 9a 17 00 00 	lea    0x179a(%rip),%rdi        # 61b8 <_IO_stdin_used+0x1b8>
     4a1e:	e8 ad d8 ff ff       	call   22d0 <puts@plt>
-      struct Request *req = (struct Request *) cqe->user_data;
     4a23:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
     4a28:	4c 8b 22             	mov    (%rdx),%r12
-      if (ret < 0)
     4a2b:	45 85 ff             	test   %r15d,%r15d
     4a2e:	0f 88 2e 03 00 00    	js     4d62 <io_thread+0x6d2>
-      if (cqe->res < 0) {
     4a34:	8b 42 08             	mov    0x8(%rdx),%eax
-          fprintf(stderr, "Async request failed: %s for event: %d\n",
     4a37:	45 8b 04 24          	mov    (%r12),%r8d
-      if (cqe->res < 0) {
     4a3b:	85 c0                	test   %eax,%eax
     4a3d:	0f 88 e5 02 00 00    	js     4d28 <io_thread+0x698>
-      switch (req->event_type) {
     4a43:	41 83 f8 01          	cmp    $0x1,%r8d
     4a47:	0f 84 3b 01 00 00    	je     4b88 <io_thread+0x4f8>
     4a4d:	41 83 f8 02          	cmp    $0x2,%r8d
     4a51:	0f 84 b1 01 00 00    	je     4c08 <io_thread+0x578>
     4a57:	45 85 c0             	test   %r8d,%r8d
     4a5a:	0f 84 70 01 00 00    	je     4bd0 <io_thread+0x540>
-		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
     4a60:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
     4a68:	8b 02                	mov    (%rdx),%eax
     4a6a:	83 c0 01             	add    $0x1,%eax
     4a6d:	89 02                	mov    %eax,(%rdx)
-	unsigned int head, next = sq->sqe_tail + 1;
     4a6f:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     4a76:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
-	unsigned int head, next = sq->sqe_tail + 1;
     4a7d:	8d 50 01             	lea    0x1(%rax),%edx
-		head = IO_URING_READ_ONCE(*sq->khead);
     4a80:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
     4a85:	8b 30                	mov    (%rax),%esi
-	if (!(ring->flags & IORING_SETUP_SQPOLL))
     4a87:	f6 c1 02             	test   $0x2,%cl
     4a8a:	74 00                	je     4a8c <io_thread+0x3fc>
-	if (next - head <= sq->ring_entries) {
     4a8c:	89 d0                	mov    %edx,%eax
     4a8e:	29 f0                	sub    %esi,%eax
     4a90:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
     4a97:	0f 82 b7 da ff ff    	jb     2554 <io_thread.cold>
-	if (ring->flags & IORING_SETUP_SQE128)
     4a9d:	c1 e9 0a             	shr    $0xa,%ecx
-	sqe->user_data = (unsigned long) data;
     4aa0:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
-	sqe->addr3 = 0;
     4aa5:	66 0f ef c0          	pxor   %xmm0,%xmm0
-      io_uring_submit(&ring);
     4aa9:	48 89 df             	mov    %rbx,%rdi
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4aac:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
-	if (ring->flags & IORING_SETUP_SQE128)
     4ab3:	83 e1 01             	and    $0x1,%ecx
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4ab6:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
-		sq->sqe_tail = next;
     4abd:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
-		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
     4ac4:	d3 e0                	shl    %cl,%eax
-        io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
     4ac6:	8b 55 48             	mov    0x48(%rbp),%edx
     4ac9:	48 c1 e0 06          	shl    $0x6,%rax
     4acd:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
-	sqe->opcode = (__u8) op;
     4ad5:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
-	sqe->fd = fd;
     4adb:	89 50 04             	mov    %edx,0x4(%rax)
-	sqe->off = offset;
     4ade:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
-	sqe->addr = (unsigned long) addr;
     4ae6:	4c 89 68 10          	mov    %r13,0x10(%rax)
-	sqe->len = len;
     4aea:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
-	sqe->buf_index = 0;
     4af2:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
-	sqe->user_data = (unsigned long) data;
     4afa:	48 89 70 20          	mov    %rsi,0x20(%rax)
-	sqe->addr3 = 0;
     4afe:	0f 11 40 30          	movups %xmm0,0x30(%rax)
-      io_uring_submit(&ring);
     4b02:	e8 19 d8 ff ff       	call   2320 <io_uring_submit@plt>
-  while (data->running == 1) {
     4b07:	8b 45 2c             	mov    0x2c(%rbp),%eax
     4b0a:	83 f8 01             	cmp    $0x1,%eax
     4b0d:	0f 84 5d fe ff ff    	je     4970 <io_thread+0x2e0>
     4b13:	48 8d 3d d7 16 00 00 	lea    0x16d7(%rip),%rdi        # 61f1 <_IO_stdin_used+0x1f1>
     4b1a:	e8 b1 d7 ff ff       	call   22d0 <puts@plt>
-}
     4b1f:	48 8b 84 24 48 05 00 00 	mov    0x548(%rsp),%rax
     4b27:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
     4b30:	0f 85 38 02 00 00    	jne    4d6e <io_thread+0x6de>
@@ -3673,86 +2706,62 @@ void* io_thread(void *arg) {
     4b47:	41 5f                	pop    %r15
     4b49:	c3                   	ret
     4b4a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-	*cqe_ptr = cqe;
     4b50:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
-	if (!__io_uring_peek_cqe(ring, cqe_ptr, NULL) && *cqe_ptr)
     4b55:	48 85 c0             	test   %rax,%rax
     4b58:	0f 84 92 fe ff ff    	je     49f0 <io_thread+0x360>
-      if (cqe->user_data == 1) {
     4b5e:	48 83 38 01          	cmpq   $0x1,(%rax)
     4b62:	0f 84 a0 01 00 00    	je     4d08 <io_thread+0x678>
     4b68:	48 8d 3d 49 16 00 00 	lea    0x1649(%rip),%rdi        # 61b8 <_IO_stdin_used+0x1b8>
     4b6f:	e8 5c d7 ff ff       	call   22d0 <puts@plt>
-      struct Request *req = (struct Request *) cqe->user_data;
     4b74:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
     4b79:	4c 8b 22             	mov    (%rdx),%r12
-      if (ret < 0)
     4b7c:	e9 b3 fe ff ff       	jmp    4a34 <io_thread+0x3a4>
     4b81:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-              if (!cqe->res) {
     4b88:	85 c0                	test   %eax,%eax
     4b8a:	0f 85 c0 00 00 00    	jne    4c50 <io_thread+0x5c0>
-  return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
     4b90:	48 8b 0d 89 44 00 00 	mov    0x4489(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     4b97:	ba 0f 00 00 00       	mov    $0xf,%edx
     4b9c:	be 01 00 00 00       	mov    $0x1,%esi
     4ba1:	48 8d 3d 39 16 00 00 	lea    0x1639(%rip),%rdi        # 61e1 <_IO_stdin_used+0x1e1>
     4ba8:	e8 f3 d8 ff ff       	call   24a0 <fwrite@plt>
-      io_uring_cqe_seen(&ring, cqe);
     4bad:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
     4bb2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-	if (cqe)
     4bb8:	48 85 c0             	test   %rax,%rax
     4bbb:	0f 84 ae fe ff ff    	je     4a6f <io_thread+0x3df>
     4bc1:	e9 9a fe ff ff       	jmp    4a60 <io_thread+0x3d0>
     4bc6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-              add_accept_request(sock, &client_addr, &client_addr_len, &ring);
     4bd0:	48 8b 54 24 10       	mov    0x10(%rsp),%rdx
     4bd5:	48 8b 74 24 18       	mov    0x18(%rsp),%rsi
     4bda:	48 89 d9             	mov    %rbx,%rcx
     4bdd:	8b 7c 24 24          	mov    0x24(%rsp),%edi
     4be1:	e8 0a fa ff ff       	call   45f0 <add_accept_request>
-              add_read_request(cqe->res, &ring);
     4be6:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
     4beb:	48 89 de             	mov    %rbx,%rsi
     4bee:	8b 78 08             	mov    0x8(%rax),%edi
     4bf1:	e8 9a f3 ff ff       	call   3f90 <add_read_request>
-              free(req);
     4bf6:	4c 89 e7             	mov    %r12,%rdi
     4bf9:	e8 b2 d6 ff ff       	call   22b0 <free@plt>
-      io_uring_cqe_seen(&ring, cqe);
     4bfe:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-              break;
     4c03:	eb b3                	jmp    4bb8 <io_thread+0x528>
     4c05:	0f 1f 00             	nopl   (%rax)
-              for (int i = 0; i < req->iovec_count; i++) {
     4c08:	41 8b 44 24 04       	mov    0x4(%r12),%eax
     4c0d:	45 31 ff             	xor    %r15d,%r15d
     4c10:	85 c0                	test   %eax,%eax
     4c12:	7e 20                	jle    4c34 <io_thread+0x5a4>
     4c14:	0f 1f 40 00          	nopl   0x0(%rax)
-                  free(req->iov[i].iov_base);
     4c18:	4c 89 f8             	mov    %r15,%rax
-              for (int i = 0; i < req->iovec_count; i++) {
     4c1b:	49 83 c7 01          	add    $0x1,%r15
-                  free(req->iov[i].iov_base);
     4c1f:	48 c1 e0 04          	shl    $0x4,%rax
     4c23:	49 8b 7c 04 10       	mov    0x10(%r12,%rax,1),%rdi
     4c28:	e8 83 d6 ff ff       	call   22b0 <free@plt>
-              for (int i = 0; i < req->iovec_count; i++) {
     4c2d:	45 39 7c 24 04       	cmp    %r15d,0x4(%r12)
     4c32:	7f e4                	jg     4c18 <io_thread+0x588>
-              close(req->client_socket);
     4c34:	41 8b 7c 24 08       	mov    0x8(%r12),%edi
     4c39:	e8 12 d7 ff ff       	call   2350 <close@plt>
-              free(req);
     4c3e:	4c 89 e7             	mov    %r12,%rdi
     4c41:	e8 6a d6 ff ff       	call   22b0 <free@plt>
-      io_uring_cqe_seen(&ring, cqe);
     4c46:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-              break;
     4c4b:	e9 68 ff ff ff       	jmp    4bb8 <io_thread+0x528>
-    for (int i = 0; i < dest_sz; i++) {
     4c50:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
     4c55:	48 8b 44 24 28       	mov    0x28(%rsp),%rax
     4c5a:	48 8d b4 24 40 05 00 00 	lea    0x540(%rsp),%rsi
@@ -3762,30 +2771,22 @@ void* io_thread(void *arg) {
     4c6c:	48 83 c2 01          	add    $0x1,%rdx
     4c70:	48 39 c6             	cmp    %rax,%rsi
     4c73:	74 4b                	je     4cc0 <io_thread+0x630>
-        dest[i] = src[i];
     4c75:	0f b6 0a             	movzbl (%rdx),%ecx
     4c78:	88 08                	mov    %cl,(%rax)
-        if (src[i] == '\r' && src[i+1] == '\n') {
     4c7a:	80 f9 0d             	cmp    $0xd,%cl
     4c7d:	75 e9                	jne    4c68 <io_thread+0x5d8>
     4c7f:	80 7a 01 0a          	cmpb   $0xa,0x1(%rdx)
     4c83:	75 e3                	jne    4c68 <io_thread+0x5d8>
-            dest[i] = '\0';
     4c85:	c6 00 00             	movb   $0x0,(%rax)
-    handle_http_method(http_request, req->client_socket, ring);
     4c88:	48 8b 7c 24 28       	mov    0x28(%rsp),%rdi
     4c8d:	48 89 da             	mov    %rbx,%rdx
     4c90:	41 8b 74 24 08       	mov    0x8(%r12),%esi
     4c95:	e8 76 f7 ff ff       	call   4410 <handle_http_method>
-              free(req->iov[0].iov_base);
     4c9a:	49 8b 7c 24 10       	mov    0x10(%r12),%rdi
     4c9f:	e8 0c d6 ff ff       	call   22b0 <free@plt>
-              free(req);
     4ca4:	4c 89 e7             	mov    %r12,%rdi
     4ca7:	e8 04 d6 ff ff       	call   22b0 <free@plt>
-      io_uring_cqe_seen(&ring, cqe);
     4cac:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-              break;
     4cb1:	e9 02 ff ff ff       	jmp    4bb8 <io_thread+0x528>
     4cb6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
     4cc0:	48 8b 0d 59 43 00 00 	mov    0x4359(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
@@ -3793,33 +2794,25 @@ void* io_thread(void *arg) {
     4ccc:	be 01 00 00 00       	mov    $0x1,%esi
     4cd1:	48 8d 3d 5f 14 00 00 	lea    0x145f(%rip),%rdi        # 6137 <_IO_stdin_used+0x137>
     4cd8:	e8 c3 d7 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     4cdd:	bf 01 00 00 00       	mov    $0x1,%edi
     4ce2:	e8 99 d7 ff ff       	call   2480 <exit@plt>
     4ce7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-		head = io_uring_smp_load_acquire(sq->khead);
     4cf0:	e9 ce fb ff ff       	jmp    48c3 <io_thread+0x233>
     4cf5:	0f 1f 00             	nopl   (%rax)
-	*cqe_ptr = cqe;
     4cf8:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
-	return err;
     4cfd:	e9 5c fe ff ff       	jmp    4b5e <io_thread+0x4ce>
     4d02:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
     4d08:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     4d10:	48 8d 3d 8d 14 00 00 	lea    0x148d(%rip),%rdi        # 61a4 <_IO_stdin_used+0x1a4>
     4d17:	8b 02                	mov    (%rdx),%eax
     4d19:	83 c0 01             	add    $0x1,%eax
     4d1c:	89 02                	mov    %eax,(%rdx)
     4d1e:	e8 ad d5 ff ff       	call   22d0 <puts@plt>
     4d23:	e9 eb fd ff ff       	jmp    4b13 <io_thread+0x483>
-          fprintf(stderr, "Async request failed: %s for event: %d\n",
     4d28:	f7 d8                	neg    %eax
     4d2a:	44 89 44 24 08       	mov    %r8d,0x8(%rsp)
     4d2f:	89 c7                	mov    %eax,%edi
     4d31:	e8 aa d7 ff ff       	call   24e0 <strerror@plt>
-  return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
     4d36:	44 8b 44 24 08       	mov    0x8(%rsp),%r8d
     4d3b:	be 01 00 00 00       	mov    $0x1,%esi
     4d40:	48 8b 3d d9 42 00 00 	mov    0x42d9(%rip),%rdi        # 9020 <stderr@GLIBC_2.2.5>
@@ -3827,83 +2820,61 @@ void* io_thread(void *arg) {
     4d4a:	48 8d 15 27 16 00 00 	lea    0x1627(%rip),%rdx        # 6378 <_IO_stdin_used+0x378>
     4d51:	31 c0                	xor    %eax,%eax
     4d53:	e8 58 d7 ff ff       	call   24b0 <__fprintf_chk@plt>
-          exit(1);
     4d58:	bf 01 00 00 00       	mov    $0x1,%edi
     4d5d:	e8 1e d7 ff ff       	call   2480 <exit@plt>
-          fatal_error("io_uring_wait_cqe");
     4d62:	48 8d 3d 66 14 00 00 	lea    0x1466(%rip),%rdi        # 61cf <_IO_stdin_used+0x1cf>
     4d69:	e8 a2 ea ff ff       	call   3810 <fatal_error>
-}
     4d6e:	e8 9d d5 ff ff       	call   2310 <__stack_chk_fail@plt>
     4d73:	48 8b 0d a6 42 00 00 	mov    0x42a6(%rip),%rcx        # 9020 <stderr@GLIBC_2.2.5>
     4d7a:	ba 28 00 00 00       	mov    $0x28,%edx
     4d7f:	be 01 00 00 00       	mov    $0x1,%esi
     4d84:	48 8d 3d bd 15 00 00 	lea    0x15bd(%rip),%rdi        # 6348 <_IO_stdin_used+0x348>
     4d8b:	e8 10 d7 ff ff       	call   24a0 <fwrite@plt>
-        exit(1);
     4d90:	bf 01 00 00 00       	mov    $0x1,%edi
     4d95:	e8 e6 d6 ff ff       	call   2480 <exit@plt>
-    fatal_error("listen()");
     4d9a:	48 8d 3d d2 13 00 00 	lea    0x13d2(%rip),%rdi        # 6173 <_IO_stdin_used+0x173>
     4da1:	e8 6a ea ff ff       	call   3810 <fatal_error>
-      fatal_error("bind()");
     4da6:	48 8d 3d bf 13 00 00 	lea    0x13bf(%rip),%rdi        # 616c <_IO_stdin_used+0x16c>
     4dad:	e8 5e ea ff ff       	call   3810 <fatal_error>
-      fatal_error("setsockopt(SO_REUSEADDR)");
     4db2:	48 8d 3d 9a 13 00 00 	lea    0x139a(%rip),%rdi        # 6153 <_IO_stdin_used+0x153>
     4db9:	e8 52 ea ff ff       	call   3810 <fatal_error>
-      fatal_error("socket()");
     4dbe:	48 8d 3d 85 13 00 00 	lea    0x1385(%rip),%rdi        # 614a <_IO_stdin_used+0x14a>
     4dc5:	e8 46 ea ff ff       	call   3810 <fatal_error>
     4dca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
 
 0000000000004dd0 <receive>:
-int receive(volatile struct BarrierTask *data) {
     4dd0:	f3 0f 1e fa          	endbr64
-  for (int n = 0 ; n < data->thread_count; n++) {
     4dd4:	8b 57 3c             	mov    0x3c(%rdi),%edx
     4dd7:	85 d2                	test   %edx,%edx
     4dd9:	0f 8e d1 00 00 00    	jle    4eb0 <receive+0xe0>
     4ddf:	48 89 f8             	mov    %rdi,%rax
     4de2:	45 31 db             	xor    %r11d,%r11d
     4de5:	0f 1f 00             	nopl   (%rax)
-    struct Data *me = data->mailboxes[n].lower;
     4de8:	48 8b 50 70          	mov    0x70(%rax),%rdx
     4dec:	4c 89 df             	mov    %r11,%rdi
     4def:	48 c1 e7 05          	shl    $0x5,%rdi
     4df3:	4c 8b 0c 3a          	mov    (%rdx,%rdi,1),%r9
-    for (int x = 0 ; x < me->messages_count ; x++) {
     4df7:	49 8b 51 08          	mov    0x8(%r9),%rdx
     4dfb:	48 85 d2             	test   %rdx,%rdx
     4dfe:	0f 8e 94 00 00 00    	jle    4e98 <receive+0xc8>
-      if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
     4e04:	4d 8b 11             	mov    (%r9),%r10
     4e07:	31 d2                	xor    %edx,%edx
     4e09:	eb 12                	jmp    4e1d <receive+0x4d>
     4e0b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    for (int x = 0 ; x < me->messages_count ; x++) {
     4e10:	49 8b 49 08          	mov    0x8(%r9),%rcx
     4e14:	48 83 c2 01          	add    $0x1,%rdx
     4e18:	48 39 d1             	cmp    %rdx,%rcx
     4e1b:	7e 7b                	jle    4e98 <receive+0xc8>
-      data->sends++;
     4e1d:	48 8b 48 78          	mov    0x78(%rax),%rcx
-      if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
     4e21:	49 8b 34 d2          	mov    (%r10,%rdx,8),%rsi
-      data->sends++;
     4e25:	48 83 c1 01          	add    $0x1,%rcx
-      if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
     4e29:	4c 8b 46 10          	mov    0x10(%rsi),%r8
-      data->sends++;
     4e2d:	48 89 48 78          	mov    %rcx,0x78(%rax)
-      data->n++;
     4e31:	48 8b 48 10          	mov    0x10(%rax),%rcx
     4e35:	48 83 c1 01          	add    $0x1,%rcx
     4e39:	48 89 48 10          	mov    %rcx,0x10(%rax)
-      data->mailboxes[n].received++;
     4e3d:	48 8b 48 70          	mov    0x70(%rax),%rcx
     4e41:	48 83 44 39 18 01    	addq   $0x1,0x18(%rcx,%rdi,1)
-      if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
     4e47:	48 63 08             	movslq (%rax),%rcx
     4e4a:	49 39 c8             	cmp    %rcx,%r8
     4e4d:	75 c1                	jne    4e10 <receive+0x40>
@@ -3911,13 +2882,10 @@ int receive(volatile struct BarrierTask *data) {
     4e53:	48 63 48 38          	movslq 0x38(%rax),%rcx
     4e57:	48 39 ce             	cmp    %rcx,%rsi
     4e5a:	75 b4                	jne    4e10 <receive+0x40>
-int receive(volatile struct BarrierTask *data) {
     4e5c:	48 83 ec 08          	sub    $0x8,%rsp
-        printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
     4e60:	48 63 50 38          	movslq 0x38(%rax),%rdx
     4e64:	48 63 00             	movslq (%rax),%rax
     4e67:	31 c9                	xor    %ecx,%ecx
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
     4e69:	bf 01 00 00 00       	mov    $0x1,%edi
     4e6e:	48 39 f2             	cmp    %rsi,%rdx
     4e71:	48 8d 35 28 15 00 00 	lea    0x1528(%rip),%rsi        # 63a0 <_IO_stdin_used+0x3a0>
@@ -3927,24 +2895,19 @@ int receive(volatile struct BarrierTask *data) {
     4e80:	0f 94 c2             	sete   %dl
     4e83:	31 c0                	xor    %eax,%eax
     4e85:	e8 a6 d5 ff ff       	call   2430 <__printf_chk@plt>
-        exit(1);
     4e8a:	bf 01 00 00 00       	mov    $0x1,%edi
     4e8f:	e8 ec d5 ff ff       	call   2480 <exit@plt>
     4e94:	0f 1f 40 00          	nopl   0x0(%rax)
-    me->messages_count = 0;
     4e98:	49 c7 41 08 00 00 00 00 	movq   $0x0,0x8(%r9)
-  for (int n = 0 ; n < data->thread_count; n++) {
     4ea0:	8b 50 3c             	mov    0x3c(%rax),%edx
     4ea3:	49 83 c3 01          	add    $0x1,%r11
     4ea7:	44 39 da             	cmp    %r11d,%edx
     4eaa:	0f 8f 38 ff ff ff    	jg     4de8 <receive+0x18>
-}
     4eb0:	c3                   	ret
     4eb1:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     4ebc:	0f 1f 40 00          	nopl   0x0(%rax)
 
 0000000000004ec0 <barriered_work>:
-int barriered_work(volatile struct BarrierTask *data) {
     4ec0:	f3 0f 1e fa          	endbr64
     4ec4:	41 55                	push   %r13
     4ec6:	41 54                	push   %r12
@@ -3952,33 +2915,25 @@ int barriered_work(volatile struct BarrierTask *data) {
     4ec9:	53                   	push   %rbx
     4eca:	48 89 fb             	mov    %rdi,%rbx
     4ecd:	48 83 ec 08          	sub    $0x8,%rsp
-  if (data->thread_index == data->task_index) {
     4ed1:	8b 57 38             	mov    0x38(%rdi),%edx
     4ed4:	8b 07                	mov    (%rdi),%eax
     4ed6:	39 c2                	cmp    %eax,%edx
     4ed8:	0f 84 d2 00 00 00    	je     4fb0 <barriered_work+0xf0>
-    receive(data);
     4ede:	e8 ed fe ff ff       	call   4dd0 <receive>
-    while (data->scheduled == 1) {
     4ee3:	8b 43 48             	mov    0x48(%rbx),%eax
     4ee6:	83 f8 01             	cmp    $0x1,%eax
     4ee9:	75 19                	jne    4f04 <barriered_work+0x44>
     4eeb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-      data->n++;
     4ef0:	48 8b 43 10          	mov    0x10(%rbx),%rax
     4ef4:	48 83 c0 01          	add    $0x1,%rax
     4ef8:	48 89 43 10          	mov    %rax,0x10(%rbx)
-    while (data->scheduled == 1) {
     4efc:	8b 43 48             	mov    0x48(%rbx),%eax
     4eff:	83 f8 01             	cmp    $0x1,%eax
     4f02:	74 ec                	je     4ef0 <barriered_work+0x30>
-    if (data->sending == 1) {
     4f04:	8b 83 80 00 00 00    	mov    0x80(%rbx),%eax
     4f0a:	83 f8 01             	cmp    $0x1,%eax
     4f0d:	74 10                	je     4f1f <barriered_work+0x5f>
-  asm volatile ("mfence" ::: "memory");
     4f0f:	0f ae f0             	mfence
-}
     4f12:	48 83 c4 08          	add    $0x8,%rsp
     4f16:	31 c0                	xor    %eax,%eax
     4f18:	5b                   	pop    %rbx
@@ -3986,155 +2941,117 @@ int barriered_work(volatile struct BarrierTask *data) {
     4f1a:	41 5c                	pop    %r12
     4f1c:	41 5d                	pop    %r13
     4f1e:	c3                   	ret
-        for (int n = 0 ; n < data->thread_count; n++) {
     4f1f:	8b 43 3c             	mov    0x3c(%rbx),%eax
     4f22:	85 c0                	test   %eax,%eax
     4f24:	7e e9                	jle    4f0f <barriered_work+0x4f>
     4f26:	45 31 c9             	xor    %r9d,%r9d
     4f29:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-          if (n == data->thread_index) { continue; }
     4f30:	8b 43 38             	mov    0x38(%rbx),%eax
     4f33:	44 39 c8             	cmp    %r9d,%eax
     4f36:	74 5e                	je     4f96 <barriered_work+0xd6>
-          struct Data *them = data->mailboxes[n].higher;
     4f38:	48 8b 43 70          	mov    0x70(%rbx),%rax
     4f3c:	4c 89 c9             	mov    %r9,%rcx
     4f3f:	48 c1 e1 05          	shl    $0x5,%rcx
     4f43:	48 8b 54 08 08       	mov    0x8(%rax,%rcx,1),%rdx
-          for (; them->messages_count < min;) {
     4f48:	48 8b 42 08          	mov    0x8(%rdx),%rax
     4f4c:	48 63 7a 10          	movslq 0x10(%rdx),%rdi
     4f50:	48 39 f8             	cmp    %rdi,%rax
     4f53:	7d 41                	jge    4f96 <barriered_work+0xd6>
-            them->messages[them->messages_count++] = data->message; 
     4f55:	4c 8b 02             	mov    (%rdx),%r8
     4f58:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-            data->n++;
     4f60:	48 8b 43 10          	mov    0x10(%rbx),%rax
     4f64:	48 83 c0 01          	add    $0x1,%rax
     4f68:	48 89 43 10          	mov    %rax,0x10(%rbx)
-            data->mailboxes[n].sent++;
     4f6c:	48 8b 43 70          	mov    0x70(%rbx),%rax
     4f70:	48 83 44 08 10 01    	addq   $0x1,0x10(%rax,%rcx,1)
-            them->messages[them->messages_count++] = data->message; 
     4f76:	48 8b 42 08          	mov    0x8(%rdx),%rax
     4f7a:	48 8d 70 01          	lea    0x1(%rax),%rsi
     4f7e:	48 89 72 08          	mov    %rsi,0x8(%rdx)
     4f82:	48 8b b3 88 00 00 00 	mov    0x88(%rbx),%rsi
     4f89:	49 89 34 c0          	mov    %rsi,(%r8,%rax,8)
-          for (; them->messages_count < min;) {
     4f8d:	48 8b 42 08          	mov    0x8(%rdx),%rax
     4f91:	48 39 f8             	cmp    %rdi,%rax
     4f94:	7c ca                	jl     4f60 <barriered_work+0xa0>
-        for (int n = 0 ; n < data->thread_count; n++) {
     4f96:	8b 43 3c             	mov    0x3c(%rbx),%eax
     4f99:	49 83 c1 01          	add    $0x1,%r9
     4f9d:	44 39 c8             	cmp    %r9d,%eax
     4fa0:	7f 8e                	jg     4f30 <barriered_work+0x70>
     4fa2:	e9 68 ff ff ff       	jmp    4f0f <barriered_work+0x4f>
     4fa7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-      receive(data);
     4fb0:	e8 1b fe ff ff       	call   4dd0 <receive>
-        int t = data->task_index;
     4fb5:	8b 3b                	mov    (%rbx),%edi
-        for (int y = 0; y < data->thread_count ; y++) {
     4fb7:	8b 43 3c             	mov    0x3c(%rbx),%eax
     4fba:	85 c0                	test   %eax,%eax
     4fbc:	0f 8e ae 00 00 00    	jle    5070 <barriered_work+0x1b0>
-              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
     4fc2:	48 63 c7             	movslq %edi,%rax
     4fc5:	45 31 d2             	xor    %r10d,%r10d
     4fc8:	45 31 e4             	xor    %r12d,%r12d
-              int next_task = abs((t + 1) % (data->thread_count));
     4fcb:	83 c7 01             	add    $0x1,%edi
-              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
     4fce:	48 8d 14 c0          	lea    (%rax,%rax,8),%rdx
     4fd2:	48 8d 2c 50          	lea    (%rax,%rdx,2),%rbp
     4fd6:	48 c1 e5 03          	shl    $0x3,%rbp
     4fda:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-          for (int b = 0; b < data->thread_count ; b++) {
     4fe0:	8b 43 3c             	mov    0x3c(%rbx),%eax
     4fe3:	4d 89 e3             	mov    %r12,%r11
-              int next_task = abs((t + 1) % (data->thread_count));
     4fe6:	31 f6                	xor    %esi,%esi
     4fe8:	31 c9                	xor    %ecx,%ecx
     4fea:	49 c1 e3 05          	shl    $0x5,%r11
-          for (int b = 0; b < data->thread_count ; b++) {
     4fee:	85 c0                	test   %eax,%eax
     4ff0:	7e 6a                	jle    505c <barriered_work+0x19c>
     4ff2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-              int next_task = abs((t + 1) % (data->thread_count));
     4ff8:	44 8b 6b 3c          	mov    0x3c(%rbx),%r13d
-              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
     4ffc:	48 8b 43 30          	mov    0x30(%rbx),%rax
     5000:	48 8b 40 10          	mov    0x10(%rax),%rax
     5004:	4a 8b 54 10 20       	mov    0x20(%rax,%r10,1),%rdx
     5009:	48 01 ea             	add    %rbp,%rdx
     500c:	4c 8b 42 70          	mov    0x70(%rdx),%r8
-              data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
     5010:	48 8b 43 30          	mov    0x30(%rbx),%rax
     5014:	4c 8b 48 10          	mov    0x10(%rax),%r9
-              int next_task = abs((t + 1) % (data->thread_count));
     5018:	89 f8                	mov    %edi,%eax
     501a:	99                   	cltd
     501b:	41 f7 fd             	idiv   %r13d
     501e:	89 d0                	mov    %edx,%eax
     5020:	f7 d8                	neg    %eax
     5022:	0f 49 d0             	cmovns %eax,%edx
-              data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
     5025:	48 63 d2             	movslq %edx,%rdx
     5028:	48 8d 04 d2          	lea    (%rdx,%rdx,8),%rax
     502c:	48 8d 14 42          	lea    (%rdx,%rax,2),%rdx
     5030:	49 8b 44 31 20       	mov    0x20(%r9,%rsi,1),%rax
-          for (int b = 0; b < data->thread_count ; b++) {
     5035:	48 83 c6 78          	add    $0x78,%rsi
-              data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
     5039:	48 8d 04 d0          	lea    (%rax,%rdx,8),%rax
-              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
     503d:	48 89 ca             	mov    %rcx,%rdx
-          for (int b = 0; b < data->thread_count ; b++) {
     5040:	48 83 c1 01          	add    $0x1,%rcx
-              tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
     5044:	48 c1 e2 05          	shl    $0x5,%rdx
-              data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
     5048:	48 8b 40 70          	mov    0x70(%rax),%rax
     504c:	49 8b 54 10 08       	mov    0x8(%r8,%rdx,1),%rdx
     5051:	4a 89 14 18          	mov    %rdx,(%rax,%r11,1)
-          for (int b = 0; b < data->thread_count ; b++) {
     5055:	8b 43 3c             	mov    0x3c(%rbx),%eax
     5058:	39 c8                	cmp    %ecx,%eax
     505a:	7f 9c                	jg     4ff8 <barriered_work+0x138>
-        for (int y = 0; y < data->thread_count ; y++) {
     505c:	8b 43 3c             	mov    0x3c(%rbx),%eax
     505f:	49 83 c4 01          	add    $0x1,%r12
     5063:	49 83 c2 78          	add    $0x78,%r10
     5067:	44 39 e0             	cmp    %r12d,%eax
     506a:	0f 8f 70 ff ff ff    	jg     4fe0 <barriered_work+0x120>
-      asm volatile ("mfence" ::: "memory");
     5070:	0f ae f0             	mfence
-    clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
     5073:	48 8b 73 50          	mov    0x50(%rbx),%rsi
     5077:	48 8b 43 60          	mov    0x60(%rbx),%rax
     507b:	31 ff                	xor    %edi,%edi
     507d:	48 c1 e0 05          	shl    $0x5,%rax
     5081:	48 01 c6             	add    %rax,%rsi
     5084:	e8 67 d2 ff ff       	call   22f0 <clock_gettime@plt>
-    int modcount = ++data->thread->protected_state->modcount;
     5089:	48 8b 43 30          	mov    0x30(%rbx),%rax
     508d:	48 8b 40 30          	mov    0x30(%rax),%rax
     5091:	8b 78 10             	mov    0x10(%rax),%edi
     5094:	8d 6f 01             	lea    0x1(%rdi),%ebp
     5097:	89 68 10             	mov    %ebp,0x10(%rax)
-    while (data->scheduled == 1) {
     509a:	8b 43 48             	mov    0x48(%rbx),%eax
     509d:	83 f8 01             	cmp    $0x1,%eax
     50a0:	75 4d                	jne    50ef <barriered_work+0x22f>
     50a2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-      data->n++;
     50a8:	48 8b 43 10          	mov    0x10(%rbx),%rax
     50ac:	48 83 c0 01          	add    $0x1,%rax
     50b0:	48 89 43 10          	mov    %rax,0x10(%rbx)
-      data->protected(&data->thread->threads[data->thread_index].tasks[data->task_index]);
     50b4:	48 8b 73 28          	mov    0x28(%rbx),%rsi
     50b8:	48 8b 7b 30          	mov    0x30(%rbx),%rdi
     50bc:	48 63 4b 38          	movslq 0x38(%rbx),%rcx
@@ -4149,23 +3066,19 @@ int barriered_work(volatile struct BarrierTask *data) {
     50dd:	48 8d 14 4a          	lea    (%rdx,%rcx,2),%rdx
     50e1:	48 8d 3c d0          	lea    (%rax,%rdx,8),%rdi
     50e5:	ff d6                	call   *%rsi
-    while (data->scheduled == 1) {
     50e7:	8b 43 48             	mov    0x48(%rbx),%eax
     50ea:	83 f8 01             	cmp    $0x1,%eax
     50ed:	74 b9                	je     50a8 <barriered_work+0x1e8>
-    if (modcount != data->thread->protected_state->modcount) {
     50ef:	48 8b 43 30          	mov    0x30(%rbx),%rax
     50f3:	48 8b 40 30          	mov    0x30(%rax),%rax
     50f7:	3b 68 10             	cmp    0x10(%rax),%ebp
     50fa:	75 32                	jne    512e <barriered_work+0x26e>
-    clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     50fc:	48 8b 53 50          	mov    0x50(%rbx),%rdx
     5100:	48 8b 43 60          	mov    0x60(%rbx),%rax
     5104:	31 ff                	xor    %edi,%edi
     5106:	48 c1 e0 05          	shl    $0x5,%rax
     510a:	48 8d 74 02 10       	lea    0x10(%rdx,%rax,1),%rsi
     510f:	e8 dc d1 ff ff       	call   22f0 <clock_gettime@plt>
-    data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
     5114:	48 8b 43 60          	mov    0x60(%rbx),%rax
     5118:	48 8b 4b 58          	mov    0x58(%rbx),%rcx
     511c:	48 83 c0 01          	add    $0x1,%rax
@@ -4179,10 +3092,8 @@ int barriered_work(volatile struct BarrierTask *data) {
     513c:	0f 1f 40 00          	nopl   0x0(%rax)
 
 0000000000005140 <barriered_work_ingest>:
-int barriered_work_ingest(volatile struct BarrierTask *data) {
     5140:	f3 0f 1e fa          	endbr64
     5144:	48 83 ec 08          	sub    $0x8,%rsp
-  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
     5148:	48 8b 47 30          	mov    0x30(%rdi),%rax
     514c:	48 8b 40 38          	mov    0x38(%rax),%rax
     5150:	8b 00                	mov    (%rax),%eax
@@ -4190,7 +3101,6 @@ int barriered_work_ingest(volatile struct BarrierTask *data) {
     5154:	7e 57                	jle    51ad <barriered_work_ingest+0x6d>
     5156:	31 c0                	xor    %eax,%eax
     5158:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-    if (data->thread->buffers->buffer[x].available == 1) {
     5160:	48 8b 4f 30          	mov    0x30(%rdi),%rcx
     5164:	48 89 c2             	mov    %rax,%rdx
     5167:	48 c1 e2 04          	shl    $0x4,%rdx
@@ -4200,69 +3110,54 @@ int barriered_work_ingest(volatile struct BarrierTask *data) {
     5176:	8b 4e 08             	mov    0x8(%rsi),%ecx
     5179:	83 f9 01             	cmp    $0x1,%ecx
     517c:	75 1f                	jne    519d <barriered_work_ingest+0x5d>
-      data->ingest_count++;
     517e:	48 8b 4f 68          	mov    0x68(%rdi),%rcx
     5182:	48 83 c1 01          	add    $0x1,%rcx
     5186:	48 89 4f 68          	mov    %rcx,0x68(%rdi)
-      data->thread->buffers->buffer[x].available = 0;
     518a:	48 8b 4f 30          	mov    0x30(%rdi),%rcx
     518e:	48 8b 49 38          	mov    0x38(%rcx),%rcx
     5192:	48 03 51 08          	add    0x8(%rcx),%rdx
     5196:	c7 42 08 00 00 00 00 	movl   $0x0,0x8(%rdx)
-  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
     519d:	48 8b 57 30          	mov    0x30(%rdi),%rdx
     51a1:	48 83 c0 01          	add    $0x1,%rax
     51a5:	48 8b 52 38          	mov    0x38(%rdx),%rdx
     51a9:	39 02                	cmp    %eax,(%rdx)
     51ab:	7f b3                	jg     5160 <barriered_work_ingest+0x20>
-  asm volatile ("mfence" ::: "memory");
     51ad:	0f ae f0             	mfence
-  barriered_work(data);
     51b0:	e8 0b fd ff ff       	call   4ec0 <barriered_work>
-}
     51b5:	31 c0                	xor    %eax,%eax
     51b7:	48 83 c4 08          	add    $0x8,%rsp
     51bb:	c3                   	ret
     51bc:	0f 1f 40 00          	nopl   0x0(%rax)
 
 00000000000051c0 <barriered_nulltask>:
-int barriered_nulltask(volatile struct BarrierTask *data) {
     51c0:	f3 0f 1e fa          	endbr64
-}
     51c4:	31 c0                	xor    %eax,%eax
     51c6:	c3                   	ret
     51c7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
 00000000000051d0 <barriered_steal>:
-int barriered_steal(volatile struct BarrierTask *data) {
     51d0:	f3 0f 1e fa          	endbr64
     51d4:	31 c0                	xor    %eax,%eax
     51d6:	c3                   	ret
     51d7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
 00000000000051e0 <after>:
-int after(struct timespec left, struct timespec right) {
     51e0:	f3 0f 1e fa          	endbr64
-  return left.tv_sec > right.tv_sec &&
     51e4:	31 c0                	xor    %eax,%eax
     51e6:	48 39 d7             	cmp    %rdx,%rdi
     51e9:	7e 08                	jle    51f3 <after+0x13>
     51eb:	31 c0                	xor    %eax,%eax
     51ed:	48 39 ce             	cmp    %rcx,%rsi
     51f0:	0f 9f c0             	setg   %al
-}
     51f3:	c3                   	ret
     51f4:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
     51ff:	90                   	nop
 
 0000000000005200 <within>:
-int within(struct timespec a, struct timespec b, struct timespec c, struct timespec d) {
     5200:	f3 0f 1e fa          	endbr64
     5204:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
     5209:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-  return 0;
     520e:	31 c0                	xor    %eax,%eax
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     5210:	48 39 d7             	cmp    %rdx,%rdi
     5213:	7f 18                	jg     522d <within+0x2d>
     5215:	4d 39 d8             	cmp    %r11,%r8
@@ -4270,17 +3165,14 @@ int within(struct timespec a, struct timespec b, struct timespec c, struct times
     521b:	48 39 ce             	cmp    %rcx,%rsi
     521e:	0f 9e c0             	setle  %al
     5221:	21 c2                	and    %eax,%edx
-   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     5223:	31 c0                	xor    %eax,%eax
     5225:	4d 39 d1             	cmp    %r10,%r9
     5228:	0f 9e c0             	setle  %al
     522b:	21 d0                	and    %edx,%eax
-}
     522d:	c3                   	ret
     522e:	66 90                	xchg   %ax,%ax
 
 0000000000005230 <overlap>:
-int overlap(struct Snapshot left, struct Snapshot right) {
     5230:	f3 0f 1e fa          	endbr64
     5234:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
     5239:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
@@ -4288,46 +3180,34 @@ int overlap(struct Snapshot left, struct Snapshot right) {
     5243:	4c 8b 5c 24 20       	mov    0x20(%rsp),%r11
     5248:	4c 8b 4c 24 38       	mov    0x38(%rsp),%r9
     524d:	4c 8b 54 24 40       	mov    0x40(%rsp),%r10
-  if (after(left.start, right.start) && after(right.end, left.end)) {
     5252:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
     5257:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
-  return left.tv_sec > right.tv_sec &&
     525c:	48 39 fe             	cmp    %rdi,%rsi
     525f:	7d 2f                	jge    5290 <overlap+0x60>
     5261:	48 39 ca             	cmp    %rcx,%rdx
     5264:	7d 62                	jge    52c8 <overlap+0x98>
     5266:	4d 39 da             	cmp    %r11,%r10
     5269:	7e 0e                	jle    5279 <overlap+0x49>
-    return 1;
     526b:	b8 01 00 00 00       	mov    $0x1,%eax
-  return left.tv_sec > right.tv_sec &&
     5270:	4d 39 c1             	cmp    %r8,%r9
     5273:	0f 8f 7f 00 00 00    	jg     52f8 <overlap+0xc8>
-  return 0;
     5279:	31 c0                	xor    %eax,%eax
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     527b:	4d 39 c1             	cmp    %r8,%r9
     527e:	7c 4c                	jl     52cc <overlap+0x9c>
-   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     5280:	31 c0                	xor    %eax,%eax
     5282:	4d 39 da             	cmp    %r11,%r10
     5285:	0f 9d c0             	setge  %al
     5288:	c3                   	ret
     5289:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-  return left.tv_sec > right.tv_sec &&
     5290:	7e 4e                	jle    52e0 <overlap+0xb0>
     5292:	48 39 ca             	cmp    %rcx,%rdx
     5295:	7f 39                	jg     52d0 <overlap+0xa0>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     5297:	75 31                	jne    52ca <overlap+0x9a>
     5299:	4d 39 c1             	cmp    %r8,%r9
     529c:	7f 2c                	jg     52ca <overlap+0x9a>
-    return 1;
     529e:	b8 01 00 00 00       	mov    $0x1,%eax
-   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     52a3:	4d 39 da             	cmp    %r11,%r10
     52a6:	7e 24                	jle    52cc <overlap+0x9c>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     52a8:	48 39 ca             	cmp    %rcx,%rdx
     52ab:	0f 94 c2             	sete   %dl
     52ae:	48 39 fe             	cmp    %rdi,%rsi
@@ -4340,21 +3220,15 @@ int overlap(struct Snapshot left, struct Snapshot right) {
     52c0:	c3                   	ret
     52c1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     52c8:	74 af                	je     5279 <overlap+0x49>
-  return 0;
     52ca:	31 c0                	xor    %eax,%eax
-}
     52cc:	c3                   	ret
     52cd:	0f 1f 00             	nopl   (%rax)
-  return left.tv_sec > right.tv_sec &&
     52d0:	4d 39 c1             	cmp    %r8,%r9
     52d3:	7d c4                	jge    5299 <overlap+0x69>
-    return 1;
     52d5:	b8 01 00 00 00       	mov    $0x1,%eax
-  return left.tv_sec > right.tv_sec &&
     52da:	4d 39 da             	cmp    %r11,%r10
     52dd:	7d ba                	jge    5299 <overlap+0x69>
     52df:	c3                   	ret
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     52e0:	48 39 ca             	cmp    %rcx,%rdx
     52e3:	7c 94                	jl     5279 <overlap+0x49>
     52e5:	4d 39 c1             	cmp    %r8,%r9
@@ -4367,16 +3241,11 @@ int overlap(struct Snapshot left, struct Snapshot right) {
     52f9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 0000000000005300 <verify>:
-int verify(struct KernelThread *thread_data, int thread_count) {
     5300:	f3 0f 1e fa          	endbr64
-  for (int x = 0 ; x < thread_count; x++) {
     5304:	85 f6                	test   %esi,%esi
     5306:	0f 8e 0a 03 00 00    	jle    5616 <verify+0x316>
-int verify(struct KernelThread *thread_data, int thread_count) {
     530c:	41 57                	push   %r15
-  for (int x = 0 ; x < thread_count; x++) {
     530e:	45 31 ff             	xor    %r15d,%r15d
-int verify(struct KernelThread *thread_data, int thread_count) {
     5311:	41 56                	push   %r14
     5313:	41 89 f6             	mov    %esi,%r14d
     5316:	41 55                	push   %r13
@@ -4385,16 +3254,12 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     531e:	55                   	push   %rbp
     531f:	53                   	push   %rbx
     5320:	48 83 ec 48          	sub    $0x48,%rsp
-  for (int x = 0 ; x < thread_count; x++) {
     5324:	4c 89 6c 24 10       	mov    %r13,0x10(%rsp)
-    for (int z = 0 ; z < thread_count; z++) {
     5329:	4c 89 6c 24 08       	mov    %r13,0x8(%rsp)
     532e:	45 31 e4             	xor    %r12d,%r12d
     5331:	4c 89 6c 24 28       	mov    %r13,0x28(%rsp)
-      if (z != x)  {
     5336:	45 39 e7             	cmp    %r12d,%r15d
     5339:	0f 84 37 02 00 00    	je     5576 <verify+0x276>
-        for (int y = 0 ; y < thread_data[x].task_count ; y++) {
     533f:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     5344:	8b 50 08             	mov    0x8(%rax),%edx
     5347:	85 d2                	test   %edx,%edx
@@ -4407,14 +3272,12 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     5369:	bf 01 00 00 00       	mov    $0x1,%edi
     536e:	31 c0                	xor    %eax,%eax
     5370:	e8 bb d0 ff ff       	call   2430 <__printf_chk@plt>
-          for (int k = 0 ; k < thread_data[z].task_count; k++) {
     5375:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
     537a:	8b 40 08             	mov    0x8(%rax),%eax
     537d:	85 c0                	test   %eax,%eax
     537f:	0f 8e d2 01 00 00    	jle    5557 <verify+0x257>
     5385:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     538a:	89 6c 24 34          	mov    %ebp,0x34(%rsp)
-            printf("%ld %ld\n", thread_data[z].tasks[k].current_snapshot, thread_data[x].tasks[y].current_snapshot);
     538e:	45 31 e4             	xor    %r12d,%r12d
     5391:	44 89 7c 24 38       	mov    %r15d,0x38(%rsp)
     5396:	4c 8b 6c 24 18       	mov    0x18(%rsp),%r13
@@ -4433,7 +3296,6 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     53cf:	48 8b 50 60          	mov    0x60(%rax),%rdx
     53d3:	31 c0                	xor    %eax,%eax
     53d5:	e8 56 d0 ff ff       	call   2430 <__printf_chk@plt>
-            for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
     53da:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     53df:	4c 8b 6c 24 18       	mov    0x18(%rsp),%r13
     53e4:	4c 03 28             	add    (%rax),%r13
@@ -4442,7 +3304,6 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     53ee:	0f 8e 42 01 00 00    	jle    5536 <verify+0x236>
     53f4:	48 8b 13             	mov    (%rbx),%rdx
     53f7:	4c 89 64 24 20       	mov    %r12,0x20(%rsp)
-              for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
     53fc:	45 31 ff             	xor    %r15d,%r15d
     53ff:	48 01 ea             	add    %rbp,%rdx
     5402:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
@@ -4454,22 +3315,18 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     5418:	7f 37                	jg     5451 <verify+0x151>
     541a:	e9 01 01 00 00       	jmp    5520 <verify+0x220>
     541f:	90                   	nop
-  return left.tv_sec > right.tv_sec &&
     5420:	48 39 f1             	cmp    %rsi,%rcx
     5423:	0f 8d 67 01 00 00    	jge    5590 <verify+0x290>
     5429:	4d 39 da             	cmp    %r11,%r10
     542c:	7e 09                	jle    5437 <verify+0x137>
     542e:	49 39 c6             	cmp    %rax,%r14
     5431:	0f 8c 81 00 00 00    	jl     54b8 <verify+0x1b8>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     5437:	4d 39 da             	cmp    %r11,%r10
     543a:	0f 8d 9b 01 00 00    	jge    55db <verify+0x2db>
-              for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
     5440:	48 8b 42 60          	mov    0x60(%rdx),%rax
     5444:	48 83 c3 01          	add    $0x1,%rbx
     5448:	48 39 d8             	cmp    %rbx,%rax
     544b:	0f 8e cf 00 00 00    	jle    5520 <verify+0x220>
-                if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
     5451:	48 8b 42 50          	mov    0x50(%rdx),%rax
     5455:	49 89 d9             	mov    %rbx,%r9
     5458:	49 8b 4d 50          	mov    0x50(%r13),%rcx
@@ -4484,20 +3341,16 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     5478:	4c 8b 50 10          	mov    0x10(%rax),%r10
     547c:	48 8b 48 08          	mov    0x8(%rax),%rcx
     5480:	48 8b 40 18          	mov    0x18(%rax),%rax
-  return left.tv_sec > right.tv_sec &&
     5484:	4c 39 c7             	cmp    %r8,%rdi
     5487:	7c 97                	jl     5420 <verify+0x120>
     5489:	0f 8e 31 01 00 00    	jle    55c0 <verify+0x2c0>
     548f:	48 39 f1             	cmp    %rsi,%rcx
     5492:	0f 8f 08 01 00 00    	jg     55a0 <verify+0x2a0>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     5498:	75 a6                	jne    5440 <verify+0x140>
     549a:	4d 39 da             	cmp    %r11,%r10
     549d:	7f a1                	jg     5440 <verify+0x140>
-   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     549f:	49 39 c6             	cmp    %rax,%r14
     54a2:	7d 14                	jge    54b8 <verify+0x1b8>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     54a4:	4c 39 c7             	cmp    %r8,%rdi
     54a7:	75 97                	jne    5440 <verify+0x140>
     54a9:	48 39 f1             	cmp    %rsi,%rcx
@@ -4505,13 +3358,10 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     54ae:	4d 39 da             	cmp    %r11,%r10
     54b1:	75 8d                	jne    5440 <verify+0x140>
     54b3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-                  printf("Race condition %ld  %ld %ld %ld\n", thread_data[x].tasks[y].snapshots[n].start.tv_sec, thread_data[z].tasks[k].snapshots[m].end.tv_sec, thread_data[x].tasks[y].snapshots[n].start.tv_nsec, thread_data[z].tasks[k].snapshots[m].end.tv_nsec  );
     54b8:	48 8b 72 50          	mov    0x50(%rdx),%rsi
     54bc:	49 8b 45 50          	mov    0x50(%r13),%rax
     54c0:	bf 01 00 00 00       	mov    $0x1,%edi
-              for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
     54c5:	48 83 c3 01          	add    $0x1,%rbx
-                  printf("Race condition %ld  %ld %ld %ld\n", thread_data[x].tasks[y].snapshots[n].start.tv_sec, thread_data[z].tasks[k].snapshots[m].end.tv_sec, thread_data[x].tasks[y].snapshots[n].start.tv_nsec, thread_data[z].tasks[k].snapshots[m].end.tv_nsec  );
     54c9:	48 8b 4a 50          	mov    0x50(%rdx),%rcx
     54cd:	49 8b 55 50          	mov    0x50(%r13),%rdx
     54d1:	4e 8b 44 20 08       	mov    0x8(%rax,%r12,1),%r8
@@ -4521,25 +3371,21 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     54e1:	4e 8b 4c 0e 18       	mov    0x18(%rsi,%r9,1),%r9
     54e6:	48 8d 35 db 0e 00 00 	lea    0xedb(%rip),%rsi        # 63c8 <_IO_stdin_used+0x3c8>
     54ed:	e8 3e cf ff ff       	call   2430 <__printf_chk@plt>
-            for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
     54f2:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     54f7:	4c 8b 6c 24 18       	mov    0x18(%rsp),%r13
     54fc:	4c 03 28             	add    (%rax),%r13
     54ff:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
     5504:	48 8b 10             	mov    (%rax),%rdx
     5507:	48 01 ea             	add    %rbp,%rdx
-              for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
     550a:	48 8b 42 60          	mov    0x60(%rdx),%rax
     550e:	48 39 d8             	cmp    %rbx,%rax
     5511:	0f 8f 3a ff ff ff    	jg     5451 <verify+0x151>
     5517:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-            for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
     5520:	49 8b 45 60          	mov    0x60(%r13),%rax
     5524:	49 83 c7 01          	add    $0x1,%r15
     5528:	4c 39 f8             	cmp    %r15,%rax
     552b:	0f 8f d7 fe ff ff    	jg     5408 <verify+0x108>
     5531:	4c 8b 64 24 20       	mov    0x20(%rsp),%r12
-          for (int k = 0 ; k < thread_data[z].task_count; k++) {
     5536:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
     553b:	49 83 c4 01          	add    $0x1,%r12
     553f:	44 39 60 08          	cmp    %r12d,0x8(%rax)
@@ -4547,14 +3393,12 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     5549:	8b 6c 24 34          	mov    0x34(%rsp),%ebp
     554d:	44 8b 7c 24 38       	mov    0x38(%rsp),%r15d
     5552:	44 8b 74 24 3c       	mov    0x3c(%rsp),%r14d
-        for (int y = 0 ; y < thread_data[x].task_count ; y++) {
     5557:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
     555c:	83 c5 01             	add    $0x1,%ebp
     555f:	48 81 44 24 18 98 00 00 00 	addq   $0x98,0x18(%rsp)
     5568:	39 68 08             	cmp    %ebp,0x8(%rax)
     556b:	0f 8f ee fd ff ff    	jg     535f <verify+0x5f>
     5571:	44 8b 64 24 30       	mov    0x30(%rsp),%r12d
-    for (int z = 0 ; z < thread_count; z++) {
     5576:	41 8d 44 24 01       	lea    0x1(%r12),%eax
     557b:	48 83 44 24 08 78    	addq   $0x78,0x8(%rsp)
     5581:	41 39 c6             	cmp    %eax,%r14d
@@ -4562,29 +3406,24 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     5586:	41 89 c4             	mov    %eax,%r12d
     5589:	e9 a8 fd ff ff       	jmp    5336 <verify+0x36>
     558e:	66 90                	xchg   %ax,%ax
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     5590:	0f 85 aa fe ff ff    	jne    5440 <verify+0x140>
     5596:	e9 9c fe ff ff       	jmp    5437 <verify+0x137>
     559b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-  return left.tv_sec > right.tv_sec &&
     55a0:	49 39 c6             	cmp    %rax,%r14
     55a3:	0f 8e f1 fe ff ff    	jle    549a <verify+0x19a>
     55a9:	4d 39 da             	cmp    %r11,%r10
     55ac:	0f 8d e8 fe ff ff    	jge    549a <verify+0x19a>
     55b2:	e9 01 ff ff ff       	jmp    54b8 <verify+0x1b8>
     55b7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
     55c0:	48 39 f1             	cmp    %rsi,%rcx
     55c3:	0f 8c 6e fe ff ff    	jl     5437 <verify+0x137>
     55c9:	4d 39 da             	cmp    %r11,%r10
     55cc:	0f 8e cd fe ff ff    	jle    549f <verify+0x19f>
     55d2:	48 39 f1             	cmp    %rsi,%rcx
     55d5:	0f 85 65 fe ff ff    	jne    5440 <verify+0x140>
-   c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
     55db:	49 39 c6             	cmp    %rax,%r14
     55de:	0f 8f 5c fe ff ff    	jg     5440 <verify+0x140>
     55e4:	e9 cf fe ff ff       	jmp    54b8 <verify+0x1b8>
-  for (int x = 0 ; x < thread_count; x++) {
     55e9:	48 83 44 24 10 78    	addq   $0x78,0x10(%rsp)
     55ef:	4c 8b 6c 24 28       	mov    0x28(%rsp),%r13
     55f4:	41 8d 47 01          	lea    0x1(%r15),%eax
@@ -4592,7 +3431,6 @@ int verify(struct KernelThread *thread_data, int thread_count) {
     55fb:	74 08                	je     5605 <verify+0x305>
     55fd:	41 89 c7             	mov    %eax,%r15d
     5600:	e9 24 fd ff ff       	jmp    5329 <verify+0x29>
-}
     5605:	48 83 c4 48          	add    $0x48,%rsp
     5609:	31 c0                	xor    %eax,%eax
     560b:	5b                   	pop    %rbx
