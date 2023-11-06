@@ -142,12 +142,14 @@ struct Mailbox {
   void *higher;
   long sent;
   long received;
+  TSAN_SYNCED;
 };
 
 struct Data {
   struct Message **messages;
   long messages_count __attribute__((aligned (128)));
   long messages_limit;
+  TSAN_SYNCED;
 };
 
 struct Message {
@@ -590,6 +592,7 @@ void* barriered_thread(void *arg) {
         int prearrive = 0; 
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           TSAN_ACQUIRE(data->threads[thread].tasks[previous]);
+          TSAN_ACQUIRE(data->tasks[t]);
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread].tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread].tasks[previous].arrived == data->tasks[t].arrived) {
             arrived++;
@@ -598,6 +601,7 @@ void* barriered_thread(void *arg) {
             prearrive++;
           } 
           TSAN_RELEASE(data->threads[thread].tasks[previous]);
+          TSAN_RELEASE(data->tasks[t]);
         } 
         if (prearrive == 0 || prearrive == data->thread_count) {
           if (waiting == 1) {
@@ -608,7 +612,9 @@ void* barriered_thread(void *arg) {
 
         }
         if (arrived == 0 || arrived == data->thread_count) {
+          TSAN_ACQUIRE(data->tasks[t]);
           data->tasks[t].prearrive++;
+          TSAN_RELEASE(data->tasks[t]);
           // we can run this task
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);
@@ -620,7 +626,9 @@ void* barriered_thread(void *arg) {
           //if (t == data->thread_index) {
           //  data->tasks[t].protected(&data->threads[data->thread_index].tasks[t]);
           //}
+          TSAN_ACQUIRE(data->tasks[t]);
           data->tasks[t].arrived++;
+          TSAN_RELEASE(data->tasks[t]);
           data->iteration_count++;
           if (t == data->task_count - 1 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
@@ -771,12 +779,12 @@ void * external_thread(void *arg) {
     // printf("External thread wakeup...\n");
     for (int x = 0; x < data->buffers->count; x++) {
       //printf("Writing to buffer\n");
+      TSAN_ACQUIRE(data->buffers->buffer[x]);
       if (data->buffers->buffer[x].available == 0) {
         data->buffers->buffer[x].data = "Hello world";
-        TSAN_ACQUIRE(data->buffers->buffer[x]);
         data->buffers->buffer[x].available = 1;
-        TSAN_RELEASE(data->buffers->buffer[x]);
       }
+      TSAN_RELEASE(data->buffers->buffer[x]);
     }
     asm volatile ("mfence" ::: "memory");
   }
@@ -788,12 +796,14 @@ int do_protected_write(struct BarrierTask *data) {
   struct ProtectedState *protected = data->thread->protected_state;
   data->v++; // thread local
     // printf("Protected %d %d\n", data->task_index, data->thread_index);
+  TSAN_RELEASE_PTR(protected);
   protected->protected++; // shared between all threads
   if (protected->balance > 0) {
     protected->balance -= 500; // shared between all threads
   } else {
     protected->balance += 500; // shared between all threads
   }
+  TSAN_ACQUIRE_PTR(protected);
   return 0; 
 }
 
@@ -804,8 +814,9 @@ int receive(struct BarrierTask *data) {
     if (n == 0) {
       prev = data->thread_count - 1;
     }
-    TSAN_ACQUIRE(data->thread->threads[prev]);
     // if (n == data->thread_index) { continue; }
+    TSAN_ACQUIRE(data->mailboxes[n]);
+    TSAN_ACQUIRE_PTR((struct Data*)data->mailboxes[n].lower);
     struct Data *me = data->mailboxes[n].lower;
     for (int x = 0 ; x < me->messages_count ; x++) {
       data->sends++;
@@ -820,7 +831,8 @@ int receive(struct BarrierTask *data) {
     }
  
     me->messages_count = 0;
-    TSAN_RELEASE(data->thread->threads[prev]);
+    TSAN_RELEASE(data->mailboxes[n]);
+    TSAN_ACQUIRE_PTR((struct Data*)data->mailboxes[n].lower);
   }
 
 }
@@ -837,14 +849,14 @@ int barriered_work(struct BarrierTask *data) {
         int t = data->task_index;
         for (int y = 0; y < data->thread_count ; y++) {
           for (int b = 0; b < data->thread_count ; b++) {
-              TSAN_ACQUIRE(data->thread->threads[y]);
-              TSAN_ACQUIRE(data->thread->threads[b]);
               int next_task = abs((t + 1) % (data->thread_count));
+              TSAN_ACQUIRE(data->thread->threads[y].tasks[t].mailboxes[b]);
+              TSAN_ACQUIRE(data->thread->threads[b].tasks[next_task].mailboxes[y]);
               tmp = data->thread->threads[y].tasks[t].mailboxes[b].higher; 
               // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
               data->thread->threads[b].tasks[next_task].mailboxes[y].lower = tmp;
-              TSAN_RELEASE(data->thread->threads[y]);
-              TSAN_RELEASE(data->thread->threads[b]);
+              TSAN_RELEASE(data->thread->threads[y].tasks[t].mailboxes[b]);
+              TSAN_RELEASE(data->thread->threads[b].tasks[next_task].mailboxes[y]);
             }
         }
       asm volatile ("mfence" ::: "memory");
@@ -852,7 +864,7 @@ int barriered_work(struct BarrierTask *data) {
 
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
-      
+    TSAN_ACQUIRE_PTR(data->thread->protected_state); 
     int modcount = data->thread->protected_state->modcount + 1;
     data->thread->protected_state->modcount = modcount;
 
@@ -865,6 +877,7 @@ int barriered_work(struct BarrierTask *data) {
     if (modcount != data->thread->protected_state->modcount) {
       printf("Race condition!\n");
     }
+    TSAN_RELEASE_PTR(data->thread->protected_state); 
 
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
@@ -877,10 +890,10 @@ int barriered_work(struct BarrierTask *data) {
     }
   
     if (data->sending == 1) {
-        TSAN_ACQUIRE_PTR(data);
         for (int n = 0 ; n < data->thread_count; n++) {
           if (n == data->thread_index) { continue; }
           struct Data *them = data->mailboxes[n].higher;
+          TSAN_ACQUIRE_PTR(them);
           // printf("Sending to thread %d\n", n);
           int min = them->messages_limit;
           //if (them->messages_limit < min) {
@@ -891,8 +904,8 @@ int barriered_work(struct BarrierTask *data) {
             data->mailboxes[n].sent++;
             them->messages[them->messages_count++] = data->message; 
           }
+          TSAN_RELEASE_PTR(them);
         }
-        TSAN_RELEASE_PTR(data);
       }
   }
   asm volatile ("mfence" ::: "memory");
@@ -905,14 +918,14 @@ int barriered_work_ingest(struct BarrierTask *data) {
   // printf("Ingest task\n");
   for (int x = 0 ; x < data->thread->buffers->count ; x++) {
     // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+    TSAN_ACQUIRE(data->thread->buffers->buffer[x]); 
     if (data->thread->buffers->buffer[x].available == 1) {
       data->ingest_count++;
       // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
-      TSAN_ACQUIRE(data->thread->buffers->buffer[x]); 
       data->thread->buffers->buffer[x].available = 0;
-      TSAN_RELEASE(data->thread->buffers->buffer[x]); 
     } else {
     }
+    TSAN_RELEASE(data->thread->buffers->buffer[x]); 
   }
   asm volatile ("mfence" ::: "memory");
   barriered_work(data);
@@ -931,9 +944,10 @@ int barriered_reset(struct BarrierTask *data) {
   // printf("In barrier reset task %d %d\n", data->thread_index, data->task_index);
     for (int x = 0 ; x < data->task_count ; x++) {
       // printf("Resetting %d %d\n", n, x);
-
+      TSAN_ACQUIRE(data->thread->threads[data->thread_index].tasks[x]);
       data->thread->threads[data->thread_index].tasks[x].arrived++; 
       data->thread->threads[data->thread_index].tasks[x].prearrive++; 
+      TSAN_RELEASE(data->thread->threads[data->thread_index].tasks[x]);
       // data->thread->tasks[x].arrived++; 
       
       data->thread->tasks[x].available = 1; 
