@@ -947,10 +947,10 @@ int barriered_reset(struct BarrierTask *data) {
       TSAN_ACQUIRE(data->thread->threads[data->thread_index].tasks[x]);
       data->thread->threads[data->thread_index].tasks[x].arrived++; 
       data->thread->threads[data->thread_index].tasks[x].prearrive++; 
-      TSAN_RELEASE(data->thread->threads[data->thread_index].tasks[x]);
       // data->thread->tasks[x].arrived++; 
       
       data->thread->tasks[x].available = 1; 
+      TSAN_RELEASE(data->thread->threads[data->thread_index].tasks[x]);
   }
   asm volatile ("mfence" ::: "memory");
   return 0;

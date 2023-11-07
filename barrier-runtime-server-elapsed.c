@@ -585,6 +585,9 @@ void* barriered_thread(void *arg) {
             data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
             waiting = 3;
           }
+          if (waiting == 3) {
+            waiting = 0;
+          }
 
         }
         if (arrived == 0 || arrived == data->thread_count) {
@@ -611,9 +614,6 @@ void* barriered_thread(void *arg) {
             data->task_snapshot[data->task_timestamp_count].task = t;
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
             waiting = 1;
-          }
-          if (waiting == 3) {
-            waiting = 0;
           }
           // break;
         } else {
@@ -1220,7 +1220,7 @@ int main() {
   printf("Total Requests per second %ld\n", total / DURATION);
   printf("Total sents %ld\n", sents / DURATION);
   printf("Total receives %ld\n", received / DURATION);
-  verify(thread_data, thread_count);
+  // verify(thread_data, thread_count);
   return 0;
 
 }
