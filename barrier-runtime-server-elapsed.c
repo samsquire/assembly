@@ -112,7 +112,7 @@ struct Buffers {
 };
 struct Buffer {
   void * data; 
-  int available;
+  int available __attribute__((aligned (128)));
 };
 
 struct Request {
@@ -123,10 +123,10 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower;
-  void *higher;
-  long sent;
-  long received;
+  void *lower __attribute__((aligned (128)));
+  void *higher __attribute__((aligned (128)));
+  long sent __attribute__((aligned (128)));
+  long received __attribute__((aligned (128)));
 };
 
 struct Data {
@@ -146,8 +146,8 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n; 
-  long v; 
+  long n __attribute__((aligned (128))); 
+  long v __attribute__((aligned (128))); 
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;
@@ -157,11 +157,11 @@ struct BarrierTask {
   int task_count;
   int scheduled __attribute__((aligned (128)));
   struct Snapshot *snapshots;
-  long snapshot_count;
-  long current_snapshot;
-  long ingest_count;
+  long snapshot_count __attribute__((aligned (128)));
+  long current_snapshot __attribute__((aligned (128)));
+  long ingest_count __attribute__((aligned (128)));
   struct Mailbox *mailboxes;
-  long sends;
+  long sends __attribute__((aligned (128)));
   int sending;
   int worker_count;
   struct Message *message;
@@ -192,7 +192,7 @@ struct KernelThread {
   long timestamp_count;
   long timestamp_limit;
   struct TaskSnapshot *task_snapshot;
-  long task_timestamp_count;
+  long task_timestamp_count __attribute__((aligned (128)));
   long task_timestamp_limit;
   long cycles;
 };
