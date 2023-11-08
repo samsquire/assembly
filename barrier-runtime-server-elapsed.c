@@ -168,8 +168,8 @@ struct BarrierTask {
   int next_thread;
 };
 struct TaskSnapshot {
-  struct timespec task_start;
-  struct timespec task_end;
+  struct timespec task_start __attribute__((aligned (128)));
+  struct timespec task_end __attribute__((aligned (128)));
   int task;
 };
 struct KernelThread {
@@ -186,10 +186,10 @@ struct KernelThread {
   struct Buffers *buffers;
   struct io_uring *ring;
   int _eventfd;
-  struct timespec *start;
-  struct timespec *end;
-  long iteration_count;
-  long timestamp_count;
+  struct timespec *start __attribute__((aligned (128)));
+  struct timespec *end __attribute__((aligned (128)));
+  long iteration_count __attribute__((aligned (128)));
+  long timestamp_count __attribute__((aligned (128)));
   long timestamp_limit;
   struct TaskSnapshot *task_snapshot;
   long task_timestamp_count __attribute__((aligned (128)));
@@ -204,8 +204,8 @@ struct ProtectedState {
 };
 
 struct Snapshot {
-  struct timespec start;
-  struct timespec end;
+  struct timespec start __attribute__((aligned (128)));
+  struct timespec end __attribute__((aligned (128)));
 };
 
 void fatal_error(const char *syscall) {
