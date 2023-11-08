@@ -125,8 +125,8 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower __attribute__((aligned (8)));
-  void *higher __attribute__((aligned (8)));
+  void *lower __attribute__((aligned (128)));
+  void *higher __attribute__((aligned (128)));
   long sent;
   long received;
 };
@@ -179,15 +179,15 @@ struct KernelThread {
   int real_thread_index;
   int type; 
   int preempt_interval;
-  struct KernelThread **threads __attribute__((aligned (64)));
+  struct KernelThread **threads __attribute__((aligned (128)));
   int thread_count;
   int total_thread_count;
   int my_thread_count;
   struct BarrierTask *tasks;
   int task_count;
   int running;
-  struct ProtectedState *protected_state __attribute__((aligned (64)));
-  struct Buffers *buffers __attribute__((aligned (64)));
+  struct ProtectedState *protected_state __attribute__((aligned (128)));
+  struct Buffers *buffers __attribute__((aligned (128)));
   struct io_uring *ring;
   int _eventfd;
   struct timespec *start;
@@ -195,7 +195,7 @@ struct KernelThread {
   long iteration_count;
   long timestamp_count;
   long timestamp_limit;
-  struct TaskSnapshot *task_snapshot __attribute__((aligned (64)));
+  struct TaskSnapshot *task_snapshot __attribute__((aligned (128)));
   long task_timestamp_count;
   long task_timestamp_limit;
   long cycles;
