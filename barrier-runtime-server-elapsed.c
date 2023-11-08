@@ -198,9 +198,9 @@ struct KernelThread {
 };
 
 struct ProtectedState {
-  long protected;
-  long balance;
-  int modcount;
+  long protected __attribute__((aligned (128)));
+  long balance __attribute__((aligned (128)));
+  int modcount __attribute__((aligned (128)));
 };
 
 struct Snapshot {

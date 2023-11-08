@@ -110,11 +110,11 @@ const char *http_404_content = \
                                 "</html>";
 struct Buffers {
   int count; 
-  struct Buffer *buffer __attribute__((aligned (8))) ;
+  struct Buffer *buffer __attribute__((aligned (128))) ;
 };
 struct Buffer {
   void * data; 
-  int available;
+  int available __attribute__((aligned (128)));
 };
 
 struct Request {
@@ -127,13 +127,13 @@ struct Request {
 struct Mailbox {
   void *lower __attribute__((aligned (128)));
   void *higher __attribute__((aligned (128)));
-  long sent;
-  long received;
+  long sent __attribute__((aligned (128)));
+  long received __attribute__((aligned (128)));
 };
 
 struct Data {
   struct Message **messages;
-  long messages_count;
+  long messages_count __attribute__((aligned (128)));
   long messages_limit;
 };
 
@@ -148,8 +148,8 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n; 
-  long v; 
+  long n __attribute__((aligned (128))); 
+  long v __attribute__((aligned (128))); 
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;
@@ -157,13 +157,13 @@ struct BarrierTask {
   int thread_count;
   int available;
   int task_count;
-  int scheduled;
+  int scheduled __attribute__((aligned (128)));
   struct Snapshot *snapshots;
-  long snapshot_count;
+  long snapshot_count __attribute__((aligned (128)));
   long current_snapshot;
-  long ingest_count;
+  long ingest_count __attribute__((aligned (128)));
   struct Mailbox *mailboxes;
-  long sends;
+  long sends __attribute__((aligned (128)));
   int sending;
   int worker_count;
   struct Message *message;
@@ -193,12 +193,12 @@ struct KernelThread {
   struct timespec *start;
   struct timespec *end;
   long iteration_count;
-  long timestamp_count;
+  long timestamp_count __attribute__((aligned (128)));
   long timestamp_limit;
   struct TaskSnapshot *task_snapshot __attribute__((aligned (128)));
-  long task_timestamp_count;
+  long task_timestamp_count __attribute__((aligned (128)));
   long task_timestamp_limit;
-  long cycles;
+  long cycles __attribute__((aligned (128)));
   cpu_set_t *cpu_set;
   int other;
 };
