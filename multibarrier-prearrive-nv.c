@@ -148,8 +148,8 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n; 
-  long v; 
+  long n __attribute__((aligned (128))); 
+  long v __attribute__((aligned (128))); 
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;

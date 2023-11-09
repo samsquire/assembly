@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-luring -g -lm -O3
+CFLAGS=-luring -lm -O3
 DEPS = 
 CFILES=$(wildcard *.c)
 OBJ=$(patsubst %.c,%,$(CFILES))

@@ -68,7 +68,7 @@ SOFTWARE.
 #define IO 2
 #define EXTERNAL 3
 
-#define DURATION 30
+#define DURATION 10
 #define TICK 1000000L
 
 #define QUEUE_DEPTH             256
@@ -112,7 +112,7 @@ struct Buffers {
 };
 struct Buffer {
   void * data; 
-  int available __attribute__((aligned (128)));
+  int available;
 };
 
 struct Request {
@@ -131,7 +131,7 @@ struct Mailbox {
 
 struct Data {
   struct Message **messages;
-  long messages_count __attribute__((aligned (128)));
+  long messages_count ;
   long messages_limit;
 };
 
@@ -146,22 +146,22 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n __attribute__((aligned (128))); 
-  long v __attribute__((aligned (128))); 
+  long n __attribute__((aligned (128)));
+  long v __attribute__((aligned (128)));
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;
   int thread_index;
   int thread_count;
-  int available __attribute__((aligned (128)));
+  int available;
   int task_count;
-  int scheduled __attribute__((aligned (128)));
+  int scheduled;
   struct Snapshot *snapshots;
-  long snapshot_count __attribute__((aligned (128)));
-  long current_snapshot __attribute__((aligned (128)));
-  long ingest_count __attribute__((aligned (128)));
+  long snapshot_count;
+  long current_snapshot;
+  long ingest_count;
   struct Mailbox *mailboxes;
-  long sends __attribute__((aligned (128)));
+  long sends;
   int sending;
   int worker_count;
   struct Message *message;
@@ -186,26 +186,26 @@ struct KernelThread {
   struct Buffers *buffers;
   struct io_uring *ring;
   int _eventfd;
-  struct timespec *start __attribute__((aligned (128)));
-  struct timespec *end __attribute__((aligned (128)));
-  long iteration_count __attribute__((aligned (128)));
-  long timestamp_count __attribute__((aligned (128)));
+  struct timespec *start;
+  struct timespec *end;
+  long iteration_count;
+  long timestamp_count;
   long timestamp_limit;
   struct TaskSnapshot *task_snapshot;
-  long task_timestamp_count __attribute__((aligned (128)));
+  long task_timestamp_count;
   long task_timestamp_limit;
   long cycles;
 };
 
 struct ProtectedState {
-  long protected __attribute__((aligned (128)));
-  long balance __attribute__((aligned (128)));
-  int modcount __attribute__((aligned (128)));
+  long protected;
+  long balance;
+  int modcount;
 };
 
 struct Snapshot {
-  struct timespec start __attribute__((aligned (128)));
-  struct timespec end __attribute__((aligned (128)));
+  struct timespec start;
+  struct timespec end;
 };
 
 void fatal_error(const char *syscall) {
