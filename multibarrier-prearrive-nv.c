@@ -110,11 +110,11 @@ const char *http_404_content = \
                                 "</html>";
 struct Buffers {
   int count; 
-  struct Buffer *buffer __attribute__((aligned (128))) ;
+  struct Buffer *buffer;
 };
 struct Buffer {
   void * data; 
-  int available __attribute__((aligned (128)));
+  int available;
 };
 
 struct Request {
@@ -133,7 +133,7 @@ struct Mailbox {
 
 struct Data {
   struct Message **messages;
-  long messages_count __attribute__((aligned (128)));
+  long messages_count;
   long messages_limit;
 };
 
@@ -148,8 +148,8 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n __attribute__((aligned (128))); 
-  long v __attribute__((aligned (128))); 
+  long n; 
+  long v; 
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;
@@ -157,21 +157,21 @@ struct BarrierTask {
   int thread_count;
   int available;
   int task_count;
-  int scheduled __attribute__((aligned (128)));
+  int scheduled;
   struct Snapshot *snapshots;
-  long snapshot_count __attribute__((aligned (128)));
+  long snapshot_count;
   long current_snapshot;
-  long ingest_count __attribute__((aligned (128)));
+  long ingest_count;
   struct Mailbox *mailboxes;
-  long sends __attribute__((aligned (128)));
+  long sends;
   int sending;
   int worker_count;
   struct Message *message;
   int next_thread;
 };
 struct TaskSnapshot {
-  struct timespec task_start __attribute__((aligned (128)));
-  struct timespec task_end __attribute__((aligned (128)));
+  struct timespec task_start ;
+  struct timespec task_end ;
   int task;
 };
 struct KernelThread {
@@ -179,34 +179,34 @@ struct KernelThread {
   int real_thread_index;
   int type; 
   int preempt_interval;
-  struct KernelThread **threads __attribute__((aligned (128)));
+  struct KernelThread **threads;
   int thread_count;
   int total_thread_count;
   int my_thread_count;
   struct BarrierTask *tasks;
   int task_count;
   int running;
-  struct ProtectedState *protected_state __attribute__((aligned (128)));
-  struct Buffers *buffers __attribute__((aligned (128)));
+  struct ProtectedState *protected_state;
+  struct Buffers *buffers;
   struct io_uring *ring;
   int _eventfd;
-  struct timespec *start __attribute__((aligned (128)));
-  struct timespec *end __attribute__((aligned (128)));
-  long iteration_count __attribute__((aligned (128)));
-  long timestamp_count __attribute__((aligned (128)));
+  struct timespec *start;
+  struct timespec *end;
+  long iteration_count;
+  long timestamp_count;
   long timestamp_limit;
-  struct TaskSnapshot *task_snapshot __attribute__((aligned (128)));
-  long task_timestamp_count __attribute__((aligned (128)));
+  struct TaskSnapshot *task_snapshot;
+  long task_timestamp_count;
   long task_timestamp_limit;
-  long cycles __attribute__((aligned (128)));
+  long cycles;
   cpu_set_t *cpu_set;
   int other;
 };
 
 struct ProtectedState {
-  long protected __attribute__((aligned (128)));
-  long balance __attribute__((aligned (128)));
-  int modcount __attribute__((aligned (128)));
+  long protected;
+  long balance;
+  int modcount;
 };
 
 struct Snapshot {
