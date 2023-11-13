@@ -125,10 +125,10 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower __attribute__((aligned (128)));
-  void *higher __attribute__((aligned (128)));
-  long sent __attribute__((aligned (128)));
-  long received __attribute__((aligned (128)));
+  void *lower;
+  void *higher;
+  long sent;
+  long received;
 };
 
 struct Data {
@@ -148,8 +148,8 @@ struct BarrierTask {
   int rerunnable;
   int arrived __attribute__((aligned (128))); 
   int prearrive __attribute__((aligned (128))); 
-  long n __attribute__((aligned (128))); 
-  long v __attribute__((aligned (128))); 
+  long n; 
+  long v; 
   int (*run)(struct BarrierTask*);
   int (*protected)(struct BarrierTask*);
   struct KernelThread *thread;
@@ -560,6 +560,8 @@ void* barriered_thread(void *arg) {
   // printf("TASK POINTER %p\n", data->threads[data->thread_index]->tasks);
   int t = 0;
   int waiting = 0;
+
+
   while (data->running == 1) {
     if (t >= data->task_count) {
       t = 0;
@@ -577,6 +579,7 @@ void* barriered_thread(void *arg) {
         }
         int arrived = 0; 
         int prearrive = 0; 
+        
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread]->tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
