@@ -584,12 +584,12 @@ void* barriered_thread(void *arg) {
             arrived++;
           } 
         } 
-        if (waiting == 1) {
-          clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
-          data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
-          waiting = 0; 
-        }
         if (arrived == 0 || arrived == data->thread_count) {
+          if (waiting == 1) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
+            data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
+            waiting = 0; 
+          }
           // we can run this task
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);

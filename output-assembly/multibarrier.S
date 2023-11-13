@@ -1442,158 +1442,152 @@ Disassembly of section .text:
 
 0000000000003880 <barriered_thread>:
     3880:	f3 0f 1e fa          	endbr64
-    3884:	41 55                	push   %r13
-    3886:	41 54                	push   %r12
-    3888:	55                   	push   %rbp
-    3889:	48 89 fd             	mov    %rdi,%rbp
-    388c:	53                   	push   %rbx
-    388d:	48 83 ec 08          	sub    $0x8,%rsp
-    3891:	83 7f 34 01          	cmpl   $0x1,0x34(%rdi)
-    3895:	0f 85 77 01 00 00    	jne    3a12 <barriered_thread+0x192>
-    389b:	31 ff                	xor    %edi,%edi
-    389d:	31 db                	xor    %ebx,%ebx
-    389f:	90                   	nop
-    38a0:	8b 4d 30             	mov    0x30(%rbp),%ecx
-    38a3:	39 d9                	cmp    %ebx,%ecx
-    38a5:	7f 12                	jg     38b9 <barriered_thread+0x39>
-    38a7:	48 83 85 98 00 00 00 01 	addq   $0x1,0x98(%rbp)
-    38af:	31 db                	xor    %ebx,%ebx
-    38b1:	85 c9                	test   %ecx,%ecx
-    38b3:	0f 8e 4f 01 00 00    	jle    3a08 <barriered_thread+0x188>
-    38b9:	48 63 c3             	movslq %ebx,%rax
-    38bc:	4c 8d 24 40          	lea    (%rax,%rax,2),%r12
-    38c0:	49 c1 e4 07          	shl    $0x7,%r12
-    38c4:	eb 1c                	jmp    38e2 <barriered_thread+0x62>
-    38c6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-    38d0:	83 c3 01             	add    $0x1,%ebx
-    38d3:	49 81 c4 80 01 00 00 	add    $0x180,%r12
-    38da:	39 cb                	cmp    %ecx,%ebx
-    38dc:	0f 8d 26 01 00 00    	jge    3a08 <barriered_thread+0x188>
-    38e2:	48 8b 45 28          	mov    0x28(%rbp),%rax
-    38e6:	4a 8d 14 20          	lea    (%rax,%r12,1),%rdx
-    38ea:	83 ba b8 00 00 00 01 	cmpl   $0x1,0xb8(%rdx)
-    38f1:	75 dd                	jne    38d0 <barriered_thread+0x50>
-    38f3:	85 db                	test   %ebx,%ebx
-    38f5:	0f 8e 25 01 00 00    	jle    3a20 <barriered_thread+0x1a0>
-    38fb:	48 63 75 18          	movslq 0x18(%rbp),%rsi
-    38ff:	8d 4b ff             	lea    -0x1(%rbx),%ecx
-    3902:	85 f6                	test   %esi,%esi
-    3904:	0f 8e c5 01 00 00    	jle    3acf <barriered_thread+0x24f>
-    390a:	48 8b 45 10          	mov    0x10(%rbp),%rax
-    390e:	48 63 c9             	movslq %ecx,%rcx
-    3911:	44 8b 82 80 00 00 00 	mov    0x80(%rdx),%r8d
-    3918:	45 31 ed             	xor    %r13d,%r13d
-    391b:	48 8d 0c 49          	lea    (%rcx,%rcx,2),%rcx
-    391f:	48 c1 e1 07          	shl    $0x7,%rcx
-    3923:	48 8d 34 f0          	lea    (%rax,%rsi,8),%rsi
-    3927:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-    3930:	48 8b 10             	mov    (%rax),%rdx
-    3933:	48 8b 52 28          	mov    0x28(%rdx),%rdx
-    3937:	44 3b 84 0a 80 00 00 00 	cmp    0x80(%rdx,%rcx,1),%r8d
-    393f:	75 04                	jne    3945 <barriered_thread+0xc5>
-    3941:	41 83 c5 01          	add    $0x1,%r13d
-    3945:	48 83 c0 08          	add    $0x8,%rax
-    3949:	48 39 c6             	cmp    %rax,%rsi
-    394c:	75 e2                	jne    3930 <barriered_thread+0xb0>
-    394e:	83 ff 01             	cmp    $0x1,%edi
-    3951:	0f 84 e9 00 00 00    	je     3a40 <barriered_thread+0x1c0>
-    3957:	45 85 ed             	test   %r13d,%r13d
-    395a:	74 0a                	je     3966 <barriered_thread+0xe6>
-    395c:	44 39 6d 18          	cmp    %r13d,0x18(%rbp)
-    3960:	0f 85 7a 01 00 00    	jne    3ae0 <barriered_thread+0x260>
-    3966:	85 db                	test   %ebx,%ebx
-    3968:	75 0e                	jne    3978 <barriered_thread+0xf8>
-    396a:	48 8b 75 70          	mov    0x70(%rbp),%rsi
-    396e:	48 3b 75 78          	cmp    0x78(%rbp),%rsi
-    3972:	0f 8c 40 01 00 00    	jl     3ab8 <barriered_thread+0x238>
-    3978:	48 8b 45 28          	mov    0x28(%rbp),%rax
-    397c:	48 63 4d 00          	movslq 0x0(%rbp),%rcx
-    3980:	48 8b 55 10          	mov    0x10(%rbp),%rdx
-    3984:	4c 01 e0             	add    %r12,%rax
-    3987:	c7 80 b8 00 00 00 00 00 00 00 	movl   $0x0,0xb8(%rax)
-    3991:	48 8b 14 ca          	mov    (%rdx,%rcx,8),%rdx
-    3995:	48 8b 7a 28          	mov    0x28(%rdx),%rdi
-    3999:	4c 01 e7             	add    %r12,%rdi
-    399c:	ff 90 98 00 00 00    	call   *0x98(%rax)
-    39a2:	48 8b 45 28          	mov    0x28(%rbp),%rax
-    39a6:	4c 01 e0             	add    %r12,%rax
-    39a9:	83 80 80 00 00 00 01 	addl   $0x1,0x80(%rax)
-    39b0:	8b 45 30             	mov    0x30(%rbp),%eax
-    39b3:	48 83 45 68 01       	addq   $0x1,0x68(%rbp)
-    39b8:	83 e8 01             	sub    $0x1,%eax
-    39bb:	39 d8                	cmp    %ebx,%eax
-    39bd:	0f 84 c5 00 00 00    	je     3a88 <barriered_thread+0x208>
-    39c3:	0f ae f8             	sfence
-    39c6:	48 8b 85 88 00 00 00 	mov    0x88(%rbp),%rax
-    39cd:	bf 04 00 00 00       	mov    $0x4,%edi
-    39d2:	49 81 c4 80 01 00 00 	add    $0x180,%r12
-    39d9:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
-    39dd:	48 8b 85 80 00 00 00 	mov    0x80(%rbp),%rax
-    39e4:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
-    39e8:	89 5e 20             	mov    %ebx,0x20(%rsi)
-    39eb:	83 c3 01             	add    $0x1,%ebx
-    39ee:	e8 1d e9 ff ff       	call   2310 <clock_gettime@plt>
-    39f3:	8b 4d 30             	mov    0x30(%rbp),%ecx
-    39f6:	bf 01 00 00 00       	mov    $0x1,%edi
-    39fb:	39 cb                	cmp    %ecx,%ebx
-    39fd:	0f 8c df fe ff ff    	jl     38e2 <barriered_thread+0x62>
-    3a03:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    3a08:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
-    3a0c:	0f 84 8e fe ff ff    	je     38a0 <barriered_thread+0x20>
-    3a12:	48 83 c4 08          	add    $0x8,%rsp
-    3a16:	31 c0                	xor    %eax,%eax
-    3a18:	5b                   	pop    %rbx
-    3a19:	5d                   	pop    %rbp
-    3a1a:	41 5c                	pop    %r12
-    3a1c:	41 5d                	pop    %r13
-    3a1e:	c3                   	ret
-    3a1f:	90                   	nop
-    3a20:	48 63 75 18          	movslq 0x18(%rbp),%rsi
-    3a24:	83 e9 01             	sub    $0x1,%ecx
-    3a27:	85 f6                	test   %esi,%esi
-    3a29:	0f 8f db fe ff ff    	jg     390a <barriered_thread+0x8a>
-    3a2f:	83 ff 01             	cmp    $0x1,%edi
-    3a32:	0f 85 2e ff ff ff    	jne    3966 <barriered_thread+0xe6>
-    3a38:	45 31 ed             	xor    %r13d,%r13d
-    3a3b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    3a40:	48 8b 85 88 00 00 00 	mov    0x88(%rbp),%rax
-    3a47:	bf 04 00 00 00       	mov    $0x4,%edi
-    3a4c:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
-    3a50:	48 8b 85 80 00 00 00 	mov    0x80(%rbp),%rax
-    3a57:	48 8d 74 d0 10       	lea    0x10(%rax,%rdx,8),%rsi
-    3a5c:	e8 af e8 ff ff       	call   2310 <clock_gettime@plt>
-    3a61:	48 8b 85 88 00 00 00 	mov    0x88(%rbp),%rax
-    3a68:	48 83 c0 01          	add    $0x1,%rax
-    3a6c:	48 99                	cqto
-    3a6e:	48 f7 bd 90 00 00 00 	idivq  0x90(%rbp)
-    3a75:	48 89 95 88 00 00 00 	mov    %rdx,0x88(%rbp)
-    3a7c:	e9 d6 fe ff ff       	jmp    3957 <barriered_thread+0xd7>
-    3a81:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    3a88:	48 8b 75 70          	mov    0x70(%rbp),%rsi
-    3a8c:	48 3b 75 78          	cmp    0x78(%rbp),%rsi
-    3a90:	0f 8d 2d ff ff ff    	jge    39c3 <barriered_thread+0x143>
-    3a96:	48 c1 e6 04          	shl    $0x4,%rsi
-    3a9a:	bf 04 00 00 00       	mov    $0x4,%edi
-    3a9f:	48 03 75 60          	add    0x60(%rbp),%rsi
-    3aa3:	e8 68 e8 ff ff       	call   2310 <clock_gettime@plt>
-    3aa8:	48 83 45 70 01       	addq   $0x1,0x70(%rbp)
-    3aad:	e9 11 ff ff ff       	jmp    39c3 <barriered_thread+0x143>
-    3ab2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    3ab8:	48 c1 e6 04          	shl    $0x4,%rsi
-    3abc:	bf 04 00 00 00       	mov    $0x4,%edi
-    3ac1:	48 03 75 58          	add    0x58(%rbp),%rsi
-    3ac5:	e8 46 e8 ff ff       	call   2310 <clock_gettime@plt>
-    3aca:	e9 a9 fe ff ff       	jmp    3978 <barriered_thread+0xf8>
-    3acf:	83 ff 01             	cmp    $0x1,%edi
-    3ad2:	0f 85 a4 fe ff ff    	jne    397c <barriered_thread+0xfc>
-    3ad8:	45 31 ed             	xor    %r13d,%r13d
-    3adb:	e9 60 ff ff ff       	jmp    3a40 <barriered_thread+0x1c0>
-    3ae0:	31 ff                	xor    %edi,%edi
-    3ae2:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
-    3ae6:	0f 84 b4 fd ff ff    	je     38a0 <barriered_thread+0x20>
-    3aec:	e9 21 ff ff ff       	jmp    3a12 <barriered_thread+0x192>
-    3af1:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    3afc:	0f 1f 40 00          	nopl   0x0(%rax)
+    3884:	83 7f 34 01          	cmpl   $0x1,0x34(%rdi)
+    3888:	0f 85 69 02 00 00    	jne    3af7 <barriered_thread+0x277>
+    388e:	41 54                	push   %r12
+    3890:	45 31 d2             	xor    %r10d,%r10d
+    3893:	49 89 fc             	mov    %rdi,%r12
+    3896:	55                   	push   %rbp
+    3897:	53                   	push   %rbx
+    3898:	44 8b 47 30          	mov    0x30(%rdi),%r8d
+    389c:	31 db                	xor    %ebx,%ebx
+    389e:	66 90                	xchg   %ax,%ax
+    38a0:	44 39 c3             	cmp    %r8d,%ebx
+    38a3:	0f 8d 6f 01 00 00    	jge    3a18 <barriered_thread+0x198>
+    38a9:	48 63 c3             	movslq %ebx,%rax
+    38ac:	48 8d 2c 40          	lea    (%rax,%rax,2),%rbp
+    38b0:	48 c1 e5 07          	shl    $0x7,%rbp
+    38b4:	eb 1d                	jmp    38d3 <barriered_thread+0x53>
+    38b6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    38c0:	83 c3 01             	add    $0x1,%ebx
+    38c3:	48 81 c5 80 01 00 00 	add    $0x180,%rbp
+    38ca:	44 39 c3             	cmp    %r8d,%ebx
+    38cd:	0f 8d 2d 01 00 00    	jge    3a00 <barriered_thread+0x180>
+    38d3:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    38d8:	48 8d 14 28          	lea    (%rax,%rbp,1),%rdx
+    38dc:	83 ba b8 00 00 00 01 	cmpl   $0x1,0xb8(%rdx)
+    38e3:	75 db                	jne    38c0 <barriered_thread+0x40>
+    38e5:	85 db                	test   %ebx,%ebx
+    38e7:	0f 8e 43 01 00 00    	jle    3a30 <barriered_thread+0x1b0>
+    38ed:	45 8b 4c 24 18       	mov    0x18(%r12),%r9d
+    38f2:	8d 4b ff             	lea    -0x1(%rbx),%ecx
+    38f5:	45 85 c9             	test   %r9d,%r9d
+    38f8:	0f 8e ea 01 00 00    	jle    3ae8 <barriered_thread+0x268>
+    38fe:	48 63 c1             	movslq %ecx,%rax
+    3901:	8b ba 80 00 00 00    	mov    0x80(%rdx),%edi
+    3907:	49 63 d1             	movslq %r9d,%rdx
+    390a:	45 31 db             	xor    %r11d,%r11d
+    390d:	48 8d 0c 40          	lea    (%rax,%rax,2),%rcx
+    3911:	49 8b 44 24 10       	mov    0x10(%r12),%rax
+    3916:	48 c1 e1 07          	shl    $0x7,%rcx
+    391a:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
+    391e:	66 90                	xchg   %ax,%ax
+    3920:	48 8b 10             	mov    (%rax),%rdx
+    3923:	48 8b 52 28          	mov    0x28(%rdx),%rdx
+    3927:	3b bc 0a 80 00 00 00 	cmp    0x80(%rdx,%rcx,1),%edi
+    392e:	75 04                	jne    3934 <barriered_thread+0xb4>
+    3930:	41 83 c3 01          	add    $0x1,%r11d
+    3934:	48 83 c0 08          	add    $0x8,%rax
+    3938:	48 39 f0             	cmp    %rsi,%rax
+    393b:	75 e3                	jne    3920 <barriered_thread+0xa0>
+    393d:	45 39 cb             	cmp    %r9d,%r11d
+    3940:	74 09                	je     394b <barriered_thread+0xcb>
+    3942:	45 85 db             	test   %r11d,%r11d
+    3945:	0f 85 b5 00 00 00    	jne    3a00 <barriered_thread+0x180>
+    394b:	41 83 fa 01          	cmp    $0x1,%r10d
+    394f:	0f 84 fb 00 00 00    	je     3a50 <barriered_thread+0x1d0>
+    3955:	85 db                	test   %ebx,%ebx
+    3957:	75 10                	jne    3969 <barriered_thread+0xe9>
+    3959:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
+    395e:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
+    3963:	0f 8c 67 01 00 00    	jl     3ad0 <barriered_thread+0x250>
+    3969:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    396e:	49 63 0c 24          	movslq (%r12),%rcx
+    3972:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
+    3977:	48 01 e8             	add    %rbp,%rax
+    397a:	c7 80 b8 00 00 00 00 00 00 00 	movl   $0x0,0xb8(%rax)
+    3984:	48 8b 14 ca          	mov    (%rdx,%rcx,8),%rdx
+    3988:	48 8b 7a 28          	mov    0x28(%rdx),%rdi
+    398c:	48 01 ef             	add    %rbp,%rdi
+    398f:	ff 90 98 00 00 00    	call   *0x98(%rax)
+    3995:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    399a:	48 01 e8             	add    %rbp,%rax
+    399d:	83 80 80 00 00 00 01 	addl   $0x1,0x80(%rax)
+    39a4:	41 8b 44 24 30       	mov    0x30(%r12),%eax
+    39a9:	49 83 44 24 68 01    	addq   $0x1,0x68(%r12)
+    39af:	83 e8 01             	sub    $0x1,%eax
+    39b2:	39 d8                	cmp    %ebx,%eax
+    39b4:	0f 84 e6 00 00 00    	je     3aa0 <barriered_thread+0x220>
+    39ba:	0f ae f8             	sfence
+    39bd:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    39c5:	bf 04 00 00 00       	mov    $0x4,%edi
+    39ca:	48 81 c5 80 01 00 00 	add    $0x180,%rbp
+    39d1:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
+    39d5:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
+    39dd:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
+    39e1:	89 5e 20             	mov    %ebx,0x20(%rsi)
+    39e4:	83 c3 01             	add    $0x1,%ebx
+    39e7:	e8 24 e9 ff ff       	call   2310 <clock_gettime@plt>
+    39ec:	45 8b 44 24 30       	mov    0x30(%r12),%r8d
+    39f1:	41 ba 01 00 00 00    	mov    $0x1,%r10d
+    39f7:	44 39 c3             	cmp    %r8d,%ebx
+    39fa:	0f 8c d3 fe ff ff    	jl     38d3 <barriered_thread+0x53>
+    3a00:	41 8b 44 24 34       	mov    0x34(%r12),%eax
+    3a05:	83 f8 01             	cmp    $0x1,%eax
+    3a08:	0f 84 92 fe ff ff    	je     38a0 <barriered_thread+0x20>
+    3a0e:	5b                   	pop    %rbx
+    3a0f:	31 c0                	xor    %eax,%eax
+    3a11:	5d                   	pop    %rbp
+    3a12:	41 5c                	pop    %r12
+    3a14:	c3                   	ret
+    3a15:	0f 1f 00             	nopl   (%rax)
+    3a18:	49 83 84 24 98 00 00 00 01 	addq   $0x1,0x98(%r12)
+    3a21:	45 85 c0             	test   %r8d,%r8d
+    3a24:	7e f2                	jle    3a18 <barriered_thread+0x198>
+    3a26:	31 db                	xor    %ebx,%ebx
+    3a28:	e9 7c fe ff ff       	jmp    38a9 <barriered_thread+0x29>
+    3a2d:	0f 1f 00             	nopl   (%rax)
+    3a30:	45 8b 4c 24 18       	mov    0x18(%r12),%r9d
+    3a35:	41 8d 48 ff          	lea    -0x1(%r8),%ecx
+    3a39:	45 85 c9             	test   %r9d,%r9d
+    3a3c:	0f 8f bc fe ff ff    	jg     38fe <barriered_thread+0x7e>
+    3a42:	41 83 fa 01          	cmp    $0x1,%r10d
+    3a46:	0f 85 09 ff ff ff    	jne    3955 <barriered_thread+0xd5>
+    3a4c:	0f 1f 40 00          	nopl   0x0(%rax)
+    3a50:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    3a58:	bf 04 00 00 00       	mov    $0x4,%edi
+    3a5d:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
+    3a61:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
+    3a69:	48 8d 74 d0 10       	lea    0x10(%rax,%rdx,8),%rsi
+    3a6e:	e8 9d e8 ff ff       	call   2310 <clock_gettime@plt>
+    3a73:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    3a7b:	48 83 c0 01          	add    $0x1,%rax
+    3a7f:	48 99                	cqto
+    3a81:	49 f7 bc 24 90 00 00 00 	idivq  0x90(%r12)
+    3a89:	49 89 94 24 88 00 00 00 	mov    %rdx,0x88(%r12)
+    3a91:	e9 bf fe ff ff       	jmp    3955 <barriered_thread+0xd5>
+    3a96:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    3aa0:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
+    3aa5:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
+    3aaa:	0f 8d 0a ff ff ff    	jge    39ba <barriered_thread+0x13a>
+    3ab0:	48 c1 e6 04          	shl    $0x4,%rsi
+    3ab4:	bf 04 00 00 00       	mov    $0x4,%edi
+    3ab9:	49 03 74 24 60       	add    0x60(%r12),%rsi
+    3abe:	e8 4d e8 ff ff       	call   2310 <clock_gettime@plt>
+    3ac3:	49 83 44 24 70 01    	addq   $0x1,0x70(%r12)
+    3ac9:	e9 ec fe ff ff       	jmp    39ba <barriered_thread+0x13a>
+    3ace:	66 90                	xchg   %ax,%ax
+    3ad0:	48 c1 e6 04          	shl    $0x4,%rsi
+    3ad4:	bf 04 00 00 00       	mov    $0x4,%edi
+    3ad9:	49 03 74 24 58       	add    0x58(%r12),%rsi
+    3ade:	e8 2d e8 ff ff       	call   2310 <clock_gettime@plt>
+    3ae3:	e9 81 fe ff ff       	jmp    3969 <barriered_thread+0xe9>
+    3ae8:	41 83 fa 01          	cmp    $0x1,%r10d
+    3aec:	0f 85 7c fe ff ff    	jne    396e <barriered_thread+0xee>
+    3af2:	e9 59 ff ff ff       	jmp    3a50 <barriered_thread+0x1d0>
+    3af7:	31 c0                	xor    %eax,%eax
+    3af9:	c3                   	ret
+    3afa:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
 
 0000000000003b00 <external_thread>:
     3b00:	f3 0f 1e fa          	endbr64
