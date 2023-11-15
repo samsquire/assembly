@@ -1,17 +1,17 @@
 .global main
 .data
 .LC8:
-	.string	"one: A\n"
+	.string	"A"
 	.text
 	.globl	main
 	.type	main, @function
 .LC9:
-	.string	"two: B\n"
+	.string	"B"
 	.text
 	.globl	main
 	.type	main, @function
 .YIELD:
-	.string	"YIELD %d\n"
+	.string	"Y"
 	.text
 	.globl	main
 	.type	main, @function
