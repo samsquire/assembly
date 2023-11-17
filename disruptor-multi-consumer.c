@@ -59,6 +59,7 @@ struct Thread {
   struct Thread **readers __attribute__((aligned (128)));
   int other_count;
   int reader_index;
+  int multiple;
 };
 
 int min(long a, long b) {
@@ -117,6 +118,7 @@ void * disruptor_thread(void * arg) {
     int cachedEnd = sender->end;
     int size = data->size;
     int index = data->reader_index;
+    int me = 0;
     while (data->running == 1) {
       // printf("reading %d\n", data->thread_index); 
       // asm volatile ("sfence" ::: "memory");
@@ -127,15 +129,20 @@ void * disruptor_thread(void * arg) {
       } else {
         //for (int x = data->start; x < sender->end ; x++) {
           int changed = sender->start;
-          if (__sync_bool_compare_and_swap(&sender->start, changed, (changed + 1) % sender->size)) {
-            // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, sender->start);
-            clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end);
-            rdata[changed].complete[0] = 1;
-            cachedEnd = sender->end;
-            // asm volatile ("sfence" ::: "memory");
-          } else {
-            // asm volatile ("sfence" ::: "memory");
-            // cachedEnd = sender->end;
+          // printf("%d %d\n", data->multiple, sender->start % data->multiple);
+          if (data->start % data->other_count == data->multiple) {
+            if (__sync_bool_compare_and_swap(&sender->start, changed, (changed + 1) % sender->size)) {
+              // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, sender->start);
+              clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end);
+              rdata[changed].complete[0] = 1;
+              cachedEnd = sender->end;
+              // printf("next is %d\n", me);
+              // asm volatile ("sfence" ::: "memory");
+            } else {
+              // printf("failed\n");
+              // asm volatile ("sfence" ::: "memory");
+              // cachedEnd = sender->end;
+            }
           }
         //}
         // printf("Read %d\n", data->thread_index);
@@ -205,9 +212,13 @@ int main() {
     }
     thread_data[sender].other_count = other_count;
     // printf("Created data for %d\n", sender);
+    int seq[] = {1, 2, 5};
     for (int j = receiver, receiver_index = 0; j < sender + other_count + 1; j++, receiver_index++) {
       thread_data[j].thread_index = j;
       thread_data[j].reader_index = receiver_index;
+      thread_data[j].multiple = receiver_index % other_count;
+      thread_data[j].other_count = other_count;
+     
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
