@@ -80,14 +80,20 @@ void * disruptor_thread(void * arg) {
     next = (me->end + 1) % data->size;
     int anyfull = 0;
     while (data->running == 1) {
+      anyfull = 0;
       asm volatile ("sfence" ::: "memory");
-        // mina = min(mina, data->readers[x]->start);
-        if ((data->end + 1) % me->size == me->start) {
-          // printf("waiting for %d == %d\n", next, data->start);
+      for (int x  = 0 ; x < data->other_count; x++) {
+        if ((me->end + 1) % data->size == data->readers[x]->start) {
+          anyfull = 1;
+          // printf("waiting for %d %d == %d\n", data->readers[x]->thread_index, next, data->readers[x]->start);
+          break;
           // if (data->running == 2) { data->running = -1; }
         } else {
-         
-
+        } 
+          // printf("waiting for %d == %d\n", next, data->start);
+          // if (data->running == 2) { data->running = -1; }
+        }
+        if (anyfull == 0) {
           //for (int x = 0 ; x < data->size ; x++) {
             // printf("%d %d\n", next, mina);
             /*
@@ -95,13 +101,18 @@ void * disruptor_thread(void * arg) {
               break;
             }*/
             // data->data[data->end] = item;
-            int changed = me->end;
-            while (!__sync_bool_compare_and_swap(&me->end, changed, (changed + 1) % me->size)) {
-              changed = me->end;
+            int changed = 0; 
+            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELEASE)) {
+              changed = changed % me->size;
+
+              clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
+              // changed = me->end;
+              me->data[changed].complete[1] = 1;
+              next = (changed + 1) % data->size;
+              // printf("%d trying to write...\n", data->thread_index);
+            } else {
             }
             // printf("%d Wrote %d\n", data->thread_index, me->end);
-            clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
-            me->data[changed].complete[1] = 1;
             // asm volatile ("sfence" ::: "memory");
             /*if (next == mina) { break; } */
           }        
@@ -120,30 +131,24 @@ void * disruptor_thread(void * arg) {
     int index = data->reader_index;
     int me = 0;
     while (data->running == 1) {
+      asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
-      // asm volatile ("sfence" ::: "memory");
-      if (sender->end == sender->start) {
+      if (sender->end % sender->size == sender->start) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
       } else {
         //for (int x = data->start; x < sender->end ; x++) {
-          int changed = sender->start;
-          // printf("%d %d\n", data->multiple, sender->start % data->multiple);
-          if (data->start % data->other_count == data->multiple) {
-            if (__sync_bool_compare_and_swap(&sender->start, changed, (changed + 1) % sender->size)) {
+          int changed = data->start;
+          // if (data->start % data->other_count == data->multiple) {
+            // printf("%d %d\n", sender->start, sender->start % data->other_count == data->multiple);
+              data->start = (data->start + 1) % data->size;
               // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, sender->start);
               clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end);
               rdata[changed].complete[0] = 1;
-              cachedEnd = sender->end;
               // printf("next is %d\n", me);
               // asm volatile ("sfence" ::: "memory");
-            } else {
-              // printf("failed\n");
-              // asm volatile ("sfence" ::: "memory");
-              // cachedEnd = sender->end;
-            }
-          }
+          // }
         //}
         // printf("Read %d\n", data->thread_index);
         // free(data->sender->data[data->sender->start]);
@@ -167,7 +172,7 @@ int main() {
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
   int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
-  int writers_count = 1;
+  int writers_count = 2;
   int other_count = 2;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
@@ -183,37 +188,39 @@ int main() {
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
-    int receiver = sender + 1; 
+    int receiver = sender + writers_count; 
     int receiver2 = receiver + 1; 
-    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
-    CPU_ZERO(sendercpu);
-    for (int j = 0 ; j < cores ; j++) {
-      // printf("assigning sender %d to core %d\n", sender, j);
-      CPU_SET(j, sendercpu);
-    }
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
     for (int j = 0; j < cores ; j++) {
       // printf("assigning receiver %d to core %d\n", receiver, j);
       CPU_SET(j, receivercpu);
     }
-     
-    thread_data[sender].thread_index = sender;
-    thread_data[sender].cpu_set = sendercpu;
-    thread_data[sender].mode = WRITER;
-    thread_data[sender].running = 1;
-    thread_data[sender].size = buffer_size;
-    thread_data[sender].end = 0;
-    thread_data[sender].sender = &thread_data[sender];
-    thread_data[sender].readers = calloc(other_count, sizeof(struct Thread*));
-    thread_data[sender].data = calloc(buffer_size, sizeof(struct Snapshot));
-    for (int n = 0 ; n < buffer_size ; n++) {
-      thread_data[sender].data[n].complete = calloc(other_count, sizeof(int));
+    for (int n = sender; n < sender + writers_count; n++) {
+      cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
+      CPU_ZERO(sendercpu);
+      for (int j = 0 ; j < cores ; j++) {
+        // printf("assigning sender %d to core %d\n", sender, j);
+        CPU_SET(j, sendercpu);
+      }
+       
+      thread_data[n].thread_index = n;
+      thread_data[n].cpu_set = sendercpu;
+      thread_data[n].mode = WRITER;
+      thread_data[n].running = 1;
+      thread_data[n].size = buffer_size;
+      thread_data[n].end = 0;
+      thread_data[n].sender = &thread_data[sender];
+      thread_data[n].readers = calloc(other_count, sizeof(struct Thread*));
+      thread_data[n].data = calloc(buffer_size, sizeof(struct Snapshot));
+      for (int k = 0 ; k < buffer_size ; k++) {
+        thread_data[n].data[k].complete = calloc(other_count, sizeof(int));
+      }
+      thread_data[n].other_count = other_count;
     }
-    thread_data[sender].other_count = other_count;
     // printf("Created data for %d\n", sender);
     int seq[] = {1, 2, 5};
-    for (int j = receiver, receiver_index = 0; j < sender + other_count + 1; j++, receiver_index++) {
+    for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       thread_data[j].thread_index = j;
       thread_data[j].reader_index = receiver_index;
       thread_data[j].multiple = receiver_index % other_count;
@@ -233,8 +240,10 @@ int main() {
       thread_data[j].start = 0;
       thread_data[j].reader = &thread_data[sender];
       thread_data[j].readers = thread_data[sender].readers;
-      thread_data[sender].readers[receiver_index] = &thread_data[j];
       printf("Setting up sender thread %d %d to sender %d\n", j, receiver_index, sender);
+      for (int n = sender; n < sender + writers_count; n++) {
+        thread_data[n].readers[receiver_index] = &thread_data[j];
+      }
     }
     printf("Creating receiver thread %d\n", sender);
     asm volatile ("mfence" ::: "memory");
@@ -245,9 +254,9 @@ int main() {
   param.sched_priority = 0;
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
-    int receiver = sender + 1; 
+    int receiver = sender + writers_count; 
     
-    for (int j = receiver, receiver_index = 0; j < sender + other_count + 1; j++, receiver_index++) {
+    for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       printf("Creating receiver thread %d\n", j);
       
       int ret;
@@ -281,8 +290,10 @@ int main() {
               exit(1);
       }
       
-    pthread_create(&thread[sender], &attr[sender], &disruptor_thread, &thread_data[sender]);
-    pthread_setaffinity_np(thread[sender], sizeof(thread_data[sender].cpu_set), thread_data[sender].cpu_set);
+    for (int n = sender; n < sender + writers_count; n++) {
+      pthread_create(&thread[n], &attr[n], &disruptor_thread, &thread_data[n]);
+      pthread_setaffinity_np(thread[n], sizeof(thread_data[n].cpu_set), thread_data[n].cpu_set);
+    }
     struct timespec rem2;
     struct timespec preempt = {
       0,
@@ -299,26 +310,31 @@ int main() {
   nanosleep(&preempt , &rem2);
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
-    int receiver = sender + 1; 
+    int receiver = sender + writers_count; 
     thread_data[sender].running = 0;
-    for (int j = receiver, receiver_index = 0; j < sender + other_count + 1; j++, receiver_index++) {
+    for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       thread_data[j].running = 0;
+    }
+    for (int n = sender; n < sender + writers_count; n++) {
+      thread_data[n].running = 0;
     }
   }
   for (int x = 0 ; x < groups ; x++) {
     void * res1;
     void * res2;
     int sender = x * group_size; 
-    int receiver = sender + 1; 
-    pthread_join(thread[sender], res1);
-    for (int j = receiver, receiver_index = 0; j < sender + other_count + 1; j++, receiver_index++) {
+    int receiver = sender + writers_count; 
+    for (int n = sender; n < sender + writers_count; n++) {
+      pthread_join(thread[n], res1);
+    }
+    for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       pthread_join(thread[j], res2);
     }
   }
   
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
-    int receiver = sender + 1;
+    int receiver = sender + writers_count; 
     int incompletes = 0;
     printf("Inspecting sender %d\n", receiver);
     for (int y = 0 ; y < buffer_size; y++) {
