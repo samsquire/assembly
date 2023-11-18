@@ -41,7 +41,7 @@ This disruptor C code is Zero Clause BSD licenced.
 
 struct Snapshot {
   struct timespec start __attribute__((aligned (128)));
-  struct timespec end __attribute__((aligned (128)));
+  struct timespec *end __attribute__((aligned (128)));
   int *complete __attribute__((aligned (128)));
 };
 
@@ -102,13 +102,14 @@ void * disruptor_thread(void * arg) {
             }*/
             // data->data[data->end] = item;
             int changed = 0; 
+            for (int x = 0 ; x < data->other_count; x++) {
+              me->data[me->end % me->size].complete[x] = 0;
+            }
             if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
               changed = changed % me->size;
 
               clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
               // changed = me->end;
-              me->data[changed].complete[0] = 0;
-              me->data[changed].complete[1] = 1;
               // printf("%d trying to write...\n", data->thread_index);
             } else {
             }
@@ -133,7 +134,7 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
-      if (sender->end % sender->size == sender->start) {
+      if (sender->end % sender->size == data->start) {
         // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
@@ -142,10 +143,10 @@ void * disruptor_thread(void * arg) {
           int changed = data->start;
           // if (data->start % data->other_count == data->multiple) {
             // printf("%d %d\n", sender->start, sender->start % data->other_count == data->multiple);
-              data->start = (data->start + 1) % data->size;
-              // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, sender->start);
-              clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end);
-              rdata[changed].complete[0] = 1;
+              data->start = (changed + 1) % data->size;
+              clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end[data->reader_index]);
+              // printf("Read %d,%d %d\n", data->thread_index, data->reader_index, data->start);
+              rdata[changed].complete[data->reader_index] = 1;
               // printf("next is %d\n", me);
               // asm volatile ("sfence" ::: "memory");
           // }
@@ -192,9 +193,9 @@ int main() {
     int receiver2 = receiver + 1; 
     cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
     CPU_ZERO(receivercpu);
-    for (int j = 0; j < cores ; j++) {
+    for (int j = 0; j < cores / 2 ; j++) {
       // printf("assigning receiver %d to core %d\n", receiver, j);
-      CPU_SET(j, receivercpu);
+      CPU_SET(2 * j, receivercpu);
     }
     for (int n = sender; n < sender + writers_count; n++) {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
@@ -215,6 +216,7 @@ int main() {
       thread_data[n].data = calloc(buffer_size, sizeof(struct Snapshot));
       for (int k = 0 ; k < buffer_size ; k++) {
         thread_data[n].data[k].complete = calloc(other_count, sizeof(int));
+        thread_data[n].data[k].end = calloc(other_count, sizeof(int));
       }
       thread_data[n].other_count = other_count;
     }
@@ -347,12 +349,14 @@ int main() {
       }
       // printf("%d\n", compcount);
       if (compcount == 2) {
+      for (int n = 0 ; n < other_count ; n++) {
           // printf("start and end %d %d\n", thread_data[sender + n].start, thread_data[sender].end);
           struct timespec start = thread_data[sender].data[y].start;
-          struct timespec end = thread_data[sender].data[y].end;
+          struct timespec end = thread_data[sender].data[y].end[n];
           const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
           const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
           printf("rb %d Read %ld %ld\n", sender, seconds, seconds2);
+        }
       }
     }
     printf("Incompletes %d\n", incompletes);
