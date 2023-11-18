@@ -499,7 +499,7 @@ int main() {
     1575:	48 8b 93 18 03 00 00 	mov    0x318(%rbx),%rdx
     157c:	e8 7f fb ff ff       	call   1100 <pthread_setaffinity_np@plt>
   struct timespec preempt = {
-    1581:	66 0f 6f 05 07 0c 00 00 	movdqa 0xc07(%rip),%xmm0        # 2190 <_IO_stdin_used+0x190>
+    1581:	66 0f 6f 05 17 0c 00 00 	movdqa 0xc17(%rip),%xmm0        # 21a0 <_IO_stdin_used+0x1a0>
     1589:	ba 0a 00 00 00       	mov    $0xa,%edx
     158e:	31 c0                	xor    %eax,%eax
     1590:	48 8d 35 a4 0b 00 00 	lea    0xba4(%rip),%rsi        # 213b <_IO_stdin_used+0x13b>
@@ -763,7 +763,7 @@ void * disruptor_thread(void * arg) {
   } else if (data->mode == READER) {
     18e6:	8b 83 04 01 00 00    	mov    0x104(%rbx),%eax
     18ec:	83 f8 01             	cmp    $0x1,%eax
-    18ef:	0f 84 e1 00 00 00    	je     19d6 <disruptor_thread+0x126>
+    18ef:	0f 84 e4 00 00 00    	je     19d9 <disruptor_thread+0x129>
   printf("Finished %d\n", data->mode);
     18f5:	8b 93 04 01 00 00    	mov    0x104(%rbx),%edx
     18fb:	48 8d 35 8f 07 00 00 	lea    0x78f(%rip),%rsi        # 2091 <_IO_stdin_used+0x91>
@@ -810,7 +810,7 @@ void * disruptor_thread(void * arg) {
     197f:	48 83 c0 08          	add    $0x8,%rax
     1983:	48 39 c6             	cmp    %rax,%rsi
     1986:	75 e8                	jne    1970 <disruptor_thread+0xc0>
-            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELEASE)) {
+            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
     1988:	b8 01 00 00 00       	mov    $0x1,%eax
     198d:	f0 0f c1 85 00 01 00 00 	lock xadd %eax,0x100(%rbp)
     1995:	83 c0 01             	add    $0x1,%eax
@@ -828,20 +828,20 @@ void * disruptor_thread(void * arg) {
     19b2:	49 c1 e4 07          	shl    $0x7,%r12
     19b6:	4c 01 e6             	add    %r12,%rsi
     19b9:	e8 62 f7 ff ff       	call   1120 <clock_gettime@plt>
-              me->data[changed].complete[1] = 1;
+              me->data[changed].complete[0] = 0;
     19be:	48 8b 45 18          	mov    0x18(%rbp),%rax
-    19c2:	4a 8b 84 20 00 01 00 00 	mov    0x100(%rax,%r12,1),%rax
-    19ca:	c7 40 04 01 00 00 00 	movl   $0x1,0x4(%rax)
-              next = (changed + 1) % data->size;
-    19d1:	e9 5a ff ff ff       	jmp    1930 <disruptor_thread+0x80>
-    19d6:	48 8d 3d c1 06 00 00 	lea    0x6c1(%rip),%rdi        # 209e <_IO_stdin_used+0x9e>
-    19dd:	e8 2e f7 ff ff       	call   1110 <puts@plt>
+    19c2:	48 8b 15 c7 07 00 00 	mov    0x7c7(%rip),%rdx        # 2190 <_IO_stdin_used+0x190>
+    19c9:	4a 8b 84 20 00 01 00 00 	mov    0x100(%rax,%r12,1),%rax
+    19d1:	48 89 10             	mov    %rdx,(%rax)
+    19d4:	e9 57 ff ff ff       	jmp    1930 <disruptor_thread+0x80>
+    19d9:	48 8d 3d be 06 00 00 	lea    0x6be(%rip),%rdi        # 209e <_IO_stdin_used+0x9e>
+    19e0:	e8 2b f7 ff ff       	call   1110 <puts@plt>
     struct Thread *sender = data->sender;
-    19e2:	48 8b 6b 08          	mov    0x8(%rbx),%rbp
+    19e5:	48 8b 6b 08          	mov    0x8(%rbx),%rbp
     struct Snapshot * rdata = sender->data;
-    19e6:	4c 8b 6d 18          	mov    0x18(%rbp),%r13
+    19e9:	4c 8b 6d 18          	mov    0x18(%rbp),%r13
     while (data->running == 1) {
-    19ea:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    19ed:	0f 1f 00             	nopl   (%rax)
     19f0:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
     19f6:	83 f8 01             	cmp    $0x1,%eax
     19f9:	0f 85 f6 fe ff ff    	jne    18f5 <disruptor_thread+0x45>

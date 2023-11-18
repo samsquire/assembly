@@ -102,13 +102,13 @@ void * disruptor_thread(void * arg) {
             }*/
             // data->data[data->end] = item;
             int changed = 0; 
-            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELEASE)) {
+            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
               changed = changed % me->size;
 
               clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
               // changed = me->end;
+              me->data[changed].complete[0] = 0;
               me->data[changed].complete[1] = 1;
-              next = (changed + 1) % data->size;
               // printf("%d trying to write...\n", data->thread_index);
             } else {
             }
