@@ -194,19 +194,12 @@ int main() {
     int sender = x * group_size; 
     int receiver = sender + writers_count; 
     int receiver2 = receiver + 1; 
-    cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
-    CPU_ZERO(receivercpu);
-    for (int j = 0; j < cores; j++) {
-      // printf("assigning receiver %d to core %d\n", receiver, j);
-      CPU_SET(j, receivercpu);
-    }
     for (int n = sender; n < sender + writers_count; n++) {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
-      for (int j = 0 ; j < cores ; j++) {
-        // printf("assigning sender %d to core %d\n", sender, j);
-        CPU_SET(j, sendercpu);
-      }
+      CPU_SET(curcpu, sendercpu);
+      curcpu += 2;
+      printf("assigning sender %d to core %d\n", n, curcpu);
        
       thread_data[n].thread_index = n;
       thread_data[n].cpu_set = sendercpu;
@@ -223,6 +216,7 @@ int main() {
       }
       thread_data[n].other_count = other_count;
     }
+
     // printf("Created data for %d\n", sender);
     int seq[] = {1, 2, 5};
     for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
@@ -231,6 +225,11 @@ int main() {
       thread_data[j].multiple = receiver_index % other_count;
       thread_data[j].other_count = other_count;
      
+      cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
+      CPU_ZERO(receivercpu);
+      CPU_SET(curcpu, receivercpu);
+      curcpu += 2;
+      printf("assigning receiver %d to core %d\n", j, curcpu);
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
@@ -250,6 +249,7 @@ int main() {
         thread_data[n].readers[receiver_index] = &thread_data[j];
       }
     }
+    curcpu = 0;
     printf("Creating receiver thread %d\n", sender);
     asm volatile ("mfence" ::: "memory");
   }
@@ -278,7 +278,7 @@ int main() {
       }
        
       pthread_create(&thread[j], &attr[j], &disruptor_thread, &thread_data[j]);
-      pthread_setaffinity_np(thread[j], sizeof(thread_data[receiver].cpu_set), thread_data[receiver].cpu_set);
+      pthread_setaffinity_np(thread[j], sizeof(thread_data[j].cpu_set), thread_data[j].cpu_set);
     }
       
       int ret;
