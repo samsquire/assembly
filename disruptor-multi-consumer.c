@@ -103,7 +103,7 @@ void * disruptor_thread(void * arg) {
             }*/
             // data->data[data->end] = item;
             int changed = 0; 
-            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELAXED)) {
+            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
               changed = (changed) % me->size;
               // validate line
               // printf("%d\n", changed);

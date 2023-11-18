@@ -791,7 +791,7 @@ void * disruptor_thread(void * arg) {
     1907:	48 83 c0 08          	add    $0x8,%rax
     190b:	48 39 f0             	cmp    %rsi,%rax
     190e:	75 e8                	jne    18f8 <disruptor_thread+0x68>
-            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELAXED)) {
+            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
     1910:	b8 01 00 00 00       	mov    $0x1,%eax
     1915:	f0 0f c1 85 00 01 00 00 	lock xadd %eax,0x100(%rbp)
     191d:	83 c0 01             	add    $0x1,%eax
