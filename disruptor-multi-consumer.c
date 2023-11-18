@@ -71,12 +71,12 @@ int min(long a, long b) {
 
 void * disruptor_thread(void * arg) {
   struct Thread *data = arg;
-  printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
+  // printf("in disruptor thread %d i am a %d\n", data->thread_index, data->mode);
   int mina = data->size;
   
   int next = (data->end + 1) % data->size;
   if (data->mode == WRITER) {
-    printf("I am writer\n");
+    // printf("I am writer\n");
     struct Thread *me = data->sender;
     next = (me->end + 1) % data->size;
     int anyfull = 0;
@@ -104,7 +104,9 @@ void * disruptor_thread(void * arg) {
             // data->data[data->end] = item;
             int changed = 0; 
             if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_RELAXED)) {
-              changed = (changed - 1) % me->size;
+              changed = (changed) % me->size;
+              // validate line
+              // printf("%d\n", changed);
               for (int x = 0 ; x < data->other_count; x++) {
                 me->data[changed].complete[x] = 0;
               }
@@ -123,7 +125,7 @@ void * disruptor_thread(void * arg) {
       } 
        
   } else if (data->mode == READER) {
-    printf("I am reader\n");
+    // printf("I am reader\n");
     struct timespec rem2;
     struct timespec preempt = {
       0,
@@ -160,7 +162,7 @@ void * disruptor_thread(void * arg) {
       
     } 
   } 
-  printf("Finished %d\n", data->mode);
+  // printf("Finished %d\n", data->mode);
   return 0;
 }
 
@@ -171,7 +173,7 @@ int main() {
 
   */   
 
-  int power = 20;
+  int power = 15;
   long buffer_size = pow(2, power);
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
   int groups = 1; /* thread_count / 2 */ 
@@ -180,13 +182,13 @@ int main() {
   int other_count = 2;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
+  printf("Writers count %d\n", writers_count);
   int thread_count = groups * (other_count + writers_count);
   printf("Total thread count %d\n", thread_count);
   struct Thread *thread_data = calloc(thread_count, sizeof(struct Thread)); 
   pthread_attr_t      *attr = calloc(thread_count, sizeof(pthread_attr_t));
   pthread_t *thread = calloc(thread_count, sizeof(pthread_t));
 
-   /* Set affinity mask to include CPUs 0 to 7. */
   int cores = 12;
   int curcpu = 0;
   // 0, 3, 6
@@ -199,7 +201,7 @@ int main() {
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
       curcpu += 2;
-      printf("assigning sender %d to core %d\n", n, curcpu);
+      // printf("assigning sender %d to core %d\n", n, curcpu);
        
       thread_data[n].thread_index = n;
       thread_data[n].cpu_set = sendercpu;
@@ -229,7 +231,7 @@ int main() {
       CPU_ZERO(receivercpu);
       CPU_SET(curcpu, receivercpu);
       curcpu += 2;
-      printf("assigning receiver %d to core %d\n", j, curcpu);
+      // printf("assigning receiver %d to core %d\n", j, curcpu);
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
@@ -244,13 +246,13 @@ int main() {
       thread_data[j].start = 0;
       thread_data[j].reader = &thread_data[sender];
       thread_data[j].readers = thread_data[sender].readers;
-      printf("Setting up sender thread %d %d to sender %d\n", j, receiver_index, sender);
+      // printf("Setting up sender thread %d %d to sender %d\n", j, receiver_index, sender);
       for (int n = sender; n < sender + writers_count; n++) {
         thread_data[n].readers[receiver_index] = &thread_data[j];
       }
     }
     curcpu = 0;
-    printf("Creating receiver thread %d\n", sender);
+    // printf("Creating receiver thread %d\n", sender);
     asm volatile ("mfence" ::: "memory");
   }
 
@@ -262,7 +264,7 @@ int main() {
     int receiver = sender + writers_count; 
     
     for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
-      printf("Creating receiver thread %d\n", j);
+      // printf("Creating receiver thread %d\n", j);
       
       int ret;
       
@@ -311,7 +313,7 @@ int main() {
   struct timespec preempt = {
     seconds,
     0 };
-  printf("Sleeping for %d seconds\n", seconds);
+  // printf("Sleeping for %d seconds\n", seconds);
   nanosleep(&preempt , &rem2);
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
@@ -341,7 +343,7 @@ int main() {
     int sender = x * group_size; 
     int receiver = sender + writers_count; 
     int incompletes = 0;
-    printf("Inspecting sender %d\n", receiver);
+    // printf("Inspecting sender %d\n", receiver);
     for (int y = 0 ; y < buffer_size; y++) {
       int compcount = 0;
       for (int n = 0 ; n < 2 ; n++) {
@@ -362,7 +364,7 @@ int main() {
         }
       }
     }
-    printf("Incompletes %d\n", incompletes);
+    // printf("Incompletes %d\n", incompletes);
   }
 
   return 0;
