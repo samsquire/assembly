@@ -231,8 +231,8 @@ int main() {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
-      curcpu += coreinterval;
       printf("assigning sender %d to core %d\n", n, curcpu);
+      curcpu += coreinterval;
        
       thread_data[n].thread_index = n;
       thread_data[n].cpu_set = sendercpu;
@@ -262,8 +262,8 @@ int main() {
       cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(receivercpu);
       CPU_SET(curcpu, receivercpu);
-      curcpu += coreinterval;
       printf("assigning receiver %d to core %d\n", j, curcpu);
+      curcpu += coreinterval;
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
