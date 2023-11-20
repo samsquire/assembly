@@ -136,7 +136,7 @@ void * disruptor_thread(void * arg) {
                 }
               
                 // printf("%d Wrote %ld\n", data->thread_index, (me->realend & END_MASK) >> 32);
-                asm volatile ("sfence" ::: "memory");
+                // asm volatile ("sfence" ::: "memory");
               }        
               if (result) {
                 me->data[changed].written = me->other_count;
@@ -207,7 +207,7 @@ int main() {
   int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 2;
-  int other_count = 3;
+  int other_count = 2;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
   printf("Writers count %d\n", writers_count);
@@ -219,6 +219,7 @@ int main() {
 
   int cores = 12;
   int curcpu = 0;
+  int coreinterval = 2;
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
@@ -230,7 +231,7 @@ int main() {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
-      curcpu += 1;
+      curcpu += coreinterval;
       printf("assigning sender %d to core %d\n", n, curcpu);
        
       thread_data[n].thread_index = n;
@@ -261,7 +262,7 @@ int main() {
       cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(receivercpu);
       CPU_SET(curcpu, receivercpu);
-      curcpu += 1;
+      curcpu += coreinterval;
       printf("assigning receiver %d to core %d\n", j, curcpu);
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
