@@ -704,7 +704,7 @@ void * disruptor_thread(void * arg) {
   } else if (data->mode == READER) {
     1800:	8b 83 04 01 00 00    	mov    0x104(%rbx),%eax
     1806:	83 f8 01             	cmp    $0x1,%eax
-    1809:	0f 84 e1 00 00 00    	je     18f0 <disruptor_thread+0x130>
+    1809:	0f 84 f1 00 00 00    	je     1900 <disruptor_thread+0x140>
   printf("Finished %d\n", data->mode);
     180f:	8b 93 04 01 00 00    	mov    0x104(%rbx),%edx
     1815:	48 8d 35 81 08 00 00 	lea    0x881(%rip),%rsi        # 209d <_IO_stdin_used+0x9d>
@@ -725,16 +725,16 @@ void * disruptor_thread(void * arg) {
     1840:	48 8d 3d 3e 08 00 00 	lea    0x83e(%rip),%rdi        # 2085 <_IO_stdin_used+0x85>
     1847:	e8 c4 f8 ff ff       	call   1110 <puts@plt>
     struct Thread *me = data->sender;
-    184c:	48 8b 6b 08          	mov    0x8(%rbx),%rbp
+    184c:	4c 8b 63 08          	mov    0x8(%rbx),%r12
     next = (me->end + 1) % data->size;
-    1850:	4c 8d a5 00 01 00 00 	lea    0x100(%rbp),%r12
-    1857:	8b 85 00 01 00 00    	mov    0x100(%rbp),%eax
-    185d:	83 c0 01             	add    $0x1,%eax
-    1860:	48 98                	cltq
-    1862:	48 99                	cqto
-    1864:	48 f7 bb 08 01 00 00 	idivq  0x108(%rbx)
+    1850:	4d 8d ac 24 00 01 00 00 	lea    0x100(%r12),%r13
+    1858:	41 8b 84 24 00 01 00 00 	mov    0x100(%r12),%eax
+    1860:	83 c0 01             	add    $0x1,%eax
+    1863:	48 98                	cltq
+    1865:	48 99                	cqto
+    1867:	48 f7 bb 08 01 00 00 	idivq  0x108(%rbx)
     while (data->running == 1) {
-    186b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    186e:	66 90                	xchg   %ax,%ax
     1870:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
     1876:	83 f8 01             	cmp    $0x1,%eax
     1879:	75 94                	jne    180f <disruptor_thread+0x4f>
@@ -746,109 +746,122 @@ void * disruptor_thread(void * arg) {
     1888:	39 d0                	cmp    %edx,%eax
     188a:	74 e4                	je     1870 <disruptor_thread+0xb0>
             int claim = me->end;
-    188c:	41 8b 04 24          	mov    (%r12),%eax
+    188c:	41 8b 45 00          	mov    0x0(%r13),%eax
             int changed = me->end;
-    1890:	49 63 0c 24          	movslq (%r12),%rcx
-            while (!__sync_bool_compare_and_swap(&me->end, changed, (changed + 1) % me->size)) {
-    1894:	44 8d 69 01          	lea    0x1(%rcx),%r13d
-    1898:	4d 63 ed             	movslq %r13d,%r13
-    189b:	4c 89 e8             	mov    %r13,%rax
-    189e:	48 99                	cqto
-    18a0:	48 f7 bd 08 01 00 00 	idivq  0x108(%rbp)
-    18a7:	89 c8                	mov    %ecx,%eax
-    18a9:	f0 41 0f b1 14 24    	lock cmpxchg %edx,(%r12)
-    18af:	0f 85 d1 00 00 00    	jne    1986 <disruptor_thread+0x1c6>
+    1890:	41 8b 6d 00          	mov    0x0(%r13),%ebp
+            int change = (changed + 1) % me->size;
+    1894:	8d 45 01             	lea    0x1(%rbp),%eax
+    1897:	48 98                	cltq
+    1899:	48 99                	cqto
+    189b:	49 f7 bc 24 08 01 00 00 	idivq  0x108(%r12)
+            while (!__atomic_compare_exchange (&me->end, &changed, &change, 0, __ATOMIC_RELEASE, __ATOMIC_RELAXED)) {
+    18a3:	89 e8                	mov    %ebp,%eax
+    18a5:	f0 41 0f b1 55 00    	lock cmpxchg %edx,0x0(%r13)
+    18ab:	89 c5                	mov    %eax,%ebp
+    18ad:	0f 85 e3 00 00 00    	jne    1996 <disruptor_thread+0x1d6>
             clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
-    18b5:	48 8b 75 18          	mov    0x18(%rbp),%rsi
-    18b9:	4c 8d 34 49          	lea    (%rcx,%rcx,2),%r14
-    18bd:	bf 04 00 00 00       	mov    $0x4,%edi
-    18c2:	49 c1 e6 07          	shl    $0x7,%r14
-    18c6:	4c 01 f6             	add    %r14,%rsi
-    18c9:	e8 52 f8 ff ff       	call   1120 <clock_gettime@plt>
+    18b3:	48 63 c5             	movslq %ebp,%rax
+    18b6:	49 8b 74 24 18       	mov    0x18(%r12),%rsi
+    18bb:	bf 04 00 00 00       	mov    $0x4,%edi
+    18c0:	4c 8d 34 40          	lea    (%rax,%rax,2),%r14
+    18c4:	49 c1 e6 07          	shl    $0x7,%r14
+    18c8:	4c 01 f6             	add    %r14,%rsi
+    18cb:	e8 50 f8 ff ff       	call   1120 <clock_gettime@plt>
             next = (changed + 1) % me->size;
-    18ce:	4c 89 e8             	mov    %r13,%rax
-    18d1:	48 99                	cqto
-    18d3:	48 f7 bd 08 01 00 00 	idivq  0x108(%rbp)
+    18d0:	8d 45 01             	lea    0x1(%rbp),%eax
+    18d3:	48 98                	cltq
+    18d5:	48 99                	cqto
+    18d7:	49 f7 bc 24 08 01 00 00 	idivq  0x108(%r12)
             me->data[changed].complete[1] = 1;
-    18da:	48 8b 45 18          	mov    0x18(%rbp),%rax
-    18de:	4a 8b 84 30 00 01 00 00 	mov    0x100(%rax,%r14,1),%rax
-    18e6:	c7 40 04 01 00 00 00 	movl   $0x1,0x4(%rax)
-    18ed:	eb 81                	jmp    1870 <disruptor_thread+0xb0>
-    18ef:	90                   	nop
-    18f0:	48 8d 3d 9a 07 00 00 	lea    0x79a(%rip),%rdi        # 2091 <_IO_stdin_used+0x91>
-    18f7:	e8 14 f8 ff ff       	call   1110 <puts@plt>
+    18df:	49 8b 44 24 18       	mov    0x18(%r12),%rax
+    18e4:	4a 8b 84 30 00 01 00 00 	mov    0x100(%rax,%r14,1),%rax
+    18ec:	c7 40 04 01 00 00 00 	movl   $0x1,0x4(%rax)
+    18f3:	e9 78 ff ff ff       	jmp    1870 <disruptor_thread+0xb0>
+    18f8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    1900:	48 8d 3d 8a 07 00 00 	lea    0x78a(%rip),%rdi        # 2091 <_IO_stdin_used+0x91>
+    1907:	e8 04 f8 ff ff       	call   1110 <puts@plt>
     struct Thread *sender = data->sender;
-    18fc:	48 8b 43 08          	mov    0x8(%rbx),%rax
+    190c:	48 8b 43 08          	mov    0x8(%rbx),%rax
     struct Snapshot * rdata = sender->data;
-    1900:	4c 8b 70 18          	mov    0x18(%rax),%r14
+    1910:	4c 8b 70 18          	mov    0x18(%rax),%r14
     int cachedEnd = sender->end;
-    1904:	4c 8d a8 00 01 00 00 	lea    0x100(%rax),%r13
-    190b:	8b 88 00 01 00 00    	mov    0x100(%rax),%ecx
+    1914:	4c 8d a8 00 01 00 00 	lea    0x100(%rax),%r13
+    191b:	8b 88 00 01 00 00    	mov    0x100(%rax),%ecx
     int cachedStart = data->start;
-    1911:	44 8b bb 80 00 00 00 	mov    0x80(%rbx),%r15d
+    1921:	44 8b bb 80 00 00 00 	mov    0x80(%rbx),%r15d
     while (data->running == 1) {
-    1918:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
+    1928:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
     int size = data->size;
-    191e:	44 8b a3 08 01 00 00 	mov    0x108(%rbx),%r12d
+    192e:	44 8b a3 08 01 00 00 	mov    0x108(%rbx),%r12d
     while (data->running == 1) {
-    1925:	83 f8 01             	cmp    $0x1,%eax
-    1928:	0f 85 e1 fe ff ff    	jne    180f <disruptor_thread+0x4f>
-    192e:	66 90                	xchg   %ax,%ax
+    1935:	83 f8 01             	cmp    $0x1,%eax
+    1938:	0f 85 d1 fe ff ff    	jne    180f <disruptor_thread+0x4f>
+    193e:	66 90                	xchg   %ax,%ax
       if (cachedEnd == cachedStart) {
-    1930:	44 39 f9             	cmp    %r15d,%ecx
-    1933:	74 3d                	je     1972 <disruptor_thread+0x1b2>
+    1940:	44 39 f9             	cmp    %r15d,%ecx
+    1943:	74 3d                	je     1982 <disruptor_thread+0x1c2>
           clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[cachedStart].end);
-    1935:	49 63 c7             	movslq %r15d,%rax
-    1938:	bf 04 00 00 00       	mov    $0x4,%edi
-    193d:	48 8d 2c 40          	lea    (%rax,%rax,2),%rbp
-    1941:	48 c1 e5 07          	shl    $0x7,%rbp
-    1945:	4c 01 f5             	add    %r14,%rbp
-    1948:	48 8d b5 80 00 00 00 	lea    0x80(%rbp),%rsi
-    194f:	e8 cc f7 ff ff       	call   1120 <clock_gettime@plt>
+    1945:	49 63 c7             	movslq %r15d,%rax
+    1948:	bf 04 00 00 00       	mov    $0x4,%edi
+    194d:	48 8d 2c 40          	lea    (%rax,%rax,2),%rbp
+    1951:	48 c1 e5 07          	shl    $0x7,%rbp
+    1955:	4c 01 f5             	add    %r14,%rbp
+    1958:	48 8d b5 80 00 00 00 	lea    0x80(%rbp),%rsi
+    195f:	e8 bc f7 ff ff       	call   1120 <clock_gettime@plt>
           rdata[cachedStart].complete[0] = 1;
-    1954:	48 8b 85 00 01 00 00 	mov    0x100(%rbp),%rax
-    195b:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
+    1964:	48 8b 85 00 01 00 00 	mov    0x100(%rbp),%rax
+    196b:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
           cachedStart = (cachedStart + 1) % size;
-    1961:	41 8d 47 01          	lea    0x1(%r15),%eax
-    1965:	99                   	cltd
-    1966:	41 f7 fc             	idiv   %r12d
+    1971:	41 8d 47 01          	lea    0x1(%r15),%eax
+    1975:	99                   	cltd
+    1976:	41 f7 fc             	idiv   %r12d
           data->start = cachedStart;
-    1969:	89 93 80 00 00 00    	mov    %edx,0x80(%rbx)
+    1979:	89 93 80 00 00 00    	mov    %edx,0x80(%rbx)
           cachedStart = (cachedStart + 1) % size;
-    196f:	41 89 d7             	mov    %edx,%r15d
+    197f:	41 89 d7             	mov    %edx,%r15d
           cachedEnd = sender->end;
-    1972:	41 8b 4d 00          	mov    0x0(%r13),%ecx
+    1982:	41 8b 4d 00          	mov    0x0(%r13),%ecx
     while (data->running == 1) {
-    1976:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
-    197c:	83 f8 01             	cmp    $0x1,%eax
-    197f:	74 af                	je     1930 <disruptor_thread+0x170>
-    1981:	e9 89 fe ff ff       	jmp    180f <disruptor_thread+0x4f>
+    1986:	8b 83 10 01 00 00    	mov    0x110(%rbx),%eax
+    198c:	83 f8 01             	cmp    $0x1,%eax
+    198f:	74 af                	je     1940 <disruptor_thread+0x180>
+    1991:	e9 79 fe ff ff       	jmp    180f <disruptor_thread+0x4f>
               changed = me->end;
-    1986:	49 63 0c 24          	movslq (%r12),%rcx
-    198a:	e9 05 ff ff ff       	jmp    1894 <disruptor_thread+0xd4>
-    198f:	90                   	nop
+    1996:	41 8b 4d 00          	mov    0x0(%r13),%ecx
+              change = (changed + 1) % me->size;
+    199a:	8d 41 01             	lea    0x1(%rcx),%eax
+    199d:	48 98                	cltq
+    199f:	48 99                	cqto
+    19a1:	49 f7 bc 24 08 01 00 00 	idivq  0x108(%r12)
+            while (!__atomic_compare_exchange (&me->end, &changed, &change, 0, __ATOMIC_RELEASE, __ATOMIC_RELAXED)) {
+    19a9:	89 c8                	mov    %ecx,%eax
+    19ab:	f0 41 0f b1 55 00    	lock cmpxchg %edx,0x0(%r13)
+    19b1:	75 e3                	jne    1996 <disruptor_thread+0x1d6>
+    19b3:	89 c5                	mov    %eax,%ebp
+    19b5:	e9 f9 fe ff ff       	jmp    18b3 <disruptor_thread+0xf3>
+    19ba:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
 
-0000000000001990 <min>:
+00000000000019c0 <min>:
 int min(long a, long b) {
-    1990:	f3 0f 1e fa          	endbr64
+    19c0:	f3 0f 1e fa          	endbr64
   if (a < b) return a;
-    1994:	48 39 f7             	cmp    %rsi,%rdi
-    1997:	7c 02                	jl     199b <min+0xb>
+    19c4:	48 39 f7             	cmp    %rsi,%rdi
+    19c7:	7c 02                	jl     19cb <min+0xb>
   if (b < a) return b;
-    1999:	7f 05                	jg     19a0 <min+0x10>
+    19c9:	7f 05                	jg     19d0 <min+0x10>
   if (a < b) return a;
-    199b:	89 f8                	mov    %edi,%eax
-    199d:	c3                   	ret
-    199e:	66 90                	xchg   %ax,%ax
+    19cb:	89 f8                	mov    %edi,%eax
+    19cd:	c3                   	ret
+    19ce:	66 90                	xchg   %ax,%ax
   if (b < a) return b;
-    19a0:	89 f0                	mov    %esi,%eax
+    19d0:	89 f0                	mov    %esi,%eax
 }
-    19a2:	c3                   	ret
+    19d2:	c3                   	ret
 
 Disassembly of section .fini:
 
-00000000000019a4 <_fini>:
-    19a4:	f3 0f 1e fa          	endbr64
-    19a8:	48 83 ec 08          	sub    $0x8,%rsp
-    19ac:	48 83 c4 08          	add    $0x8,%rsp
-    19b0:	c3                   	ret
+00000000000019d4 <_fini>:
+    19d4:	f3 0f 1e fa          	endbr64
+    19d8:	48 83 ec 08          	sub    $0x8,%rsp
+    19dc:	48 83 c4 08          	add    $0x8,%rsp
+    19e0:	c3                   	ret

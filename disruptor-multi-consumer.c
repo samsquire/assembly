@@ -35,6 +35,8 @@ This disruptor C code is Zero Clause BSD licenced.
 
 #define READER 1
 #define WRITER 0
+#define END_MASK 0xfffffff00000000
+#define TAG_MASK 0x00000000fffffff
 
 #define TICKSECONDS 0
 #define TICK 150000L
@@ -52,7 +54,7 @@ struct Thread {
   struct Snapshot * data;
   int start __attribute__((aligned (128)));
   int end __attribute__((aligned (128)));
-  int realend __attribute__((aligned (128)));
+  long realend __attribute__((aligned (128)));
   volatile int mode;
   long size;
   volatile int running;
@@ -61,6 +63,7 @@ struct Thread {
   int other_count;
   int reader_index;
   int multiple;
+  int thread_tag;
 };
 
 int min(long a, long b) {
@@ -83,8 +86,10 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       anyfull = 0;
       asm volatile ("sfence" ::: "memory");
+      int pos = (((me->realend & END_MASK)>>32) + 1) % data->size;
+      // printf("%d %d\n", data->thread_index, pos);
       for (int x  = 0 ; x < data->other_count; x++) {
-        if ((me->realend + 1) % data->size == data->readers[x]->start) {
+        if (pos == data->readers[x]->start) {
           anyfull = 1;
           // printf("waiting for %d %d == %d\n", data->readers[x]->thread_index, next, data->readers[x]->start);
           break;
@@ -102,22 +107,30 @@ void * disruptor_thread(void * arg) {
               break;
             }*/
             // data->data[data->end] = item;
-            int changed = 0; 
-            if (changed = __atomic_add_fetch(&me->end, 1, __ATOMIC_ACQUIRE)) {
-              changed = (changed) % me->size;
+            long changed = 0; 
+            long original = me->realend;
+            int tag = (original & TAG_MASK);
+              changed = (((original & END_MASK) >> 32) + 1) % me->size;
+              long new = (data->thread_tag) | (changed << 32);
               // validate line
-              // printf("%d\n", changed);
+              // printf("CHANGE %ld\n", changed);
+              // printf("new %ld\n", new);
+              // printf("tg %d\n", data->thread_tag);
+              // printf("tg %d\n", tag);
               for (int x = 0 ; x < data->other_count; x++) {
                 me->data[changed].complete[x] = 0;
               }
-              clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
+              asm volatile ("sfence" ::: "memory");
               // __atomic_store(&me->realend, &changed, __ATOMIC_RELEASE);
-              me->realend = changed;
-              
+              // me->realend = changed;
+              clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
+              if (!__atomic_compare_exchange (&me->realend, &original, &new, 0, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED)) {
+                for (int x = 0 ; x < data->other_count; x++) {
+                  me->data[changed].complete[x] = 0;
+                }
+              }           
               // changed = me->end;
               // printf("%d trying to write...\n", data->thread_index);
-            } else {
-            }
             // printf("%d Wrote %d\n", data->thread_index, me->end);
             // asm volatile ("sfence" ::: "memory");
             /*if (next == mina) { break; } */
@@ -139,8 +152,9 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       // asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
-      if ((sender->realend % sender->size) == data->start) {
-        // printf("Empty %d %d %d %d\n", sender->end, data->start, data->thread_index, data->reader_index); 
+      int pos = ((sender->realend & END_MASK) >> 32);
+      if (pos == data->start) {
+        // printf("Empty %ld %d %d %d\n", sender->realend, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
         // nanosleep(&preempt , &rem2);
       } else {
@@ -196,7 +210,9 @@ int main() {
     int sender = x * group_size; 
     int receiver = sender + writers_count; 
     int receiver2 = receiver + 1; 
-    for (int n = sender; n < sender + writers_count; n++) {
+    int seq[] = {1, 2, 5};
+    int tag_index[] = {1, 5, 5};
+    for (int n = sender, sender_index = 0; n < sender + writers_count, sender_index < writers_count; n++, sender_index++) {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
@@ -206,8 +222,10 @@ int main() {
       thread_data[n].thread_index = n;
       thread_data[n].cpu_set = sendercpu;
       thread_data[n].mode = WRITER;
+      thread_data[n].multiple = seq[sender_index % writers_count];
       thread_data[n].running = 1;
       thread_data[n].size = buffer_size;
+      thread_data[n].thread_tag = tag_index[sender_index];
       thread_data[n].end = 0;
       thread_data[n].sender = &thread_data[sender];
       thread_data[n].readers = calloc(other_count, sizeof(struct Thread*));
@@ -220,7 +238,6 @@ int main() {
     }
 
     // printf("Created data for %d\n", sender);
-    int seq[] = {1, 2, 5};
     for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       thread_data[j].thread_index = j;
       thread_data[j].reader_index = receiver_index;

@@ -97,8 +97,10 @@ void * disruptor_thread(void * arg) {
             // data->data[data->end] = item;
             int claim = me->end;
             int changed = me->end;
-            while (!__sync_bool_compare_and_swap(&me->end, changed, (changed + 1) % me->size)) {
+            int change = (changed + 1) % me->size;
+            while (!__atomic_compare_exchange (&me->end, &changed, &change, 0, __ATOMIC_RELEASE, __ATOMIC_RELAXED)) {
               changed = me->end;
+              change = (changed + 1) % me->size;
             };
             clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
             next = (changed + 1) % me->size;
