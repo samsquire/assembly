@@ -87,7 +87,7 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       anyfull = 0;
       asm volatile ("sfence" ::: "memory");
-      long pos = (((me->realend & END_MASK)>>32) + 1) % data->size;
+      long pos = (((me->realend & END_MASK) >> 32) + 1) % data->size;
       // printf("%d %d\n", data->thread_index, pos);
       for (int x  = 0 ; x < data->other_count; x++) {
         if (pos == data->readers[x]->start) {
@@ -207,7 +207,7 @@ int main() {
   int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 2;
-  int other_count = 2;
+  int other_count = 3;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
   printf("Writers count %d\n", writers_count);
@@ -225,13 +225,13 @@ int main() {
     int receiver = sender + writers_count; 
     int receiver2 = receiver + 1; 
     int seq[] = {1, 2, 5};
-    int tag_index[] = {1, 5, 5};
+    int tag_index[] = {1, 5, 7};
     for (int n = sender, sender_index = 0; n < sender + writers_count, sender_index < writers_count; n++, sender_index++) {
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
-      curcpu += 2;
-      // printf("assigning sender %d to core %d\n", n, curcpu);
+      curcpu += 1;
+      printf("assigning sender %d to core %d\n", n, curcpu);
        
       thread_data[n].thread_index = n;
       thread_data[n].cpu_set = sendercpu;
@@ -246,7 +246,7 @@ int main() {
       thread_data[n].data = calloc(buffer_size, sizeof(struct Snapshot));
       for (int k = 0 ; k < buffer_size ; k++) {
         thread_data[n].data[k].complete = calloc(other_count, sizeof(int));
-        thread_data[n].data[k].end = calloc(other_count, sizeof(int));
+        thread_data[n].data[k].end = calloc(other_count, sizeof(struct timespec));
       }
       thread_data[n].other_count = other_count;
     }
@@ -261,8 +261,8 @@ int main() {
       cpu_set_t *receivercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(receivercpu);
       CPU_SET(curcpu, receivercpu);
-      curcpu += 2;
-      // printf("assigning receiver %d to core %d\n", j, curcpu);
+      curcpu += 1;
+      printf("assigning receiver %d to core %d\n", j, curcpu);
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
@@ -277,8 +277,10 @@ int main() {
       thread_data[j].start = 0;
       thread_data[j].reader = &thread_data[sender];
       thread_data[j].readers = thread_data[sender].readers;
+      thread_data[j].other_count = other_count;
       // printf("Setting up sender thread %d %d to sender %d\n", j, receiver_index, sender);
       for (int n = sender; n < sender + writers_count; n++) {
+        printf("assigned reader %d to sender %d\n", receiver_index, n);
         thread_data[n].readers[receiver_index] = &thread_data[j];
       }
     }
@@ -377,7 +379,7 @@ int main() {
     // printf("Inspecting sender %d\n", receiver);
     for (int y = 0 ; y < buffer_size; y++) {
       int compcount = 0;
-      for (int n = 0 ; n < 2 ; n++) {
+      for (int n = 0 ; n < other_count ; n++) {
 
         if (thread_data[sender].data[y].complete[n] == 1) {
           compcount++;
