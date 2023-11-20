@@ -7,7 +7,11 @@ This repository has:
  * a [simple summary](https://github.com/samsquire/assembly/blob/main/assembly/README.md) of what I've learned programming in assembly
  * Marce Coll's tweaked coroutines assembly coroutinesdirect.S
 
-# multibarrier
+|File|Description|
+|---|---|
+|disruptor-multi.c|1 writer thread and 2 consumer threads|
+|disruptor-multi-producer|2 producer threads and 1 consumer threads. This is not thread safe yet.|
+|disruptor-multi-consumer|2 producer threads and 2 consumer threads. This is not thread safe yet.|
 
 
 
