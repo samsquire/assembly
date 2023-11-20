@@ -11,7 +11,7 @@ This repository has:
 |---|---|
 |disruptor-multi.c|1 writer thread and 2 consumer threads|
 |disruptor-multi-producer|2 producer threads and 1 consumer threads. This is not thread safe yet.|
-|disruptor-multi-consumer|2 producer threads and 2 consumer threads. This is not thread safe yet.|
+|disruptor-multi-consumer|2 producer threads and 2 consumer threads. I have attempted to make this thread safe but I need to think on it longer.|
 
 
 
