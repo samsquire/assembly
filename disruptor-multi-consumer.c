@@ -123,9 +123,9 @@ void * disruptor_thread(void * arg) {
               }
               // __atomic_store(&me->realend, &changed, __ATOMIC_RELEASE);
               // me->realend = changed;
-              clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
               int result =  0;
-              while (!(result = __atomic_compare_exchange (&me->realend, &original, &new, 0, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED))) {
+              while (!(result = __atomic_compare_exchange (&me->realend, &original, &new, 0, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))) {
+                // asm volatile ("sfence" ::: "memory");
 
                 original = me->realend;
                 tag = (original & TAG_MASK);
@@ -139,8 +139,9 @@ void * disruptor_thread(void * arg) {
                 // asm volatile ("sfence" ::: "memory");
               }        
               if (result) {
+                clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
                 me->data[changed].written = me->other_count;
-                asm volatile ("sfence" ::: "memory");
+                // __atomic_store_n(&me->data[changed].written, me->other_count, __ATOMIC_SEQ_CST);
               }
               // changed = me->end;
               // printf("%d trying to write...\n", data->thread_index);
@@ -164,7 +165,7 @@ void * disruptor_thread(void * arg) {
     while (data->running == 1) {
       // asm volatile ("sfence" ::: "memory");
       // printf("reading %d\n", data->thread_index); 
-      int pos = ((sender->realend & END_MASK) >> 32);
+      int pos = ((__atomic_load_n(&sender->realend, __ATOMIC_SEQ_CST) & END_MASK) >> 32);
       if (pos == data->start) {
         // printf("Empty %ld %d %d %d\n", sender->realend, data->start, data->thread_index, data->reader_index); 
         // if (data->running == 2) { data->running = -1; }
@@ -172,7 +173,7 @@ void * disruptor_thread(void * arg) {
       } else {
         //for (int x = data->start; x < sender->end ; x++) {
           int changed = data->start;
-          if (rdata[changed].written > 0) {
+          if (__atomic_load_n(&rdata[changed].written, __ATOMIC_SEQ_CST) > 0) {
           // if (data->start % data->other_count == data->multiple) {
             // printf("%d %d\n", sender->start, sender->start % data->other_count == data->multiple);
               clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end[data->reader_index]);
@@ -181,7 +182,7 @@ void * disruptor_thread(void * arg) {
               data->start = (changed + 1) % data->size;
               // printf("next is %d\n", me);
               // asm volatile ("sfence" ::: "memory");
-              __atomic_sub_fetch(&rdata[changed].written, 1, __ATOMIC_RELAXED);
+              __atomic_sub_fetch(&rdata[changed].written, 1, __ATOMIC_SEQ_CST);
           }
           // }
         //}
