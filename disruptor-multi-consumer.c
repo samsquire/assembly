@@ -140,6 +140,7 @@ void * disruptor_thread(void * arg) {
               }        
               if (result) {
                 me->data[changed].written = me->other_count;
+                asm volatile ("sfence" ::: "memory");
               }
               // changed = me->end;
               // printf("%d trying to write...\n", data->thread_index);

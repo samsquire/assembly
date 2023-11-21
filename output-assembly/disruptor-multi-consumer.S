@@ -808,14 +808,14 @@ void * disruptor_thread(void * arg) {
     1952:	48 89 fb             	mov    %rdi,%rbx
   if (data->mode == WRITER) {
     1955:	85 c0                	test   %eax,%eax
-    1957:	0f 85 15 01 00 00    	jne    1a72 <disruptor_thread+0x132>
+    1957:	0f 85 18 01 00 00    	jne    1a75 <disruptor_thread+0x135>
     struct Thread *me = data->sender;
     195d:	4c 8b 67 08          	mov    0x8(%rdi),%r12
     while (data->running == 1) {
     1961:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     1968:	8b 83 98 01 00 00    	mov    0x198(%rbx),%eax
     196e:	83 f8 01             	cmp    $0x1,%eax
-    1971:	0f 85 f0 00 00 00    	jne    1a67 <disruptor_thread+0x127>
+    1971:	0f 85 f3 00 00 00    	jne    1a6a <disruptor_thread+0x12a>
       asm volatile ("sfence" ::: "memory");
     1977:	0f ae f8             	sfence
       long pos = (((me->realend & END_MASK) >> 32) + 1) % data->size;
@@ -884,29 +884,31 @@ void * disruptor_thread(void * arg) {
     1a43:	49 8b 44 24 18       	mov    0x18(%r12),%rax
     1a48:	41 8b 94 24 08 02 00 00 	mov    0x208(%r12),%edx
     1a50:	42 89 94 28 80 01 00 00 	mov    %edx,0x180(%rax,%r13,1)
+                asm volatile ("sfence" ::: "memory");
+    1a58:	0f ae f8             	sfence
     while (data->running == 1) {
-    1a58:	8b 83 98 01 00 00    	mov    0x198(%rbx),%eax
-    1a5e:	83 f8 01             	cmp    $0x1,%eax
-    1a61:	0f 84 10 ff ff ff    	je     1977 <disruptor_thread+0x37>
+    1a5b:	8b 83 98 01 00 00    	mov    0x198(%rbx),%eax
+    1a61:	83 f8 01             	cmp    $0x1,%eax
+    1a64:	0f 84 0d ff ff ff    	je     1977 <disruptor_thread+0x37>
 }
-    1a67:	5b                   	pop    %rbx
-    1a68:	31 c0                	xor    %eax,%eax
-    1a6a:	5d                   	pop    %rbp
-    1a6b:	41 5c                	pop    %r12
-    1a6d:	41 5d                	pop    %r13
-    1a6f:	41 5e                	pop    %r14
-    1a71:	c3                   	ret
+    1a6a:	5b                   	pop    %rbx
+    1a6b:	31 c0                	xor    %eax,%eax
+    1a6d:	5d                   	pop    %rbp
+    1a6e:	41 5c                	pop    %r12
+    1a70:	41 5d                	pop    %r13
+    1a72:	41 5e                	pop    %r14
+    1a74:	c3                   	ret
   } else if (data->mode == READER) {
-    1a72:	8b 87 88 01 00 00    	mov    0x188(%rdi),%eax
-    1a78:	83 f8 01             	cmp    $0x1,%eax
-    1a7b:	75 ea                	jne    1a67 <disruptor_thread+0x127>
+    1a75:	8b 87 88 01 00 00    	mov    0x188(%rdi),%eax
+    1a7b:	83 f8 01             	cmp    $0x1,%eax
+    1a7e:	75 ea                	jne    1a6a <disruptor_thread+0x12a>
     struct Thread *sender = data->sender;
-    1a7d:	4c 8b 67 08          	mov    0x8(%rdi),%r12
+    1a80:	4c 8b 67 08          	mov    0x8(%rdi),%r12
     struct Snapshot * rdata = sender->data;
-    1a81:	4d 8b 74 24 18       	mov    0x18(%r12),%r14
+    1a84:	4d 8b 74 24 18       	mov    0x18(%r12),%r14
     while (data->running == 1) {
-    1a86:	eb 1f                	jmp    1aa7 <disruptor_thread+0x167>
-    1a88:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    1a89:	eb 1c                	jmp    1aa7 <disruptor_thread+0x167>
+    1a8b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
       int pos = ((sender->realend & END_MASK) >> 32);
     1a90:	49 63 84 24 84 01 00 00 	movslq 0x184(%r12),%rax
       if (pos == data->start) {
@@ -920,7 +922,7 @@ void * disruptor_thread(void * arg) {
     1aa7:	8b 83 98 01 00 00    	mov    0x198(%rbx),%eax
     1aad:	83 f8 01             	cmp    $0x1,%eax
     1ab0:	74 de                	je     1a90 <disruptor_thread+0x150>
-    1ab2:	eb b3                	jmp    1a67 <disruptor_thread+0x127>
+    1ab2:	eb b6                	jmp    1a6a <disruptor_thread+0x12a>
               changed = (((original & END_MASK) >> 32) + 1) % me->size;
     1ab4:	4c 89 c0             	mov    %r8,%rax
               long new = (data->thread_tag) | (changed << 32);
