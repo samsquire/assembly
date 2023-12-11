@@ -1,0 +1,36 @@
+digraph G {
+"literal 6 (rdi)" [style=filled,fillcolor=#19a516]
+"literal 6 (rdi)" -> "add literal 6, literal 7 (rsi)"
+"add literal 6, literal 7 (rsi)" [style=filled,fillcolor=#f64b49]
+"add literal 6, literal 7 (rsi)" -> "literal 6 (rdi)"
+"add literal 6, literal 7 (rsi)" -> "literal 7 (rax)"
+"add literal 6, literal 7 (rsi)" -> "assign a = add literal 6, literal 7 (rdx)"
+"literal 7 (rax)" [style=filled,fillcolor=#315bb6]
+"literal 7 (rax)" -> "add literal 6, literal 7 (rsi)"
+"assign a = add literal 6, literal 7 (rdx)" [style=filled,fillcolor=#afe838]
+"assign a = add literal 6, literal 7 (rdx)" -> "add literal 6, literal 7 (rsi)"
+"assign a = add literal 6, literal 7 (rdx)" -> "ref a (rsi)"
+"literal 8 (rcx)" [style=filled,fillcolor=#ea3d9e]
+"literal 8 (rcx)" -> "assign b = literal 8 (rdi)"
+"assign b = literal 8 (rdi)" [style=filled,fillcolor=#19a516]
+"assign b = literal 8 (rdi)" -> "literal 8 (rcx)"
+"assign b = literal 8 (rdi)" -> "ref b (rax)"
+"ref a (rsi)" [style=filled,fillcolor=#f64b49]
+"ref a (rsi)" -> "assign a = add literal 6, literal 7 (rdx)"
+"ref a (rsi)" -> "add ref b, ref a (rdx)"
+"ref b (rax)" [style=filled,fillcolor=#315bb6]
+"ref b (rax)" -> "assign b = literal 8 (rdi)"
+"ref b (rax)" -> "add ref b, ref a (rdx)"
+"add ref b, ref a (rdx)" [style=filled,fillcolor=#afe838]
+"add ref b, ref a (rdx)" -> "ref a (rsi)"
+"add ref b, ref a (rdx)" -> "ref b (rax)"
+"add ref b, ref a (rdx)" -> "assign m = add ref b, ref a (rcx)"
+"assign m = add ref b, ref a (rcx)" [style=filled,fillcolor=#ea3d9e]
+"assign m = add ref b, ref a (rcx)" -> "add ref b, ref a (rdx)"
+"assign m = add ref b, ref a (rcx)" -> "ref m (rdi)"
+"ref m (rdi)" [style=filled,fillcolor=#19a516]
+"ref m (rdi)" -> "assign m = add ref b, ref a (rcx)"
+"ref m (rdi)" -> "print ref m (rsi)"
+"print ref m (rsi)" [style=filled,fillcolor=#f64b49]
+"print ref m (rsi)" -> "ref m (rdi)"
+}
