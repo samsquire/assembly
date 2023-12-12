@@ -1,0 +1,12 @@
+strict digraph DiskGraph {
+node [shape=box,style=rounded]
+nodesep=0.35;
+subgraph cluster_graph {
+color="white";
+-8966003369997992322 [label="/\\ threads = << [type |-> \"writer\", start |-> 0, endr |-> 0],\n   [type |-> \"reader\", start |-> 0, endr |-> 0],\n   [type |-> \"reader\", start |-> 0, endr |-> 0] >>\n/\\ sent = {[Reader |-> \"not-read\", Writer |-> \"written\"]}\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>",style = filled]
+-8966003369997992322 -> -8966003369997992322 [label="",color="black",fontcolor="black"];
+-8966003369997992322 -> -8966003369997992322 [label="",color="black",fontcolor="black"];
+-8966003369997992322 -> -8966003369997992322 [label="",color="black",fontcolor="black"];
+{rank = same; -8966003369997992322;}
+}
+}
