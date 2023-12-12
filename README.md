@@ -4,6 +4,7 @@ This repository has:
 
  * a nonblocking barrier runtime: no mutexes in C
  * an LMAX Disruptor inspired ringbuffer in C
+ * the beginnings of some TLA+ modules to try work out if my multithreaded algorithm is correct.
  * a [simple summary](https://github.com/samsquire/assembly/blob/main/assembly/README.md) of what I've learned programming in assembly
  * Marce Coll's tweaked coroutines assembly coroutinesdirect.S
 
