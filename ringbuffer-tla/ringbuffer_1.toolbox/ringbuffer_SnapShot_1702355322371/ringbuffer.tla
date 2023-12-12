@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 04:38:34 GMT 2023 by samue
+\* Last modified Tue Dec 12 04:28:34 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC
@@ -141,13 +141,13 @@ Init == (* Global variables *)
 \*              /\ UNCHANGED hungry
 
 Check(self) == /\ IF threads[self].type = "writer"
-                   THEN /\ pc[self] = "WriterCheck"
+                   THEN /\ pc'[self] = "WriterCheck"
                         /\ threads' = threads
                         /\ sent' = sent
                         /\ pc' = pc
                         
                    ELSE \/ IF threads[self].type = "reader"
-                           THEN /\ pc[self] = "ReaderCheck"
+                           THEN /\ pc'[self] = "ReaderCheck"
                                 /\ threads' = threads
                                 /\ sent' = sent
                                 /\ pc' = pc
@@ -164,6 +164,8 @@ Next == (\E self \in 1..NThreads: Thread(self))
 
 ----
 
+EndAboveStart == \A thread \in threads:
+                        threads[thread].start >= threads[0].endr
 
 AllRead ==
    \A item \in sent:
@@ -173,7 +175,5 @@ AllRead ==
 Spec == /\ Init /\ [][Next]_vars
         /\ \A self \in 1..NThreads : WF_vars(Thread(self))
         
-EndAboveStart == \A thread \in 1..NThreads:
-                       /\ threads[thread].endr > threads[thread].start
         
 ====
