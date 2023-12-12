@@ -144,7 +144,6 @@ This barrier creates the following rhythm. The threads can arrive in any order, 
 
 ```
 
-<<<<<<< HEAD
 See [volatile considered harmful](https://www.kernel.org/doc/html/latest/process/volatile-considered-harmful.html).
 
 These algorithms use memory barriers and happens before relationships. I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
@@ -158,28 +157,6 @@ LMAX Disruptor can transmit a message between threads with average latency of 53
 This assumes there is a thread busy spinning on a sequence number and waiting for it to become available when another thread (a producer) has written it.
 
 The `multibarrier-prearrive` latencies:
-
-=======
-In other words, when a function begins, you have a reference to the previous function's base pointer and the stack which is free from. Between the %rbp and the %rsp is the previous frame's data.
-
-The stack format is this:
-
-```
-CRT address
-function1 frame start in %rbp	# push %rbp
-function1 RIP					# call function2
-function1 frame start 			# push %rbp
-function2 RIP					# call function3
-function2 frame start			# puhs %rbp
-
-```
-
-
-
-
-
-To deference a pointer of a local variable
->>>>>>> 30d6c54 (Sam ringbuffer tla+ spec)
 
 ```
 2 tasks (1) synchronized in 0 seconds 0 milliseconds 42 nanoseconds
