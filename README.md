@@ -14,7 +14,7 @@ This repository has:
 |disruptor-multi-producer.c|2 producer threads and 1 consumer threads. This is not thread safe yet.|
 |disruptor-multi-consumer.c|2 producer threads and 2 consumer threads. I have attempted to make this thread safe but I need to think on it longer.|
 |multibarrier.c|6 threads that all wait for eachother, mass synchronization|
-
+|multibarrier-prearrive-nv.c|The same multibarrier with 6 threads wait wait for eachother|
 # multithreaded nonblocking barrier-runtime
 # nonblocking-prearrive
 
