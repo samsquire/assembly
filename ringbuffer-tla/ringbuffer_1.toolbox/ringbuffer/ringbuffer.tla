@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 04:38:34 GMT 2023 by samue
+\* Last modified Tue Dec 12 05:31:14 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC
@@ -13,9 +13,10 @@ CONSTANTS
     NThreads,
     assigned
     
-VARIABLES sent, threads
+VARIABLES sent, threads, pc
 
-vars == << sent, threads >>
+
+vars == << sent, threads, pc >>
 
 ASSUME
     /\ NThreads \in Nat \ {0}
@@ -95,7 +96,7 @@ end process;
         
 end algorithm; *)
 
-VARIABLES pc
+
 
 ProcSet == (1..NThreads)
 
@@ -114,7 +115,10 @@ Init == (* Global variables *)
             endr |-> 0
         ]
       ]
-   /\ sent = {}
+   /\ sent = {[
+            Reader |-> "not-read",
+            Writer |-> "written"
+        ]}
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -146,7 +150,7 @@ Check(self) == /\ IF threads[self].type = "writer"
                         /\ sent' = sent
                         /\ pc' = pc
                         
-                   ELSE \/ IF threads[self].type = "reader"
+                   ELSE /\ IF threads[self].type = "reader"
                            THEN /\ pc[self] = "ReaderCheck"
                                 /\ threads' = threads
                                 /\ sent' = sent
@@ -154,6 +158,7 @@ Check(self) == /\ IF threads[self].type = "writer"
                            ELSE /\ threads' = threads
                                 /\ sent' = sent
                                 /\ pc' = pc
+                
 
 
 
@@ -165,15 +170,15 @@ Next == (\E self \in 1..NThreads: Thread(self))
 ----
 
 
-AllRead ==
-   \A item \in sent:
-        /\ item.Reader = "read" 
+
 
 
 Spec == /\ Init /\ [][Next]_vars
         /\ \A self \in 1..NThreads : WF_vars(Thread(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
-                       /\ threads[thread].endr > threads[thread].start
-        
+                       /\ threads[thread].endr >= threads[thread].start
+AllRead ==
+   \A item \in sent:
+        /\ item.Reader = "read"         
 ====

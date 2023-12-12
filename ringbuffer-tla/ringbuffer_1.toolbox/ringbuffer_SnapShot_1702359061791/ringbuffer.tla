@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 05:31:14 GMT 2023 by samue
+\* Last modified Tue Dec 12 05:30:56 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC
@@ -180,5 +180,5 @@ EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[thread].endr >= threads[thread].start
 AllRead ==
    \A item \in sent:
-        /\ item.Reader = "read"         
+        /\ item.Reader = "not-read"         
 ====

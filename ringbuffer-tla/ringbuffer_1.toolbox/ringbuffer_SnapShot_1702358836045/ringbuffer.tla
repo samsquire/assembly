@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 05:31:14 GMT 2023 by samue
+\* Last modified Tue Dec 12 05:27:10 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC
@@ -14,7 +14,6 @@ CONSTANTS
     assigned
     
 VARIABLES sent, threads, pc
-
 
 vars == << sent, threads, pc >>
 
@@ -115,10 +114,10 @@ Init == (* Global variables *)
             endr |-> 0
         ]
       ]
-   /\ sent = {[
+   /\ sent = sent \union [
             Reader |-> "not-read",
             Writer |-> "written"
-        ]}
+        ]
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -180,5 +179,5 @@ EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[thread].endr >= threads[thread].start
 AllRead ==
    \A item \in sent:
-        /\ item.Reader = "read"         
+        /\ item.Reader = "not-read"         
 ====

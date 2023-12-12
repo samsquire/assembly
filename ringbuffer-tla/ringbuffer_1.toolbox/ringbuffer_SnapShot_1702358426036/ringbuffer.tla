@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 05:31:14 GMT 2023 by samue
+\* Last modified Tue Dec 12 05:13:45 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC
@@ -13,10 +13,9 @@ CONSTANTS
     NThreads,
     assigned
     
-VARIABLES sent, threads, pc
+VARIABLES sent, threads
 
-
-vars == << sent, threads, pc >>
+vars == << sent, threads >>
 
 ASSUME
     /\ NThreads \in Nat \ {0}
@@ -96,7 +95,7 @@ end process;
         
 end algorithm; *)
 
-
+VARIABLES pc
 
 ProcSet == (1..NThreads)
 
@@ -115,10 +114,10 @@ Init == (* Global variables *)
             endr |-> 0
         ]
       ]
-   /\ sent = {[
+   /\ sent = [
             Reader |-> "not-read",
             Writer |-> "written"
-        ]}
+        ]
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
