@@ -1,4 +1,4 @@
-# multithreaded nonblocking barrier-runtime
+# assembly projects
 
 This repository has:
 
@@ -10,11 +10,11 @@ This repository has:
 |File|Description|
 |---|---|
 |disruptor-multi.c|1 writer thread and 2 consumer threads|
-|disruptor-multi-producer|2 producer threads and 1 consumer threads. This is not thread safe yet.|
-|disruptor-multi-consumer|2 producer threads and 2 consumer threads. I have attempted to make this thread safe but I need to think on it longer.|
+|disruptor-multi-producer.c|2 producer threads and 1 consumer threads. This is not thread safe yet.|
+|disruptor-multi-consumer.c|2 producer threads and 2 consumer threads. I have attempted to make this thread safe but I need to think on it longer.|
+|multibarrier.c|6 threads that all wait for eachother, mass synchronization|
 
-
-
+# multithreaded nonblocking barrier-runtime
 # nonblocking-prearrive
 
 This is my [Samuel Michael Squire](https://samsquire.com/), sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
