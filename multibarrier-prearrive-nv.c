@@ -1052,8 +1052,15 @@ int main() {
     thread_data[x].other = other;
     // for (int j = 0 ; j < cores ; j++) {
       printf("assigning thread %d to core %d\n", x, curcpu);
-      CPU_SET(curcpu, sendercpu);
-      curcpu += 2;
+      if (x < thread_count) {
+        CPU_SET(curcpu, sendercpu);
+        curcpu += 2;
+      } else {
+        for (int j = 0 ; j < cores ; j++) {
+          CPU_SET(j, sendercpu);
+        }
+      }
+      
     // }
     thread_data[x].cpu_set = sendercpu;
     thread_data[x].real_thread_index = x;
