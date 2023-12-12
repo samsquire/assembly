@@ -976,7 +976,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int thread_count = 12;
+  int thread_count = 6;
   int timer_count = 1;
   int io_threads = 1;
   int external_threads = 1;
@@ -1041,10 +1041,11 @@ int main() {
     }
     printf("i am %d, other is %d my thread index is %d\n", x, other, thread_data[x].thread_index);
     thread_data[x].other = other;
-    for (int j = 0 ; j < cores / 2 ; j++) {
-      printf("assigning thread %d to core %d\n", x, j);
-      CPU_SET(j, sendercpu);
-    }
+    // for (int j = 0 ; j < core ; j++) {
+      printf("assigning thread %d to core %d\n", x, curcpu);
+      CPU_SET(curcpu, sendercpu);
+    // }
+    curcpu += 2;
     thread_data[x].cpu_set = sendercpu;
     thread_data[x].real_thread_index = x;
     thread_data[x].threads = my_thread_data;
