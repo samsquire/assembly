@@ -365,7 +365,11 @@ The apostrophe after a variable represents the changed result.
 Check(Self) == /\ a /\ b /\ c
 ```
 
+## Ringbuffer Model
 
+![modeloverview.png](screenshots/modeloverview.png)
+
+![modeloverview.png](screenshots/modelresults.png)
 
 ```
 ```

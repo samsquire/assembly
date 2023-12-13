@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 19:59:37 GMT 2023 by samue
+\* Last modified Wed Dec 13 20:01:51 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -40,9 +40,10 @@ variables
         thread \in 1..NThreads |-> [
         \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 0,
-            endr |-> 0,
-            full |-> FALSE
+            start |-> 1,
+            endr |-> 1,
+            full |-> FALSE,
+            empty |-> FALSE
         ]
     ];
 
@@ -110,7 +111,7 @@ ReaderNotEmpty:
 end process;
         
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "7bd69e61" /\ chksum(tla) = "ff248f8f")
+\* BEGIN TRANSLATION (chksum(pcal) = "2170355a" /\ chksum(tla) = "2ce7d5ff")
 VARIABLES sent, types, threads, pc
 
 (* define statement *)
@@ -133,9 +134,10 @@ Init == (* Global variables *)
                          thread \in 1..NThreads |-> [
                      
                              type |-> assigned[thread],
-                             start |-> 0,
-                             endr |-> 0,
-                             full |-> FALSE
+                             start |-> 1,
+                             endr |-> 1,
+                             full |-> FALSE,
+                             empty |-> FALSE
                          ]
                      ]
         /\ pc = [self \in ProcSet |-> "WriterCheck"]
