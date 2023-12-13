@@ -5,12 +5,12 @@ CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
 IMGS=$(patsubst %.dot,%.png,$(DOTFILES))
 OBJ=$(patsubst %.c,%,$(CFILES))
-all: $(OBJ)
+all: $(OBJ) $(IMGS)
 %: %.c 
 	$(CC) -o $@ $< $(CFLAGS)
 	objdump -drwC  -S $@ > output-assembly/$@.S
 
-%.png: %.dot
+ringbuffer-tla/%.png: ringbuffer-tla/%.dot
 	dot -Tpng -o $@ $<
 
 default: $(OBJ) $(IMGS)
