@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:08:06 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:25:53 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -115,15 +115,20 @@ ProcSet == (1..NThreads)
 Init == (* Global variables *)
     /\ counter = "init"
     /\ step = 0
+    /\ sent = [
+        thread \in 1..size |-> [
+               Writer |-> "not-written",
+               Reader |-> "not-read"
+        ]
+      ]
     /\ threads = [
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 0,
-            endr |-> 0
+            start |-> 1,
+            endr |-> 1
         ]
       ]
-   /\ sent = <<>>
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -170,9 +175,9 @@ Check(self) == IF step < 10000
                            THEN 
                                (* [s EXCEPT ![1] = FALSE] *)
                                 /\ threads' = [threads EXCEPT ![1] = [
-                                    endr |-> (threads[1].endr + 1) % size,
+                                    endr |-> 1 + ((threads[1].endr + 1) % size),
                                     type |-> (threads[1].type),
-                                    start |-> (threads[1].type)
+                                    start |-> (threads[1].start)
                                    ]]
                                 /\ sent' = [sent EXCEPT ![threads[1].endr] = [
                                     Writer |-> "written",
@@ -192,15 +197,14 @@ Check(self) == IF step < 10000
                             THEN 
                                 
                                 /\ threads' = [threads EXCEPT ![self] = [
-                                    start |-> (threads[self].start + 1) % size,
+                                    start |-> 1 + ((threads[self].start + 1) % size),
                                     type |-> (threads[self].type),
                                     endr |-> (threads[self].endr) 
                                    ]]
-                                /\ sent' = [sent' EXCEPT ![threads[self].start] = [
-                                        Writer |-> "read"
-                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
                                 /\ pc' = pc
                                 /\ step' = step
+                                /\ counter = "read"
                             ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
