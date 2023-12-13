@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 23:18:05 GMT 2023 by samue
+\* Last modified Wed Dec 13 23:16:57 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -79,7 +79,7 @@ WriterFull:
 
 WriterWrite:
         if threads[1].full = FALSE then
-           sent[(1 + (threads[1].endr + 1)) % sizeN] := [
+           sent[(threads[1].endr + 1) % sizeN] := [
                 Reader |-> "not-read",
                 Writer |-> "written"
             ];
@@ -112,7 +112,7 @@ ReaderNotEmpty:
 end process;
         
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "55e8b23c" /\ chksum(tla) = "317a46b2")
+\* BEGIN TRANSLATION (chksum(pcal) = "67120d47" /\ chksum(tla) = "22ca059b")
 VARIABLES sent, types, threads, pc
 
 (* define statement *)
@@ -182,10 +182,10 @@ ReaderEmpty(self) == /\ pc[self] = "ReaderEmpty"
 
 WriterWrite(self) == /\ pc[self] = "WriterWrite"
                      /\ IF threads[1].full = FALSE
-                           THEN /\ sent' = [sent EXCEPT ![(1 + (threads[1].endr + 1)) % sizeN] =                                             [
-                                                                                                     Reader |-> "not-read",
-                                                                                                     Writer |-> "written"
-                                                                                                 ]]
+                           THEN /\ sent' = [sent EXCEPT ![(threads[1].endr + 1) % sizeN] =                                       [
+                                                                                               Reader |-> "not-read",
+                                                                                               Writer |-> "written"
+                                                                                           ]]
                                 /\ threads' = [threads EXCEPT ![1].endr = 1 + ((threads[1].endr + 1) % sizeN)]
                            ELSE /\ TRUE
                                 /\ UNCHANGED << sent, threads >>
