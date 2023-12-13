@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:55:59 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:59:49 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -160,7 +160,7 @@ Init == (* Global variables *)
 Full(self) == \A thread \in 2..NThreads:
                     \/ threads[thread].start = (1 + ((threads[1].endr + 1) % size))
 
-Empty(self) == /\ threads[self].start = threads[1].endr
+Empty(self) == threads[self].start = threads[1].endr
 
 \*/\ IF ~(Len(sent) = size) THEN
 \*                    /\ threads' = threads
@@ -200,7 +200,8 @@ CheckWriter(self) == IF step < 10000
                         /\ step' = step
            
                     
-CheckReader(self) == IF step < 10000
+CheckReader(self) == IF self > 1
+                            
                         THEN IF ~Empty(self)
                             THEN 
                                 

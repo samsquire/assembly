@@ -3,45 +3,77 @@ node [shape=box,style=rounded]
 nodesep=0.35;
 subgraph cluster_graph {
 color="white";
-8575854053410491185 [label="/\\ counter = \"init\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>",style = filled]
-8575854053410491185 -> -319504819257083475 [label="",color="black",fontcolor="black"];
--319504819257083475 [label="/\\ counter = \"empty-cannot-read\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
-8575854053410491185 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
-6017930998504999431 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 3],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
-8575854053410491185 -> -319504819257083475 [label="",color="black",fontcolor="black"];
-8575854053410491185 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
-8575854053410491185 -> -319504819257083475 [label="",color="black",fontcolor="black"];
-8575854053410491185 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
--319504819257083475 -> -319504819257083475 [label="",color="black",fontcolor="black"];
--319504819257083475 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
--319504819257083475 -> -319504819257083475 [label="",color="black",fontcolor="black"];
--319504819257083475 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
--319504819257083475 -> -319504819257083475 [label="",color="black",fontcolor="black"];
--319504819257083475 -> 6017930998504999431 [label="",color="black",fontcolor="black"];
-6017930998504999431 -> 4520288736078588196 [label="",color="black",fontcolor="black"];
-4520288736078588196 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 5],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
-6017930998504999431 -> 4520288736078588196 [label="",color="black",fontcolor="black"];
-6017930998504999431 -> 4520288736078588196 [label="",color="black",fontcolor="black"];
-4520288736078588196 -> -5201274984305809639 [label="",color="black",fontcolor="black"];
--5201274984305809639 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 2],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
-4520288736078588196 -> -5201274984305809639 [label="",color="black",fontcolor="black"];
-4520288736078588196 -> -5201274984305809639 [label="",color="black",fontcolor="black"];
--5201274984305809639 -> 6342678876519163561 [label="",color="black",fontcolor="black"];
-6342678876519163561 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 4],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
--5201274984305809639 -> 6342678876519163561 [label="",color="black",fontcolor="black"];
--5201274984305809639 -> 6342678876519163561 [label="",color="black",fontcolor="black"];
-6342678876519163561 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-6827170466445832210 [label="/\\ counter = \"full-cannot-write\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 4],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
-6342678876519163561 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-6342678876519163561 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-6827170466445832210 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-6827170466445832210 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-6827170466445832210 -> 6827170466445832210 [label="",color="black",fontcolor="black"];
-{rank = same; 8575854053410491185;}
-{rank = same; -319504819257083475;6017930998504999431;}
-{rank = same; 4520288736078588196;}
-{rank = same; -5201274984305809639;}
-{rank = same; 6342678876519163561;}
-{rank = same; 6827170466445832210;}
+-6051863665710841670 [label="/\\ counter = \"init\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>",style = filled]
+-6051863665710841670 -> -7301710579168545868 [label="",color="black",fontcolor="black"];
+-7301710579168545868 [label="/\\ counter = \"some-other-type\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-6051863665710841670 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-3811290044787897827 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 3],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-6051863665710841670 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-8696813682197944328 [label="/\\ counter = \"empty-cannot-read\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-6051863665710841670 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-6051863665710841670 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-6051863665710841670 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -7301710579168545868 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-7301710579168545868 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-3811290044787897827 -> 8738069913012881732 [label="",color="black",fontcolor="black"];
+8738069913012881732 [label="/\\ counter = \"some-other-type\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 3],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-3811290044787897827 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+4515342442379867883 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 5],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-3811290044787897827 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+-3811290044787897827 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -7301710579168545868 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -8696813682197944328 [label="",color="black",fontcolor="black"];
+-8696813682197944328 -> -3811290044787897827 [label="",color="black",fontcolor="black"];
+8738069913012881732 -> 8738069913012881732 [label="",color="black",fontcolor="black"];
+8738069913012881732 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+8738069913012881732 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+8738069913012881732 -> 4515342442379867883 [label="",color="black",fontcolor="black"];
+4515342442379867883 -> -5485904536235013221 [label="",color="black",fontcolor="black"];
+-5485904536235013221 [label="/\\ counter = \"some-other-type\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 5],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+4515342442379867883 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+-7585305283460969439 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 2],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+4515342442379867883 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+4515342442379867883 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+-5485904536235013221 -> -5485904536235013221 [label="",color="black",fontcolor="black"];
+-5485904536235013221 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+-5485904536235013221 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+-5485904536235013221 -> -7585305283460969439 [label="",color="black",fontcolor="black"];
+-7585305283460969439 -> -7798450948328355687 [label="",color="black",fontcolor="black"];
+-7798450948328355687 [label="/\\ counter = \"some-other-type\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 2],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-7585305283460969439 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+7348867688765914453 [label="/\\ counter = \"written-step\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 4],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+-7585305283460969439 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+-7585305283460969439 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+-7798450948328355687 -> -7798450948328355687 [label="",color="black",fontcolor="black"];
+-7798450948328355687 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+-7798450948328355687 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+-7798450948328355687 -> 7348867688765914453 [label="",color="black",fontcolor="black"];
+7348867688765914453 -> 171811459985555876 [label="",color="black",fontcolor="black"];
+171811459985555876 [label="/\\ counter = \"some-other-type\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 4],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+7348867688765914453 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+-8576310138225346065 [label="/\\ counter = \"full-cannot-write\"\n/\\ threads = << [type |-> \"writer\", start |-> 1, endr |-> 4],\n   [type |-> \"reader\", start |-> 1, endr |-> 1],\n   [type |-> \"reader\", start |-> 1, endr |-> 1] >>\n/\\ step = 0\n/\\ sent = << [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"],\n   [Writer |-> \"not-written\", Reader |-> \"not-read\"],\n   [Writer |-> \"written\", Reader |-> \"not-read\"] >>\n/\\ pc = <<\"WriterCheck\", \"ReaderCheck\", \"ReaderCheck\">>"];
+7348867688765914453 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+7348867688765914453 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+171811459985555876 -> 171811459985555876 [label="",color="black",fontcolor="black"];
+171811459985555876 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+171811459985555876 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+171811459985555876 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+-8576310138225346065 -> 171811459985555876 [label="",color="black",fontcolor="black"];
+-8576310138225346065 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+-8576310138225346065 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+-8576310138225346065 -> -8576310138225346065 [label="",color="black",fontcolor="black"];
+{rank = same; -6051863665710841670;}
+{rank = same; -7301710579168545868;-8696813682197944328;-3811290044787897827;}
+{rank = same; 8738069913012881732;4515342442379867883;}
+{rank = same; -5485904536235013221;-7585305283460969439;}
+{rank = same; -7798450948328355687;7348867688765914453;}
+{rank = same; -8576310138225346065;171811459985555876;}
 }
 }
