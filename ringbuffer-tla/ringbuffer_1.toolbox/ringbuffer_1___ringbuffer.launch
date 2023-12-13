@@ -5,13 +5,13 @@
     <stringAttribute key="distributedNetworkInterface" value="10.0.2.1"/>
     <intAttribute key="distributedNodesCount" value="1"/>
     <stringAttribute key="distributedTLC" value="off"/>
-    <intAttribute key="fpIndex" value="127"/>
+    <intAttribute key="fpIndex" value="104"/>
     <intAttribute key="maxHeapSize" value="25"/>
     <stringAttribute key="modelBehaviorInit" value=""/>
     <stringAttribute key="modelBehaviorNext" value=""/>
     <stringAttribute key="modelBehaviorSpec" value="Spec"/>
     <intAttribute key="modelBehaviorSpecType" value="1"/>
-    <stringAttribute key="modelBehaviorVars" value="counter, threads, sent, pc"/>
+    <stringAttribute key="modelBehaviorVars" value="counter, threads, step, sent, pc"/>
     <stringAttribute key="modelComments" value=""/>
     <booleanAttribute key="modelCorrectnessCheckDeadlock" value="true"/>
     <listAttribute key="modelCorrectnessInvariants">
@@ -27,7 +27,7 @@
     <listAttribute key="modelParameterConstants">
         <listEntry value="NThreads;;3;0;0"/>
         <listEntry value="assigned;;&lt;&lt;&quot;writer&quot;, &quot;reader&quot;, &quot;reader&quot;&gt;&gt;;0;0"/>
-        <listEntry value="size;;10;0;0"/>
+        <listEntry value="size;;5;0;0"/>
     </listAttribute>
     <stringAttribute key="modelParameterContraint" value=""/>
     <listAttribute key="modelParameterDefinitions"/>
