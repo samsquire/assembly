@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:15:16 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:14:14 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -125,8 +125,8 @@ Init == (* Global variables *)
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 1,
-            endr |-> 1
+            start |-> 0,
+            endr |-> 0
         ]
       ]
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
@@ -206,7 +206,6 @@ Check(self) == IF step < 10000
                                    ]]
                                 /\ pc' = pc
                                 /\ step' = step
-                                /\ counter = "read"
                             ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent

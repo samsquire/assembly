@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 15:34:22 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:15:16 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -115,15 +115,20 @@ ProcSet == (1..NThreads)
 Init == (* Global variables *)
     /\ counter = "init"
     /\ step = 0
+    /\ sent = [
+        thread \in 1..size |-> [
+               Writer |-> "not-written",
+               Reader |-> "not-read"
+        ]
+      ]
     /\ threads = [
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 0,
-            endr |-> 0
+            start |-> 1,
+            endr |-> 1
         ]
       ]
-   /\ sent = <<>>
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -152,7 +157,7 @@ Init == (* Global variables *)
 
 
 Full(self) == \A thread \in 2..NThreads:
-                    /\ threads[thread].start = (threads[1].endr + 1) % size
+                    \/ threads[thread].start = (threads[1].endr + 1) % size
 
 Empty(self) == /\ threads[self].start = threads[1].endr
 
@@ -166,47 +171,54 @@ Empty(self) == /\ threads[self].start = threads[1].endr
 
 Check(self) == IF step < 10000
                THEN IF threads[self].type = "writer"
-                   THEN /\ IF ~Full(self)
-                           THEN /\ threads[1] = [
-                                    endr |-> (threads[1].endr + 1) % size 
-                                   ]
-                                /\ sent[threads[1].endr]' = [
+                   THEN IF ~Full(self)
+                           THEN 
+                               (* [s EXCEPT ![1] = FALSE] *)
+                                /\ threads' = [threads EXCEPT ![1] = [
+                                    endr |-> (threads[1].endr + 1) % size,
+                                    type |-> (threads[1].type),
+                                    start |-> (threads[1].type)
+                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[1].endr] = [
                                     Writer |-> "written",
                                     Reader |-> "not-read"
-                                   ]
+                                   ]]
                                 /\ pc' = pc
                                 /\ counter' = "written-step"
-                                /\ step' = step + 1
+                                /\ step' = step
                            ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
                             /\ counter' = "full-cannot-write"
-                            /\ step' = step + 1
+                            /\ step' = step
                   ELSE IF threads[self].type = "reader"
                        THEN IF ~Empty(self)
                             THEN 
-                                /\ PrintT(threads[self].start)
-                                /\ threads[self]' = [
-                                    start |-> (threads[self].start + 1) % size 
-                                   ]
-                                /\ sent[threads[self].start]' = [
+                                
+                                /\ threads' = [threads EXCEPT ![self] = [
+                                    start |-> (threads[self].start + 1) % size,
+                                    type |-> (threads[self].type),
+                                    endr |-> (threads[self].endr) 
+                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[self].start] = [
                                         Writer |-> "read"
-                                   ]
+                                   ]]
                                 /\ pc' = pc
-                                /\ step' = step + 1
+                                /\ step' = step
+                                /\ counter = "read"
                             ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
                             /\ counter' = "empty-cannot-read"
-                            /\ step' = step + 1
+                            /\ step' = step
                        ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
                             /\ counter' = "some-other-type"
-                            /\ step' = step + 1
+                            /\ step' = step
                 ELSE
                     /\ threads' = threads
                     /\ sent' = sent
