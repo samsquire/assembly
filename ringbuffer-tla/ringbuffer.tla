@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 23:18:05 GMT 2023 by samue
+\* Last modified Wed Dec 13 23:32:42 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -41,8 +41,8 @@ variables
         thread \in 1..NThreads |-> [
         \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 1,
-            endr |-> 1,
+            start |-> 0,
+            endr |-> 0,
             full |-> FALSE,
             empty |-> FALSE
         ]
@@ -52,7 +52,7 @@ variables
 define
 
 AnyFull(self) == \E otherThread \in 2..NThreads:
-        \/ (1 + ((threads[1].endr + 1) % sizeN)) = threads[otherThread].start
+        \/ ((((threads[1].endr + 1) % sizeN))) = threads[otherThread].start
 
 end define;           
 
@@ -79,11 +79,11 @@ WriterFull:
 
 WriterWrite:
         if threads[1].full = FALSE then
-           sent[(1 + (threads[1].endr + 1)) % sizeN] := [
+           sent[1 + (((threads[1].endr + 1) % sizeN))] := [
                 Reader |-> "not-read",
                 Writer |-> "written"
             ];
-            threads[1].endr := 1 + ((threads[1].endr + 1) % sizeN);
+            threads[1].endr := (((threads[1].endr + 1) % sizeN));
          
         end if;
     end if;
@@ -99,8 +99,8 @@ ReaderEmpty:
 ReaderChecked:
         if threads[self].empty = FALSE then
 ReaderNotEmpty:
-            sent[threads[self].start].Reader := "read";
-            threads[self].start := 1 + ((threads[self].start + 1) % sizeN);
+            sent[threads[self].start + 1].Reader := "read";
+            threads[self].start := (((threads[self].start + 1) % sizeN));
            
             
             
@@ -112,12 +112,12 @@ ReaderNotEmpty:
 end process;
         
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "55e8b23c" /\ chksum(tla) = "317a46b2")
+\* BEGIN TRANSLATION (chksum(pcal) = "ea6740f" /\ chksum(tla) = "217adbf2")
 VARIABLES sent, types, threads, pc
 
 (* define statement *)
 AnyFull(self) == \E otherThread \in 2..NThreads:
-        \/ (1 + ((threads[1].endr + 1) % sizeN)) = threads[otherThread].start
+        \/ ((((threads[1].endr + 1) % sizeN))) = threads[otherThread].start
 
 
 vars == << sent, types, threads, pc >>
@@ -135,8 +135,8 @@ Init == (* Global variables *)
                          thread \in 1..NThreads |-> [
                      
                              type |-> assigned[thread],
-                             start |-> 1,
-                             endr |-> 1,
+                             start |-> 0,
+                             endr |-> 0,
                              full |-> FALSE,
                              empty |-> FALSE
                          ]
@@ -170,8 +170,8 @@ ReaderChecked(self) == /\ pc[self] = "ReaderChecked"
                        /\ UNCHANGED << sent, types, threads >>
 
 ReaderNotEmpty(self) == /\ pc[self] = "ReaderNotEmpty"
-                        /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
-                        /\ threads' = [threads EXCEPT ![self].start = 1 + ((threads[self].start + 1) % sizeN)]
+                        /\ sent' = [sent EXCEPT ![threads[self].start + 1].Reader = "read"]
+                        /\ threads' = [threads EXCEPT ![self].start = (((threads[self].start + 1) % sizeN))]
                         /\ pc' = [pc EXCEPT ![self] = "WriterCheck"]
                         /\ types' = types
 
@@ -182,11 +182,11 @@ ReaderEmpty(self) == /\ pc[self] = "ReaderEmpty"
 
 WriterWrite(self) == /\ pc[self] = "WriterWrite"
                      /\ IF threads[1].full = FALSE
-                           THEN /\ sent' = [sent EXCEPT ![(1 + (threads[1].endr + 1)) % sizeN] =                                             [
-                                                                                                     Reader |-> "not-read",
-                                                                                                     Writer |-> "written"
-                                                                                                 ]]
-                                /\ threads' = [threads EXCEPT ![1].endr = 1 + ((threads[1].endr + 1) % sizeN)]
+                           THEN /\ sent' = [sent EXCEPT ![1 + (((threads[1].endr + 1) % sizeN))] =                                               [
+                                                                                                       Reader |-> "not-read",
+                                                                                                       Writer |-> "written"
+                                                                                                   ]]
+                                /\ threads' = [threads EXCEPT ![1].endr = (((threads[1].endr + 1) % sizeN))]
                            ELSE /\ TRUE
                                 /\ UNCHANGED << sent, threads >>
                      /\ pc' = [pc EXCEPT ![self] = "ReaderCheck"]
