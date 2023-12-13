@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 14:53:05 GMT 2023 by samue
+\* Last modified Wed Dec 13 14:48:38 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -113,7 +113,7 @@ ProcSet == (1..NThreads)
                
     
 Init == (* Global variables *)
-    /\ counter = "init"
+    /\ counter = 0
     /\ threads = [
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
@@ -165,12 +165,12 @@ Check(self) == /\ IF threads[self].type = "writer"
                                     Reader |-> "not-read"
                                    ])
                                 /\ pc' = pc
-                                /\ counter' = "written-step"
+                                /\ counter' = counter + 1
                            ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "full-cannot-write"
+                            /\ counter' = counter + 1
                         
                   ELSE IF threads[self].type = "reader"
                        THEN IF ~Empty(self)
@@ -187,12 +187,12 @@ Check(self) == /\ IF threads[self].type = "writer"
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "empty-cannot-read"
+                            /\ counter' = counter + 1
                        ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "some-other-type"
+                            /\ counter' = counter + 1
                 
 
 

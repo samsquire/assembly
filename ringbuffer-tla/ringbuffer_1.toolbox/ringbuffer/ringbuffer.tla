@@ -3,20 +3,21 @@
 
 
 \* Modification History
-\* Last modified Tue Dec 12 06:27:57 GMT 2023 by samue
+\* Last modified Wed Dec 13 14:53:05 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
-EXTENDS Integers, TLC
+EXTENDS Integers, TLC, Sequences
 
 CONSTANTS
     \* Number of philosophers
     NThreads,
-    assigned
+    assigned,
+    size
     
-VARIABLES sent, threads, pc
+VARIABLES sent, threads, pc, counter
 
 
-vars == << sent, threads, pc >>
+vars == << sent, threads, pc, counter >>
 
 ASSUME
     /\ NThreads \in Nat \ {0}
@@ -30,10 +31,11 @@ ASSUME
 
 (* --algorithm RingBuffer
 
-variables
+variables threads
 
 sent = {}
 types = {"reader", "writer"}
+
 
  threads = [
         thread \in 1..NThreads |-> [
@@ -55,10 +57,13 @@ fair process Thread \in 1..NThreads
 begin
 WriterCheck:
     while TRUE do
+        PrintT(threads[Thread].start)
+        PrintT(threads[Thread].endr)
+        threads[1].full := FALSE
         if threads[Thread].type = "writer" then
-            otherThread \in 1..Nthreads
-                if threads[Thread].endr + 1 = threads[otherThread].start then
-                    threads[Thread].full := TRUE
+            otherThread \in 1..NThreads
+                if (threads[1].endr + 1) % size = threads[otherThread].start then
+                    threads[1].full := TRUE
                 end if;
                     
                
@@ -70,23 +75,24 @@ WriterWrite:
             Reader |-> "not-read",
             Writer |-> "written"
         ])
-    endr := end + 1
-    PrintT(endr)
+        endr := (threads[1].endr + 1) % size
+        PrintT(threads[1].endr)
     end if;
         
       
 ReaderCheck:
 
     if threads[Thread].type = "reader" then
-          
-        if threads[Thread].start = threads[0].endr then
+        threads[Thread].empty := FALSE  
+        if threads[Thread].start = threads[1].endr then
             threads[Thread].empty := TRUE
         end if;
         if threads[Thread].empty = FALSE then
-            threads[Thread].start := threads[Thread].start + 1
-            sent[threads[0].endr].Reader := "read"
-            threads[Thread].start := threads[Thread].start + 1
-            PrintT(threads[Thread].start)
+            sent[threads[Thread].start].Reader := "read"
+            threads[Thread].start := (threads[Thread].start + 1) % size
+           
+            
+            
         end if
     end if;
 
@@ -107,6 +113,7 @@ ProcSet == (1..NThreads)
                
     
 Init == (* Global variables *)
+    /\ counter = "init"
     /\ threads = [
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
@@ -115,10 +122,7 @@ Init == (* Global variables *)
             endr |-> 0
         ]
       ]
-   /\ sent = {[
-            Reader |-> "not-read",
-            Writer |-> "written"
-        ]}
+   /\ sent = <<>>
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -144,25 +148,56 @@ Init == (* Global variables *)
 \*                    ELSE /\ pc' = [pc EXCEPT ![self] = "Think"]
 \*              /\ UNCHANGED hungry
 
+
+
+Full(self) == \A thread \in 2..NThreads:
+                    /\ threads[thread].start = (threads[1].endr + 1) % size
+
+Empty(self) == /\ threads[self].start = threads[1].endr
+
 Check(self) == /\ IF threads[self].type = "writer"
-                   THEN /\ pc[self] = "WriterCheck"
-                        /\ threads' = threads
-                        /\ sent' = sent
-                        /\ pc' = pc
+                   THEN /\ IF ~Full(self)
+                           THEN /\ threads[1] = [
+                                    endr |-> (threads[1].endr + 1) % size 
+                                   ]
+                                /\ sent' = Append(sent, [
+                                    Writer |-> "written",
+                                    Reader |-> "not-read"
+                                   ])
+                                /\ pc' = pc
+                                /\ counter' = "written-step"
+                           ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "full-cannot-write"
                         
-                   ELSE /\ IF threads[self].type = "reader"
-                           THEN /\ pc[self] = "ReaderCheck"
-                                /\ threads' = threads
-                                /\ sent' = sent
+                  ELSE IF threads[self].type = "reader"
+                       THEN IF ~Empty(self)
+                            THEN 
+                                /\ PrintT(threads[self].start)
+                                /\ threads[self]' = [
+                                    start |-> (threads[1].start + 1) % size 
+                                   ]
+                                /\ sent[threads[self].start]' = [
+                                        Writer |-> "read"
+                                   ]
                                 /\ pc' = pc
-                           ELSE /\ threads' = threads
-                                /\ sent' = sent
-                                /\ pc' = pc
+                            ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "empty-cannot-read"
+                       ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "some-other-type"
                 
 
 
 
-Thread(self) == Check(self)
+Thread(self) == /\ Check(self)
                    
                       
 Next == (\E self \in 1..NThreads: Thread(self))       
@@ -177,8 +212,8 @@ Spec == /\ Init /\ [][Next]_vars
         /\ \A self \in 1..NThreads : WF_vars(Thread(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
-                       /\ threads[thread].endr >= threads[thread].start
+                       /\ threads[1].endr >= threads[thread].start
 AllRead ==
    \A item \in sent:
-        /\ item.Reader = "not-read"         
+        /\ item.Reader = "read"         
 ====

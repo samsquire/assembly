@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 14:53:05 GMT 2023 by samue
+\* Last modified Wed Dec 13 14:40:21 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -14,10 +14,10 @@ CONSTANTS
     assigned,
     size
     
-VARIABLES sent, threads, pc, counter
+VARIABLES sent, threads, pc
 
 
-vars == << sent, threads, pc, counter >>
+vars == << sent, threads, pc >>
 
 ASSUME
     /\ NThreads \in Nat \ {0}
@@ -113,7 +113,6 @@ ProcSet == (1..NThreads)
                
     
 Init == (* Global variables *)
-    /\ counter = "init"
     /\ threads = [
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
@@ -156,7 +155,7 @@ Full(self) == \A thread \in 2..NThreads:
 Empty(self) == /\ threads[self].start = threads[1].endr
 
 Check(self) == /\ IF threads[self].type = "writer"
-                   THEN /\ IF ~Full(self)
+                   THEN \/ IF ~Full(self)
                            THEN /\ threads[1] = [
                                     endr |-> (threads[1].endr + 1) % size 
                                    ]
@@ -165,12 +164,10 @@ Check(self) == /\ IF threads[self].type = "writer"
                                     Reader |-> "not-read"
                                    ])
                                 /\ pc' = pc
-                                /\ counter' = "written-step"
                            ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "full-cannot-write"
                         
                   ELSE IF threads[self].type = "reader"
                        THEN IF ~Empty(self)
@@ -187,12 +184,10 @@ Check(self) == /\ IF threads[self].type = "writer"
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "empty-cannot-read"
                        ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "some-other-type"
                 
 
 
@@ -212,7 +207,7 @@ Spec == /\ Init /\ [][Next]_vars
         /\ \A self \in 1..NThreads : WF_vars(Thread(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
-                       /\ threads[1].endr >= threads[thread].start
+                       /\ threads[thread].endr >= threads[thread].start
 AllRead ==
    \A item \in sent:
         /\ item.Reader = "read"         
