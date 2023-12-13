@@ -2,7 +2,7 @@
 TLC2 Version 2.18 of Day Month 20?? (rev: 290c673)
 @!@!@ENDMSG 2262 @!@!@
 @!@!@STARTMSG 2187:0 @!@!@
-Running breadth-first search Model-Checking with fp 120 and seed -3090757916475435256 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 21472] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 49 and seed 7691691327309640322 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 19208] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
 @!@!@ENDMSG 2187 @!@!@
 @!@!@STARTMSG 2220:0 @!@!@
 Starting SANY...
@@ -25,22 +25,22 @@ Semantic processing of module MC
 SANY finished.
 @!@!@ENDMSG 2219 @!@!@
 @!@!@STARTMSG 2185:0 @!@!@
-Starting... (2023-12-13 16:54:08)
+Starting... (2023-12-13 16:49:21)
 @!@!@ENDMSG 2185 @!@!@
 @!@!@STARTMSG 2189:0 @!@!@
 Computing initial states...
 @!@!@ENDMSG 2189 @!@!@
 @!@!@STARTMSG 2190:0 @!@!@
-Finished computing initial states: 1 distinct state generated at 2023-12-13 16:54:10.
+Finished computing initial states: 1 distinct state generated at 2023-12-13 16:49:23.
 @!@!@ENDMSG 2190 @!@!@
 @!@!@STARTMSG 2193:0 @!@!@
 Model checking completed. No error has been found.
   Estimates of the probability that TLC did not check all reachable states
   because two distinct states had the same fingerprint:
-  calculated (optimistic):  val = 8.0E-18
+  calculated (optimistic):  val = 5.5E-17
 @!@!@ENDMSG 2193 @!@!@
 @!@!@STARTMSG 2201:0 @!@!@
-The coverage statistics at 2023-12-13 16:54:10
+The coverage statistics at 2023-12-13 16:49:23
 @!@!@ENDMSG 2201 @!@!@
 @!@!@STARTMSG 2773:0 @!@!@
 <Init line 116, col 1 to line 116, col 4 of module ringbuffer>: 1:1
@@ -67,116 +67,128 @@ The coverage statistics at 2023-12-13 16:54:10
   ||line 133, col 22 to line 133, col 28 of module ringbuffer: 1
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<CheckWriter line 173, col 1 to line 173, col 17 of module ringbuffer>: 5:21
+<CheckWriter line 173, col 1 to line 173, col 17 of module ringbuffer>: 10:51
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 173, col 25 to line 173, col 36 of module ringbuffer: 21
+  line 173, col 25 to line 173, col 36 of module ringbuffer: 51
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 174, col 33 to line 174, col 43 of module ringbuffer: 21
+  line 174, col 24 to line 174, col 52 of module ringbuffer: 51
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |line 174, col 34 to line 174, col 43 of module ringbuffer: 21
+  line 175, col 28 to line 175, col 38 of module ringbuffer: 17
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  ||line 160, col 15 to line 161, col 83 of module ringbuffer: 21
+  |line 175, col 29 to line 175, col 38 of module ringbuffer: 17
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |||line 161, col 21 to line 161, col 83 of module ringbuffer: 27
+  ||line 160, col 15 to line 161, col 83 of module ringbuffer: 17
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |||line 160, col 29 to line 160, col 39 of module ringbuffer: 21
+  |||line 161, col 21 to line 161, col 83 of module ringbuffer: 21
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 177, col 33 to line 188, col 47 of module ringbuffer: 15
+  |||line 160, col 29 to line 160, col 39 of module ringbuffer: 17
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 190, col 29 to line 194, col 43 of module ringbuffer: 6
+  line 178, col 33 to line 189, col 47 of module ringbuffer: 13
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 196, col 28 to line 196, col 45 of module ringbuffer: 0
+  line 191, col 29 to line 195, col 43 of module ringbuffer: 4
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 197, col 28 to line 197, col 39 of module ringbuffer: 0
+  line 197, col 25 to line 201, col 39 of module ringbuffer: 34
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 198, col 28 to line 198, col 35 of module ringbuffer: 0
+  line 203, col 24 to line 203, col 41 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 199, col 28 to line 199, col 51 of module ringbuffer: 0
+  line 204, col 24 to line 204, col 35 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 200, col 28 to line 200, col 39 of module ringbuffer: 0
+  line 205, col 24 to line 205, col 31 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 206, col 24 to line 206, col 44 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 207, col 24 to line 207, col 35 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<CheckReader line 203, col 1 to line 203, col 17 of module ringbuffer>: 1:6
+<CheckReader line 209, col 1 to line 209, col 17 of module ringbuffer>: 6:25
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 203, col 25 to line 203, col 36 of module ringbuffer: 21
+  line 209, col 25 to line 209, col 36 of module ringbuffer: 51
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 204, col 33 to line 204, col 44 of module ringbuffer: 21
+  line 210, col 25 to line 210, col 53 of module ringbuffer: 51
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 207, col 36 to line 211, col 37 of module ringbuffer: 0
+  line 211, col 32 to line 211, col 43 of module ringbuffer: 34
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |line 207, col 47 to line 211, col 37 of module ringbuffer: 15
+  line 214, col 36 to line 218, col 37 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 212, col 36 to line 212, col 95 of module ringbuffer: 0
+  |line 214, col 47 to line 218, col 37 of module ringbuffer: 26
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |line 212, col 44 to line 212, col 95 of module ringbuffer: 15
+  line 219, col 36 to line 219, col 95 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 213, col 36 to line 213, col 43 of module ringbuffer: 0
+  |line 219, col 44 to line 219, col 95 of module ringbuffer: 26
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |line 213, col 42 to line 213, col 43 of module ringbuffer: 15
+  line 220, col 36 to line 220, col 43 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 214, col 36 to line 214, col 47 of module ringbuffer: 0
+  |line 220, col 42 to line 220, col 43 of module ringbuffer: 26
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  |line 214, col 44 to line 214, col 47 of module ringbuffer: 15
+  line 221, col 36 to line 221, col 47 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 215, col 36 to line 215, col 51 of module ringbuffer: 15
+  |line 221, col 44 to line 221, col 47 of module ringbuffer: 26
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 217, col 29 to line 221, col 43 of module ringbuffer: 6
+  line 222, col 36 to line 222, col 51 of module ringbuffer: 26
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 223, col 32 to line 223, col 49 of module ringbuffer: 0
+  line 224, col 29 to line 228, col 43 of module ringbuffer: 8
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 224, col 32 to line 224, col 43 of module ringbuffer: 0
+  line 230, col 29 to line 234, col 43 of module ringbuffer: 17
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 225, col 32 to line 225, col 39 of module ringbuffer: 0
+  line 236, col 24 to line 236, col 41 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 226, col 32 to line 226, col 59 of module ringbuffer: 0
+  line 237, col 24 to line 237, col 35 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
-  line 227, col 32 to line 227, col 43 of module ringbuffer: 0
+  line 238, col 24 to line 238, col 31 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 239, col 24 to line 239, col 44 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 240, col 24 to line 240, col 35 of module ringbuffer: 0
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2202:0 @!@!@
 End of statistics.
 @!@!@ENDMSG 2202 @!@!@
 @!@!@STARTMSG 2200:0 @!@!@
-Progress(7) at 2023-12-13 16:54:10: 28 states generated (468 s/min), 7 distinct states found (117 ds/min), 0 states left on queue.
+Progress(7) at 2023-12-13 16:49:23: 77 states generated (1,282 s/min), 17 distinct states found (283 ds/min), 0 states left on queue.
 @!@!@ENDMSG 2200 @!@!@
 @!@!@STARTMSG 2199:0 @!@!@
-28 states generated, 7 distinct states found, 0 states left on queue.
+77 states generated, 17 distinct states found, 0 states left on queue.
 @!@!@ENDMSG 2199 @!@!@
 @!@!@STARTMSG 2194:0 @!@!@
 The depth of the complete state graph search is 7.
 @!@!@ENDMSG 2194 @!@!@
 @!@!@STARTMSG 2268:0 @!@!@
-The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).
 @!@!@ENDMSG 2268 @!@!@
 @!@!@STARTMSG 2186:0 @!@!@
-Finished in 3607ms at (2023-12-13 16:54:10)
+Finished in 3616ms at (2023-12-13 16:49:23)
 @!@!@ENDMSG 2186 @!@!@

@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:53:57 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:48:05 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -76,7 +76,7 @@ WriterWrite:
                 Reader |-> "not-read",
                 Writer |-> "written"
             ])
-            endr := 1 + ((threads[1].endr + 1) % size)
+            endr := (threads[1].endr) % size
             PrintT(threads[1].endr)
         end if;
     end if;
@@ -90,7 +90,7 @@ ReaderCheck:
         end if;
         if threads[Thread].empty = FALSE then
             sent[threads[Thread].start].Reader := "read"
-            threads[Thread].start := 1 + (threads[Thread].start + 1) % size
+            threads[Thread].start := (threads[Thread].start + 1) % size
            
             
             
@@ -171,7 +171,8 @@ Empty(self) == /\ threads[self].start = threads[1].endr
 \*                 ELSE 
 
 CheckWriter(self) == IF step < 10000
-                        THEN IF ~Full(self)
+               THEN IF threads[self].type = "writer"
+                   THEN IF ~Full(self)
                            THEN 
                                (* [s EXCEPT ![1] = FALSE] *)
                                 /\ threads' = [threads EXCEPT ![1] = [
@@ -198,10 +199,16 @@ CheckWriter(self) == IF step < 10000
                         /\ pc' = pc
                         /\ counter' = "other-state"
                         /\ step' = step
-           
+                ELSE
+                    /\ threads' = threads
+                    /\ sent' = sent
+                    /\ pc' = pc
+                    /\ counter' = "finished"
+                    /\ step' = step
                     
 CheckReader(self) == IF step < 10000
-                        THEN IF ~Empty(self)
+                THEN IF threads[self].type = "reader"
+                       THEN IF ~Empty(self)
                             THEN 
                                 
                                 /\ threads' = [threads EXCEPT ![self] = [
@@ -225,7 +232,12 @@ CheckReader(self) == IF step < 10000
                             /\ pc' = pc
                             /\ counter' = "some-other-type"
                             /\ step' = step
-
+                ELSE
+                    /\ threads' = threads
+                    /\ sent' = sent
+                    /\ pc' = pc
+                    /\ counter' = "finished"
+                    /\ step' = step
 
 
 Thread(self) ==  CheckReader(self) \/ CheckWriter(self)
