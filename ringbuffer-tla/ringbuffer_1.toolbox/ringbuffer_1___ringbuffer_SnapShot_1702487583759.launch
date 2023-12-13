@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.lamport.tla.toolbox.tool.tlc.modelCheck">
-    <stringAttribute key="configurationName" value="ringbuffer"/>
+    <stringAttribute key="configurationName" value="ringbuffer_SnapShot_1702487583759"/>
     <intAttribute key="distributedFPSetCount" value="0"/>
     <stringAttribute key="distributedNetworkInterface" value="10.0.2.1"/>
     <intAttribute key="distributedNodesCount" value="1"/>
     <stringAttribute key="distributedTLC" value="off"/>
-    <intAttribute key="fpIndex" value="1"/>
+    <intAttribute key="fpIndex" value="80"/>
     <intAttribute key="maxHeapSize" value="25"/>
     <stringAttribute key="modelBehaviorInit" value=""/>
     <stringAttribute key="modelBehaviorNext" value=""/>

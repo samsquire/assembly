@@ -1,0 +1,170 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.18 of Day Month 20?? (rev: 290c673)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 21 and seed -6303744264921172095 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 15864] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file C:\Users\samue\OneDrive\assembly\ringbuffer-tla\ringbuffer_1.toolbox\ringbuffer\MC.tla
+Parsing file C:\Users\samue\OneDrive\assembly\ringbuffer-tla\ringbuffer_1.toolbox\ringbuffer\ringbuffer.tla
+Parsing file C:\Users\samue\Downloads\TLAToolbox-1.8.0-win32.win32.x86_64\toolbox\plugins\org.lamport.tlatools_1.0.0.202305012005\tla2sany\StandardModules\TLC.tla
+Parsing file C:\Users\samue\Downloads\TLAToolbox-1.8.0-win32.win32.x86_64\toolbox\plugins\org.lamport.tlatools_1.0.0.202305012005\tla2sany\StandardModules\Integers.tla
+Parsing file C:\Users\samue\Downloads\TLAToolbox-1.8.0-win32.win32.x86_64\toolbox\plugins\org.lamport.tlatools_1.0.0.202305012005\tla2sany\StandardModules\Sequences.tla
+Parsing file C:\Users\samue\Downloads\TLAToolbox-1.8.0-win32.win32.x86_64\toolbox\plugins\org.lamport.tlatools_1.0.0.202305012005\tla2sany\StandardModules\Naturals.tla
+Parsing file C:\Users\samue\Downloads\TLAToolbox-1.8.0-win32.win32.x86_64\toolbox\plugins\org.lamport.tlatools_1.0.0.202305012005\tla2sany\StandardModules\FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module ringbuffer
+Semantic processing of module MC
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2023-12-13 17:25:21)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2023-12-13 17:25:23.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2114:1 @!@!@
+Deadlock reached.
+@!@!@ENDMSG 2114 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ counter = "init"
+/\ threads = << [type |-> "writer", start |-> 1, endr |-> 1],
+   [type |-> "reader", start |-> 1, endr |-> 1],
+   [type |-> "reader", start |-> 1, endr |-> 1] >>
+/\ step = 0
+/\ sent = << [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"] >>
+/\ pc = <<"WriterCheck", "ReaderCheck", "ReaderCheck">>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <ThreadWorker line 174, col 25 to line 211, col 43 of module ringbuffer>
+/\ counter = "written-step"
+/\ threads = << [type |-> "writer", start |-> 1, endr |-> 3],
+   [type |-> "reader", start |-> 1, endr |-> 1],
+   [type |-> "reader", start |-> 1, endr |-> 1] >>
+/\ step = 0
+/\ sent = << [Writer |-> "written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"],
+   [Writer |-> "not-written", Reader |-> "not-read"] >>
+/\ pc = <<"WriterCheck", "ReaderCheck", "ReaderCheck">>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2201:0 @!@!@
+The coverage statistics at 2023-12-13 17:25:23
+@!@!@ENDMSG 2201 @!@!@
+@!@!@STARTMSG 2773:0 @!@!@
+<Init line 116, col 1 to line 116, col 4 of module ringbuffer>: 3:3
+@!@!@ENDMSG 2773 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  line 119, col 15 to line 124, col 7 of module ringbuffer: 3:15
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 120, col 20 to line 120, col 26 of module ringbuffer: 3
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  line 125, col 18 to line 132, col 7 of module ringbuffer: 3:9
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 126, col 20 to line 126, col 30 of module ringbuffer: 3
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 133, col 7 to line 133, col 100 of module ringbuffer: 3
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2775:0 @!@!@
+  |line 133, col 12 to line 133, col 100 of module ringbuffer: 3:9
+@!@!@ENDMSG 2775 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  ||line 133, col 22 to line 133, col 28 of module ringbuffer: 3
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2772:0 @!@!@
+<ThreadWorker line 173, col 1 to line 173, col 18 of module ringbuffer (174 25 211 43)>: 2:28
+@!@!@ENDMSG 2772 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 174, col 28 to line 174, col 41 of module ringbuffer: 20
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 176, col 32 to line 180, col 33 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 176, col 43 to line 180, col 33 of module ringbuffer: 6
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 181, col 32 to line 181, col 93 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 181, col 40 to line 181, col 93 of module ringbuffer: 6
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 182, col 32 to line 182, col 39 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 182, col 38 to line 182, col 39 of module ringbuffer: 6
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 183, col 32 to line 183, col 43 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  |line 183, col 40 to line 183, col 43 of module ringbuffer: 6
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 184, col 32 to line 184, col 47 of module ringbuffer: 6
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 186, col 29 to line 190, col 43 of module ringbuffer: 14
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 191, col 30 to line 191, col 40 of module ringbuffer: 14
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 194, col 33 to line 205, col 47 of module ringbuffer: 14
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 207, col 32 to line 207, col 49 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 208, col 32 to line 208, col 43 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 209, col 32 to line 209, col 39 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 210, col 32 to line 210, col 61 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 211, col 32 to line 211, col 43 of module ringbuffer: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2202:0 @!@!@
+End of statistics.
+@!@!@ENDMSG 2202 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2023-12-13 17:25:23: 25 states generated (423 s/min), 3 distinct states found (50 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+25 states generated, 3 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 3554ms at (2023-12-13 17:25:23)
+@!@!@ENDMSG 2186 @!@!@

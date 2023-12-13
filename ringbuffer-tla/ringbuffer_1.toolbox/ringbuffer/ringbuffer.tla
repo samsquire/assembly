@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:59:49 GMT 2023 by samue
+\* Last modified Wed Dec 13 17:27:48 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -170,8 +170,25 @@ Empty(self) == threads[self].start = threads[1].endr
 \*                    /\ step' = step
 \*                 ELSE 
 
-CheckWriter(self) == IF step < 10000
-                        THEN IF ~Full(self)
+ThreadWorker(self) == \E thread \in 1..NThreads:
+                        \/ IF ~Empty(thread)
+                           THEN
+                                /\ threads' = [threads EXCEPT ![thread] = [
+                                    start |-> 1 + ((threads[thread].start + 1) % size),
+                                    type |-> (threads[thread].type),
+                                    endr |-> (threads[thread].endr) 
+                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[thread].start].Reader = "read"]
+                                /\ pc' = pc
+                                /\ step' = step
+                                /\ counter = "read"
+                            ELSE (* Do nothing *)
+                                /\ threads' = threads
+                                /\ sent' = sent
+                                /\ pc' = pc
+                                /\ counter' = "empty-cannot-read"
+                                /\ step' = step
+                        \/ IF ~Full(self)
                            THEN 
                                (* [s EXCEPT ![1] = FALSE] *)
                                 /\ threads' = [threads EXCEPT ![1] = [
@@ -192,56 +209,21 @@ CheckWriter(self) == IF step < 10000
                             /\ pc' = pc
                             /\ counter' = "full-cannot-write"
                             /\ step' = step
-                     ELSE
-                        /\ threads' = threads
-                        /\ sent' = sent
-                        /\ pc' = pc
-                        /\ counter' = "other-state"
-                        /\ step' = step
-           
                     
-CheckReader(self) == IF self > 1
-                            
-                        THEN IF ~Empty(self)
-                            THEN 
-                                
-                                /\ threads' = [threads EXCEPT ![self] = [
-                                    start |-> 1 + ((threads[self].start + 1) % size),
-                                    type |-> (threads[self].type),
-                                    endr |-> (threads[self].endr) 
-                                   ]]
-                                /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
-                                /\ pc' = pc
-                                /\ step' = step
-                                /\ counter = "read"
-                            ELSE (* Do nothing *)
-                            /\ threads' = threads
-                            /\ sent' = sent
-                            /\ pc' = pc
-                            /\ counter' = "empty-cannot-read"
-                            /\ step' = step
-                       ELSE (* Do nothing *)
-                            /\ threads' = threads
-                            /\ sent' = sent
-                            /\ pc' = pc
-                            /\ counter' = "some-other-type"
-                            /\ step' = step
+           
 
-
-
-Thread(self) ==  CheckReader(self) \/ CheckWriter(self)
-                   
+                 
                       
-Next == (\E self \in 1..NThreads: Thread(self))       
-
+Next == (\A self \in 1..NThreads: ThreadWorker(self))
 ----
 
 
 
 
 
-Spec == /\ Init /\ [][Next]_vars
-        /\ \A self \in 1..NThreads : WF_vars(Thread(self))
+Spec == /\ Init
+        /\ [][Next]_vars
+        /\ \A self \in 1..NThreads : WF_vars(ThreadWorker(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[1].endr >= threads[thread].start

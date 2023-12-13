@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 17:27:48 GMT 2023 by samue
+\* Last modified Wed Dec 13 17:25:56 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -170,7 +170,7 @@ Empty(self) == threads[self].start = threads[1].endr
 \*                    /\ step' = step
 \*                 ELSE 
 
-ThreadWorker(self) == \E thread \in 1..NThreads:
+ThreadWorker(self) == \E thread \in 2..NThreads:
                         \/ IF ~Empty(thread)
                            THEN
                                 /\ threads' = [threads EXCEPT ![thread] = [
@@ -214,7 +214,7 @@ ThreadWorker(self) == \E thread \in 1..NThreads:
 
                  
                       
-Next == (\A self \in 1..NThreads: ThreadWorker(self))
+Next == (\E self \in 1..NThreads: ThreadWorker(self))
 ----
 
 
@@ -223,7 +223,7 @@ Next == (\A self \in 1..NThreads: ThreadWorker(self))
 
 Spec == /\ Init
         /\ [][Next]_vars
-        /\ \A self \in 1..NThreads : WF_vars(ThreadWorker(self))
+        /\ \A self \in 2..NThreads : WF_vars(ThreadWorker(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[1].endr >= threads[thread].start

@@ -2,7 +2,7 @@
 TLC2 Version 2.18 of Day Month 20?? (rev: 290c673)
 @!@!@ENDMSG 2262 @!@!@
 @!@!@STARTMSG 2187:0 @!@!@
-Running breadth-first search Model-Checking with fp 1 and seed 355368732385868328 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 12784] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 45 and seed 1400262589068976601 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 17832] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
 @!@!@ENDMSG 2187 @!@!@
 @!@!@STARTMSG 2220:0 @!@!@
 Starting SANY...
@@ -25,13 +25,13 @@ Semantic processing of module MC
 SANY finished.
 @!@!@ENDMSG 2219 @!@!@
 @!@!@STARTMSG 2185:0 @!@!@
-Starting... (2023-12-13 17:27:53)
+Starting... (2023-12-13 17:27:30)
 @!@!@ENDMSG 2185 @!@!@
 @!@!@STARTMSG 2189:0 @!@!@
 Computing initial states...
 @!@!@ENDMSG 2189 @!@!@
 @!@!@STARTMSG 2190:0 @!@!@
-Finished computing initial states: 1 distinct state generated at 2023-12-13 17:27:54.
+Finished computing initial states: 1 distinct state generated at 2023-12-13 17:27:32.
 @!@!@ENDMSG 2190 @!@!@
 @!@!@STARTMSG 2193:0 @!@!@
 Model checking completed. No error has been found.
@@ -40,7 +40,7 @@ Model checking completed. No error has been found.
   calculated (optimistic):  val = 8.0E-18
 @!@!@ENDMSG 2193 @!@!@
 @!@!@STARTMSG 2201:0 @!@!@
-The coverage statistics at 2023-12-13 17:27:54
+The coverage statistics at 2023-12-13 17:27:32
 @!@!@ENDMSG 2201 @!@!@
 @!@!@STARTMSG 2773:0 @!@!@
 <Init line 116, col 1 to line 116, col 4 of module ringbuffer>: 1:1
@@ -280,7 +280,7 @@ The coverage statistics at 2023-12-13 17:27:54
 End of statistics.
 @!@!@ENDMSG 2202 @!@!@
 @!@!@STARTMSG 2200:0 @!@!@
-Progress(7) at 2023-12-13 17:27:55: 28 states generated (457 s/min), 7 distinct states found (114 ds/min), 0 states left on queue.
+Progress(7) at 2023-12-13 17:27:32: 28 states generated (462 s/min), 7 distinct states found (115 ds/min), 0 states left on queue.
 @!@!@ENDMSG 2200 @!@!@
 @!@!@STARTMSG 2199:0 @!@!@
 28 states generated, 7 distinct states found, 0 states left on queue.
@@ -292,5 +292,5 @@ The depth of the complete state graph search is 7.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1).
 @!@!@ENDMSG 2268 @!@!@
 @!@!@STARTMSG 2186:0 @!@!@
-Finished in 3702ms at (2023-12-13 17:27:55)
+Finished in 3656ms at (2023-12-13 17:27:32)
 @!@!@ENDMSG 2186 @!@!@

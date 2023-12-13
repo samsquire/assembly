@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 17:27:48 GMT 2023 by samue
+\* Last modified Wed Dec 13 17:27:26 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -223,7 +223,7 @@ Next == (\A self \in 1..NThreads: ThreadWorker(self))
 
 Spec == /\ Init
         /\ [][Next]_vars
-        /\ \A self \in 1..NThreads : WF_vars(ThreadWorker(self))
+        /\ \A self \in 2..NThreads : WF_vars(ThreadWorker(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[1].endr >= threads[thread].start

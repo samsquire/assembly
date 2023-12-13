@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 17:27:48 GMT 2023 by samue
+\* Last modified Wed Dec 13 17:24:29 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -170,51 +170,51 @@ Empty(self) == threads[self].start = threads[1].endr
 \*                    /\ step' = step
 \*                 ELSE 
 
-ThreadWorker(self) == \E thread \in 1..NThreads:
-                        \/ IF ~Empty(thread)
-                           THEN
-                                /\ threads' = [threads EXCEPT ![thread] = [
-                                    start |-> 1 + ((threads[thread].start + 1) % size),
-                                    type |-> (threads[thread].type),
-                                    endr |-> (threads[thread].endr) 
-                                   ]]
-                                /\ sent' = [sent EXCEPT ![threads[thread].start].Reader = "read"]
-                                /\ pc' = pc
-                                /\ step' = step
-                                /\ counter = "read"
-                            ELSE (* Do nothing *)
-                                /\ threads' = threads
-                                /\ sent' = sent
-                                /\ pc' = pc
-                                /\ counter' = "empty-cannot-read"
-                                /\ step' = step
-                        \/ IF ~Full(self)
-                           THEN 
-                               (* [s EXCEPT ![1] = FALSE] *)
-                                /\ threads' = [threads EXCEPT ![1] = [
-                                    endr |-> 1 + ((threads[1].endr + 1) % size),
-                                    type |-> (threads[1].type),
-                                    start |-> (threads[1].start)
-                                   ]]
-                                /\ sent' = [sent EXCEPT ![threads[1].endr] = [
-                                    Writer |-> "written",
-                                    Reader |-> "not-read"
-                                   ]]
-                                /\ pc' = pc
-                                /\ counter' = "written-step"
-                                /\ step' = step
-                           ELSE (* Do nothing *)
+ThreadWorker(self) == /\ \E thread \in 2..NThreads:
+                        IF ~Empty(thread)
+                        THEN
+                            /\ threads' = [threads EXCEPT ![thread] = [
+                                start |-> 1 + ((threads[thread].start + 1) % size),
+                                type |-> (threads[thread].type),
+                                endr |-> (threads[thread].endr) 
+                               ]]
+                            /\ sent' = [sent EXCEPT ![threads[thread].start].Reader = "read"]
+                            /\ pc' = pc
+                            /\ step' = step
+                            /\ counter = "read"
+                        ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
                             /\ pc' = pc
-                            /\ counter' = "full-cannot-write"
+                            /\ counter' = "empty-cannot-read"
                             /\ step' = step
+                   /\ IF ~Full(self)
+                       THEN 
+                           (* [s EXCEPT ![1] = FALSE] *)
+                            /\ threads' = [threads EXCEPT ![1] = [
+                                endr |-> 1 + ((threads[1].endr + 1) % size),
+                                type |-> (threads[1].type),
+                                start |-> (threads[1].start)
+                               ]]
+                            /\ sent' = [sent EXCEPT ![threads[1].endr] = [
+                                Writer |-> "written",
+                                Reader |-> "not-read"
+                               ]]
+                            /\ pc' = pc
+                            /\ counter' = "written-step"
+                            /\ step' = step
+                       ELSE (* Do nothing *)
+                        /\ threads' = threads
+                        /\ sent' = sent
+                        /\ pc' = pc
+                        /\ counter' = "full-cannot-write"
+                        /\ step' = step
                     
            
 
                  
                       
-Next == (\A self \in 1..NThreads: ThreadWorker(self))
+Next == (\E self \in 1..NThreads: ThreadWorker(self))
 ----
 
 
@@ -223,7 +223,7 @@ Next == (\A self \in 1..NThreads: ThreadWorker(self))
 
 Spec == /\ Init
         /\ [][Next]_vars
-        /\ \A self \in 1..NThreads : WF_vars(ThreadWorker(self))
+        /\ \A self \in 2..NThreads : WF_vars(ThreadWorker(self))
         
 EndAboveStart == \A thread \in 1..NThreads:
                        /\ threads[1].endr >= threads[thread].start
