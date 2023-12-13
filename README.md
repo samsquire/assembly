@@ -7,6 +7,7 @@ This repository has:
  * the beginnings of some TLA+ modules to try work out if my multithreaded algorithm is correct.
  * a [simple summary](https://github.com/samsquire/assembly/blob/main/assembly/README.md) of what I've learned programming in assembly
  * Marce Coll's tweaked coroutines assembly coroutinesdirect.S
+ * Some TLA+ notes [Jump to TLA+ section](#tla-notes)
 
 |File|Description|
 |---|---|
@@ -343,6 +344,32 @@ To run
 ```
 ./barrier-runtime
 ```
+
+# TLA Notes
+
+This is my understanding of how TLA+ works.
+
+TLA+ creates a graph of every state and explores state space. You can make assertions over state space.
+
+The apostrophe after a variable represents the changed result.
+
+```
+/\ means And
+\A means ALL
+\E means there exists
+```
+
+
+
+```
+Check(Self) == /\ a /\ b /\ c
+```
+
+
+
+```
+```
+
 
 
 # LICENCE
