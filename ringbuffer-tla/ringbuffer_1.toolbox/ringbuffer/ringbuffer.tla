@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:27:23 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:33:29 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -169,7 +169,7 @@ Empty(self) == /\ threads[self].start = threads[1].endr
 \*                    /\ step' = step
 \*                 ELSE 
 
-Check(self) == IF step < 10000
+CheckWriter(self) == IF step < 10000
                THEN IF threads[self].type = "writer"
                    THEN IF ~Full(self)
                            THEN 
@@ -223,10 +223,42 @@ Check(self) == IF step < 10000
                     /\ pc' = pc
                     /\ counter' = "finished"
                     /\ step' = step
+                    
+CheckReader(self) == IF step < 10000
+                THEN IF threads[self].type = "reader"
+                       THEN IF ~Empty(self)
+                            THEN 
+                                
+                                /\ threads' = [threads EXCEPT ![self] = [
+                                    start |-> 1 + ((threads[self].start + 1) % size),
+                                    type |-> (threads[self].type),
+                                    endr |-> (threads[self].endr) 
+                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
+                                /\ pc' = pc
+                                /\ step' = step
+                                /\ counter = "read"
+                            ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "empty-cannot-read"
+                            /\ step' = step
+                       ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "some-other-type"
+                            /\ step' = step
+                ELSE
+                    /\ threads' = threads
+                    /\ sent' = sent
+                    /\ pc' = pc
+                    /\ counter' = "finished"
+                    /\ step' = step
 
 
-
-Thread(self) == /\ Check(self)
+Thread(self) ==  CheckReader(self) \/ CheckWriter(self)
                    
                       
 Next == (\E self \in 1..NThreads: Thread(self))       

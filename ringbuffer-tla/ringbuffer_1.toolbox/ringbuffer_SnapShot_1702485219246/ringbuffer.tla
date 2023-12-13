@@ -3,7 +3,7 @@
 
 
 \* Modification History
-\* Last modified Wed Dec 13 16:12:14 GMT 2023 by samue
+\* Last modified Wed Dec 13 16:33:29 GMT 2023 by samue
 \* Created Sat Dec 09 14:08:07 GMT 2023 by samue
 
 EXTENDS Integers, TLC, Sequences
@@ -125,11 +125,10 @@ Init == (* Global variables *)
         thread \in 1..NThreads |-> [
     \* We create a thread proportion according to the assigned list
             type |-> assigned[thread],
-            start |-> 0,
-            endr |-> 0
+            start |-> 1,
+            endr |-> 1
         ]
       ]
-   /\ sent = <<>>
    /\ pc = [self \in ProcSet |-> IF assigned[self] = "writer" THEN "WriterCheck" ELSE "ReaderCheck"]
 
 
@@ -158,7 +157,7 @@ Init == (* Global variables *)
 
 
 Full(self) == \A thread \in 2..NThreads:
-                    \/ threads[thread].start = (threads[1].endr + 1) % size
+                    \/ threads[thread].start = (1 + ((threads[1].endr + 1) % size))
 
 Empty(self) == /\ threads[self].start = threads[1].endr
 
@@ -170,15 +169,15 @@ Empty(self) == /\ threads[self].start = threads[1].endr
 \*                    /\ step' = step
 \*                 ELSE 
 
-Check(self) == IF step < 10000
+CheckWriter(self) == IF step < 10000
                THEN IF threads[self].type = "writer"
                    THEN IF ~Full(self)
                            THEN 
                                (* [s EXCEPT ![1] = FALSE] *)
                                 /\ threads' = [threads EXCEPT ![1] = [
-                                    endr |-> (threads[1].endr + 1) % size,
+                                    endr |-> 1 + ((threads[1].endr + 1) % size),
                                     type |-> (threads[1].type),
-                                    start |-> (threads[1].type)
+                                    start |-> (threads[1].start)
                                    ]]
                                 /\ sent' = [sent EXCEPT ![threads[1].endr] = [
                                     Writer |-> "written",
@@ -198,15 +197,47 @@ Check(self) == IF step < 10000
                             THEN 
                                 
                                 /\ threads' = [threads EXCEPT ![self] = [
-                                    start |-> (threads[self].start + 1) % size,
+                                    start |-> 1 + ((threads[self].start + 1) % size),
                                     type |-> (threads[self].type),
                                     endr |-> (threads[self].endr) 
                                    ]]
-                                /\ sent' = [sent EXCEPT ![threads[self].start] = [
-                                        Writer |-> "read"
-                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
                                 /\ pc' = pc
                                 /\ step' = step
+                                /\ counter = "read"
+                            ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "empty-cannot-read"
+                            /\ step' = step
+                       ELSE (* Do nothing *)
+                            /\ threads' = threads
+                            /\ sent' = sent
+                            /\ pc' = pc
+                            /\ counter' = "some-other-type"
+                            /\ step' = step
+                ELSE
+                    /\ threads' = threads
+                    /\ sent' = sent
+                    /\ pc' = pc
+                    /\ counter' = "finished"
+                    /\ step' = step
+                    
+CheckReader(self) == IF step < 10000
+                THEN IF threads[self].type = "reader"
+                       THEN IF ~Empty(self)
+                            THEN 
+                                
+                                /\ threads' = [threads EXCEPT ![self] = [
+                                    start |-> 1 + ((threads[self].start + 1) % size),
+                                    type |-> (threads[self].type),
+                                    endr |-> (threads[self].endr) 
+                                   ]]
+                                /\ sent' = [sent EXCEPT ![threads[self].start].Reader = "read"]
+                                /\ pc' = pc
+                                /\ step' = step
+                                /\ counter = "read"
                             ELSE (* Do nothing *)
                             /\ threads' = threads
                             /\ sent' = sent
@@ -227,8 +258,7 @@ Check(self) == IF step < 10000
                     /\ step' = step
 
 
-
-Thread(self) == /\ Check(self)
+Thread(self) ==  CheckReader(self) \/ CheckWriter(self)
                    
                       
 Next == (\E self \in 1..NThreads: Thread(self))       
