@@ -7,7 +7,7 @@ This repository has:
  * the beginnings of some TLA+ modules to try work out if my multithreaded algorithm is correct.
  * a [simple summary](https://github.com/samsquire/assembly/blob/main/assembly/README.md) of what I've learned programming in assembly
  * Marce Coll's tweaked coroutines assembly coroutinesdirect.S
- * Some TLA+ notes [Jump to TLA+ section](#tla-notes)
+ * Some TLA+ notes [Jump to TLA+ section](#tla-notes) My TLA+ model is still in progress.
 
 |File|Description|
 |---|---|
