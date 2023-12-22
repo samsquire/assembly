@@ -132,7 +132,7 @@ void * disruptor_thread(void * arg) {
                 changed = (((original & END_MASK) >> 32) + 1) % me->size;
                 new = (data->thread_tag) | (changed << 32);
                 for (int x = 0 ; x < data->other_count; x++) {
-                  // me->data[changed].complete[x] = 0;
+                  me->data[changed].complete[x] = 0;
                 }
               
                 // printf("%d Wrote %ld\n", data->thread_index, (me->realend & END_MASK) >> 32);

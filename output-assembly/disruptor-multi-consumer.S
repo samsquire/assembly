@@ -870,7 +870,7 @@ void * disruptor_thread(void * arg) {
     1a23:	48 8d 8d 80 01 00 00 	lea    0x180(%rbp),%rcx
     1a2a:	4c 89 c8             	mov    %r9,%rax
     1a2d:	f0 48 0f b1 31       	lock cmpxchg %rsi,(%rcx)
-    1a32:	0f 85 12 01 00 00    	jne    1b4a <disruptor_thread+0x20a>
+    1a32:	0f 85 20 01 00 00    	jne    1b58 <disruptor_thread+0x218>
                 clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
     1a38:	48 8b 75 18          	mov    0x18(%rbp),%rsi
     1a3c:	48 c1 e2 09          	shl    $0x9,%rdx
@@ -955,49 +955,63 @@ void * disruptor_thread(void * arg) {
               __atomic_sub_fetch(&rdata[changed].written, 1, __ATOMIC_SEQ_CST);
     1b3c:	f0 41 83 ae 80 01 00 00 01 	lock subl $0x1,0x180(%r14)
     1b45:	e9 69 ff ff ff       	jmp    1ab3 <disruptor_thread+0x173>
-                original = me->realend;
-    1b4a:	48 8b b5 80 01 00 00 	mov    0x180(%rbp),%rsi
-                new = (data->thread_tag) | (changed << 32);
-    1b51:	48 63 bb 14 02 00 00 	movslq 0x214(%rbx),%rdi
-                changed = (((original & END_MASK) >> 32) + 1) % me->size;
-    1b58:	48 89 f0             	mov    %rsi,%rax
-    1b5b:	48 c1 f8 20          	sar    $0x20,%rax
-    1b5f:	25 ff ff ff 0f       	and    $0xfffffff,%eax
-    1b64:	48 83 c0 01          	add    $0x1,%rax
-    1b68:	48 99                	cqto
-    1b6a:	48 f7 bd 90 01 00 00 	idivq  0x190(%rbp)
-                new = (data->thread_tag) | (changed << 32);
-    1b71:	48 89 d0             	mov    %rdx,%rax
-    1b74:	48 c1 e0 20          	shl    $0x20,%rax
-    1b78:	48 09 c7             	or     %rax,%rdi
               while (!(result = __atomic_compare_exchange (&me->realend, &original, &new, 0, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))) {
-    1b7b:	48 89 f0             	mov    %rsi,%rax
-    1b7e:	f0 48 0f b1 39       	lock cmpxchg %rdi,(%rcx)
-    1b83:	0f 84 af fe ff ff    	je     1a38 <disruptor_thread+0xf8>
-    1b89:	eb bf                	jmp    1b4a <disruptor_thread+0x20a>
-    1b8b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    1b4a:	48 89 f8             	mov    %rdi,%rax
+    1b4d:	f0 4c 0f b1 01       	lock cmpxchg %r8,(%rcx)
+    1b52:	0f 84 e0 fe ff ff    	je     1a38 <disruptor_thread+0xf8>
+                original = me->realend;
+    1b58:	48 8b bd 80 01 00 00 	mov    0x180(%rbp),%rdi
+                new = (data->thread_tag) | (changed << 32);
+    1b5f:	4c 63 83 14 02 00 00 	movslq 0x214(%rbx),%r8
+                changed = (((original & END_MASK) >> 32) + 1) % me->size;
+    1b66:	48 89 f8             	mov    %rdi,%rax
+    1b69:	48 c1 f8 20          	sar    $0x20,%rax
+    1b6d:	25 ff ff ff 0f       	and    $0xfffffff,%eax
+    1b72:	48 83 c0 01          	add    $0x1,%rax
+    1b76:	48 99                	cqto
+    1b78:	48 f7 bd 90 01 00 00 	idivq  0x190(%rbp)
+                new = (data->thread_tag) | (changed << 32);
+    1b7f:	48 89 d0             	mov    %rdx,%rax
+    1b82:	48 c1 e0 20          	shl    $0x20,%rax
+    1b86:	49 09 c0             	or     %rax,%r8
+                for (int x = 0 ; x < data->other_count; x++) {
+    1b89:	83 bb 08 02 00 00 00 	cmpl   $0x0,0x208(%rbx)
+    1b90:	7e b8                	jle    1b4a <disruptor_thread+0x20a>
+                  me->data[changed].complete[x] = 0;
+    1b92:	48 89 d0             	mov    %rdx,%rax
+    1b95:	31 f6                	xor    %esi,%esi
+    1b97:	48 c1 e0 09          	shl    $0x9,%rax
+    1b9b:	48 03 45 18          	add    0x18(%rbp),%rax
+    1b9f:	48 8b 80 00 01 00 00 	mov    0x100(%rax),%rax
+    1ba6:	c7 04 b0 00 00 00 00 	movl   $0x0,(%rax,%rsi,4)
+                for (int x = 0 ; x < data->other_count; x++) {
+    1bad:	48 83 c6 01          	add    $0x1,%rsi
+    1bb1:	39 b3 08 02 00 00    	cmp    %esi,0x208(%rbx)
+    1bb7:	7f ed                	jg     1ba6 <disruptor_thread+0x266>
+    1bb9:	eb 8f                	jmp    1b4a <disruptor_thread+0x20a>
+    1bbb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-0000000000001b90 <min>:
+0000000000001bc0 <min>:
 int min(long a, long b) {
-    1b90:	f3 0f 1e fa          	endbr64
+    1bc0:	f3 0f 1e fa          	endbr64
   if (a < b) return a;
-    1b94:	48 39 f7             	cmp    %rsi,%rdi
-    1b97:	7c 02                	jl     1b9b <min+0xb>
+    1bc4:	48 39 f7             	cmp    %rsi,%rdi
+    1bc7:	7c 02                	jl     1bcb <min+0xb>
   if (b < a) return b;
-    1b99:	7f 05                	jg     1ba0 <min+0x10>
+    1bc9:	7f 05                	jg     1bd0 <min+0x10>
   if (a < b) return a;
-    1b9b:	89 f8                	mov    %edi,%eax
-    1b9d:	c3                   	ret
-    1b9e:	66 90                	xchg   %ax,%ax
+    1bcb:	89 f8                	mov    %edi,%eax
+    1bcd:	c3                   	ret
+    1bce:	66 90                	xchg   %ax,%ax
   if (b < a) return b;
-    1ba0:	89 f0                	mov    %esi,%eax
+    1bd0:	89 f0                	mov    %esi,%eax
 }
-    1ba2:	c3                   	ret
+    1bd2:	c3                   	ret
 
 Disassembly of section .fini:
 
-0000000000001ba4 <_fini>:
-    1ba4:	f3 0f 1e fa          	endbr64
-    1ba8:	48 83 ec 08          	sub    $0x8,%rsp
-    1bac:	48 83 c4 08          	add    $0x8,%rsp
-    1bb0:	c3                   	ret
+0000000000001bd4 <_fini>:
+    1bd4:	f3 0f 1e fa          	endbr64
+    1bd8:	48 83 ec 08          	sub    $0x8,%rsp
+    1bdc:	48 83 c4 08          	add    $0x8,%rsp
+    1be0:	c3                   	ret

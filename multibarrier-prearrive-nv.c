@@ -115,6 +115,9 @@ struct Buffers {
 struct Buffer {
   void * data; 
   int available;
+  struct Snapshot *snapshots;
+  int snapshot_limit;
+  int ingest_snapshot;
 };
 
 struct Request {
@@ -755,15 +758,19 @@ void * external_thread(void *arg) {
   struct timespec rem;
 
   while (data->running == 1) {
-    nanosleep(&req , &rem);
+    // nanosleep(&req , &rem);
+    int created = 0;
     // printf("External thread wakeup...\n");
     for (int x = 0; x < data->buffers->count; x++) {
       //printf("Writing to buffer\n");
       if (data->buffers->buffer[x].available == 0) {
         data->buffers->buffer[x].data = "Hello world";
         data->buffers->buffer[x].available = 1;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers->buffer[x].snapshots[data->buffers->buffer[x].ingest_snapshot].start);
+        created++;
       }
     }
+    // printf("Created %d items\n", created);
     asm volatile ("mfence" ::: "memory");
   }
   return 0; 
@@ -882,15 +889,20 @@ int barriered_work(struct BarrierTask *data) {
 
 int barriered_work_ingest(struct BarrierTask *data) {
   // printf("Ingest task\n");
+  int ingested = 0;
   for (int x = 0 ; x < data->thread->buffers->count ; x++) {
     // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
     if (data->thread->buffers->buffer[x].available == 1) {
       data->ingest_count++;
       // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
       data->thread->buffers->buffer[x].available = 0;
+      clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers->buffer[x].snapshots[data->thread->buffers->buffer[x].ingest_snapshot].end);
+      data->thread->buffers->buffer[x].ingest_snapshot = (data->thread->buffers->buffer[x].ingest_snapshot + 1) % data->thread->buffers->buffer[x].snapshot_limit;
+      ingested++;
     } else {
     }
   }
+  // printf("Received %d items\n", ingested);
   asm volatile ("sfence" ::: "memory");
   barriered_work(data);
   return 0;
@@ -988,7 +1000,7 @@ int main() {
   int thread_count = 2;
   int timer_count = 1;
   int io_threads = 1;
-  int external_threads = 1;
+  int external_threads = 2;
   int buffer_size = 1;
   long messages_limit = 1;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
@@ -1015,13 +1027,16 @@ int main() {
   int timer_index = thread_count;
   int io_index = timer_index + timer_count;
 
-  struct Buffers *buffers = calloc(external_threads, sizeof(struct Buffers));
-  
-  for (int x = 0 ; x < external_threads; x++) {
+  int buffers_required = thread_count * barrier_count;
+  struct Buffers *buffers = calloc(buffers_required, sizeof(struct Buffers));
+  int snapshot_limit = 10;
+  for (int x = 0 ; x < buffers_required; x++) {
     buffers[x].count = buffer_size;
     buffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
     for (int y = 0 ; y < buffer_size; y++) {
       buffers[x].buffer[y].available = 0;
+      buffers[x].buffer[y].snapshot_limit = snapshot_limit;
+      buffers[x].buffer[y].snapshots = calloc(snapshot_limit, sizeof(struct Snapshot));
     }
   }
   int external_thread_index = 0;
@@ -1078,7 +1093,8 @@ int main() {
 
       struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
       thread_data[x].tasks = barriers;
-
+      int assigned = 0;
+      // external_thread_index = 0;
       for (int y = 0 ; y < total_barrier_count ; y++) {
         // if the task number is identical to the thread
         // number then we are synchronized
@@ -1139,10 +1155,10 @@ int main() {
           */
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
-          if (x == y && external_thread_index < external_threads && ((x % external_threads) == 0)) { 
+          if (y < external_threads) { 
             printf("Thread %d is an ingest thread\n", x);
-            thread_data[x].buffers = &buffers[external_thread_index++];
-            thread_data[x].tasks[y].run = barriered_work_ingest; 
+            thread_data[x].buffers = &buffers[external_thread_index++]; thread_data[x].tasks[y].run = barriered_work_ingest; 
+            assigned = 1;
           } else {
             thread_data[x].tasks[y].run = barriered_work; 
 
@@ -1300,6 +1316,18 @@ int main() {
       // printf("%ldns per thread\n", (seconds2 / 2));
     }
     // printf("cycles %ld\n", thread_data[x].cycles);
+
+      for (int n = 0 ; n < thread_data[x].buffers->count ; n++) {
+        printf("buffers\n");
+        for (int k = 0 ; k < thread_data[x].buffers->buffer[n].ingest_snapshot ; k++) {
+          struct timespec end = thread_data[x].buffers->buffer[n].snapshots[k].end;
+          struct timespec start = thread_data[x].buffers->buffer[n].snapshots[k].start;
+          const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+          const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+          printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+
+        }
+      }
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
