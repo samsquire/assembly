@@ -11,7 +11,7 @@ all: $(OBJ) $(IMGS)
 	objdump -drwC  -S $@ > output-assembly/$@.S
 
 ringbuffer-tla/%.svg: ringbuffer-tla/%.dot
-	dot -Tsvg -o $@ $<
+	# dot -Tsvg -o $@ $<
 
 default: $(OBJ) $(IMGS)
 	echo $(CFILES); echo $(OBJ) \;
