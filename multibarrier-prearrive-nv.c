@@ -190,7 +190,7 @@ struct KernelThread {
   int task_count;
   int running;
   struct ProtectedState *protected_state;
-  struct Buffers *buffers;
+  struct Buffers **buffers;
   struct io_uring *ring;
   int _eventfd;
   struct timespec *start;
@@ -204,6 +204,7 @@ struct KernelThread {
   long cycles;
   cpu_set_t *cpu_set;
   int other;
+	int buffers_count;
 };
 
 struct ProtectedState {
@@ -761,14 +762,16 @@ void * external_thread(void *arg) {
     // nanosleep(&req , &rem);
     int created = 0;
     // printf("External thread wakeup...\n");
-    for (int x = 0; x < data->buffers->count; x++) {
-      //printf("Writing to buffer\n");
-      if (data->buffers->buffer[x].available == 0) {
-        data->buffers->buffer[x].data = "Hello world";
-        data->buffers->buffer[x].available = 1;
-        clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers->buffer[x].snapshots[data->buffers->buffer[x].ingest_snapshot].start);
-        created++;
-      }
+    for (int b = 0; b < data->buffers_count; b++) {
+      for (int x = 0; x < data->buffers[b]->count; x++) {
+	//printf("Writing to buffer\n");
+				if (data->buffers[b]->buffer[x].available == 0) {
+					data->buffers[b]->buffer[x].data = "Hello world";
+					clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers[b]->buffer[x].snapshots[data->buffers[b]->buffer[x].ingest_snapshot].start);
+					data->buffers[b]->buffer[x].available = 1;
+					created++;
+				}
+     }
     }
     // printf("Created %d items\n", created);
     asm volatile ("mfence" ::: "memory");
@@ -890,16 +893,18 @@ int barriered_work(struct BarrierTask *data) {
 int barriered_work_ingest(struct BarrierTask *data) {
   // printf("Ingest task\n");
   int ingested = 0;
-  for (int x = 0 ; x < data->thread->buffers->count ; x++) {
-    // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
-    if (data->thread->buffers->buffer[x].available == 1) {
-      data->ingest_count++;
-      // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
-      data->thread->buffers->buffer[x].available = 0;
-      clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers->buffer[x].snapshots[data->thread->buffers->buffer[x].ingest_snapshot].end);
-      data->thread->buffers->buffer[x].ingest_snapshot = (data->thread->buffers->buffer[x].ingest_snapshot + 1) % data->thread->buffers->buffer[x].snapshot_limit;
-      ingested++;
-    } else {
+  for (int b = 0 ; b < data->thread->buffers_count ; b++) {
+    for (int x = 0 ; x < data->thread->buffers[b]->count ; x++) {
+      // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+      if (data->thread->buffers[b]->buffer[x].available == 1) {
+        data->ingest_count++;
+        // printf("Ingested %s\n", (char*)data->thread->buffers->buffer[x].data);
+        data->thread->buffers[b]->buffer[x].available = 0;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
+        data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
+        ingested++;
+      } else {
+      }
     }
   }
   // printf("Received %d items\n", ingested);
@@ -1000,9 +1005,10 @@ int main() {
   int thread_count = 2;
   int timer_count = 1;
   int io_threads = 1;
-  int external_threads = 2;
+  int external_threads = 4;
   int buffer_size = 1;
   long messages_limit = 1;
+  int buffers_per_thread = 2;
   int total_threads = thread_count + timer_count + io_threads + external_threads;
   printf("Multithreaded nonblocking lock free MULTIbarrier runtime (https://github.com/samsquire/assembly)\n");
   printf("\n");
@@ -1043,6 +1049,8 @@ int main() {
   int timestamp_limit = 100;
   int cores = 12;
   int curcpu = 0;
+  int my_buffers = 0;
+  int cur_buffer = 0;
   for (int x = 0 ; x < total_threads ; x++) {
     struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
     int other = -1;
@@ -1155,15 +1163,16 @@ int main() {
           */
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
-          if (y < external_threads) { 
             printf("Thread %d is an ingest thread\n", x);
-            thread_data[x].buffers = &buffers[external_thread_index++]; thread_data[x].tasks[y].run = barriered_work_ingest; 
+            thread_data[x].tasks[y].run = barriered_work_ingest; 
             assigned = 1;
-          } else {
-            thread_data[x].tasks[y].run = barriered_work; 
-
-          }
+            // thread_data[x].tasks[y].run = barriered_work; 
         }
+      }
+			thread_data[x].buffers_count = buffers_per_thread;
+      thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
+      for (int b = 0 ; b < buffers_per_thread; b++) {	
+        thread_data[x].buffers[b] = &buffers[cur_buffer++];
       }
       thread_data[x].tasks[barrier_count].protected = do_protected_write; 
       thread_data[x].tasks[barrier_count].run = barriered_reset; 
@@ -1240,13 +1249,15 @@ int main() {
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
   }
   int external_index = io_index + io_threads;
+	int next_buffer = 0;
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
     printf("Creating external thread %d\n", x);
     thread_data[x].type = EXTERNAL;
     thread_data[x].running = 1;
     thread_data[x].task_count = 0;
-    thread_data[x].buffers = &buffers[buffer_index];
-
+    thread_data[x].buffers = calloc(1, sizeof(struct Buffers*));
+		thread_data[x].buffers[0] = &buffers[next_buffer++];
+	  thread_data[x].buffers_count = 1;
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
@@ -1317,17 +1328,19 @@ int main() {
     }
     // printf("cycles %ld\n", thread_data[x].cycles);
 
-      for (int n = 0 ; n < thread_data[x].buffers->count ; n++) {
-        printf("buffers\n");
-        for (int k = 0 ; k < thread_data[x].buffers->buffer[n].ingest_snapshot ; k++) {
-          struct timespec end = thread_data[x].buffers->buffer[n].snapshots[k].end;
-          struct timespec start = thread_data[x].buffers->buffer[n].snapshots[k].start;
-          const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-          const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-          printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+    for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
+      for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
+	printf("buffers\n");
+	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
+	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
+	  struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
+	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+	  const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
 
-        }
+	}
       }
+    }
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
