@@ -500,7 +500,7 @@ printf (const char *__restrict __fmt, ...)
     2605:	48 83 ec 78          	sub    $0x78,%rsp
     2609:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
     2612:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
-    2617:	48 8d 05 b2 10 00 00 	lea    0x10b2(%rip),%rax        # 36d0 <barriered_reset>
+    2617:	48 8d 05 82 10 00 00 	lea    0x1082(%rip),%rax        # 36a0 <barriered_reset>
     261e:	66 48 0f 6e e8       	movq   %rax,%xmm5
     2623:	0f 16 2d 4e 76 00 00 	movhps 0x764e(%rip),%xmm5        # 9c78 <__do_global_dtors_aux_fini_array_entry+0x8>
     262a:	0f 29 6c 24 30       	movaps %xmm5,0x30(%rsp)
@@ -584,9 +584,9 @@ printf (const char *__restrict __fmt, ...)
     275b:	48 89 04 24          	mov    %rax,(%rsp)
   struct Buffers *buffers = calloc(buffers_required, sizeof(struct Buffers));
     275f:	e8 3c fc ff ff       	call   23a0 <calloc@plt>
-    2764:	4c 8b 34 24          	mov    (%rsp),%r14
+    2764:	4c 8b 2c 24          	mov    (%rsp),%r13
     2768:	48 89 44 24 58       	mov    %rax,0x58(%rsp)
-    276d:	49 89 c5             	mov    %rax,%r13
+    276d:	49 89 c7             	mov    %rax,%r15
   int snapshot_limit = 10;
   for (int x = 0 ; x < buffers_required; x++) {
     2770:	48 8d 68 40          	lea    0x40(%rax),%rbp
@@ -622,4845 +622,4824 @@ printf (const char *__restrict __fmt, ...)
   for (int x = 0 ; x < buffers_required; x++) {
     27c4:	4c 39 e5             	cmp    %r12,%rbp
     27c7:	75 ae                	jne    2777 <main+0x187>
-    27c9:	4d 89 f2             	mov    %r14,%r10
-    27cc:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
-    27d1:	4c 89 6c 24 18       	mov    %r13,0x18(%rsp)
+    27c9:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
     }
   }
   int external_thread_index = 0;
   int timestamp_limit = 100;
   int cores = 12;
   int curcpu = 0;
-    27d6:	c7 44 24 40 00 00 00 00 	movl   $0x0,0x40(%rsp)
-        thread_data[x].tasks[y].snapshot_count = 99;
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
-        thread_data[x].tasks[y].current_snapshot = 0;
-        thread_data[x].tasks[y].thread_index = thread_data[x].thread_index;
-        thread_data[x].tasks[y].thread = &thread_data[x]; 
-        thread_data[x].tasks[y].available = 1;
-    27de:	4d 89 d5             	mov    %r10,%r13
-    27e1:	4c 89 54 24 50       	mov    %r10,0x50(%rsp)
-    27e6:	4c 8d 70 e8          	lea    -0x18(%rax),%r14
+    27ce:	c7 44 24 40 00 00 00 00 	movl   $0x0,0x40(%rsp)
+  int my_buffers = 0;
   int cur_buffer = 0;
-    27ea:	31 c0                	xor    %eax,%eax
-        thread_data[x].tasks[y].available = 1;
-    27ec:	4c 89 f5             	mov    %r14,%rbp
-    27ef:	41 89 c6             	mov    %eax,%r14d
-    struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
-    27f2:	be 08 00 00 00       	mov    $0x8,%esi
-    27f7:	bf 02 00 00 00       	mov    $0x2,%edi
-    27fc:	e8 9f fb ff ff       	call   23a0 <calloc@plt>
-    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
-    2801:	be 80 00 00 00       	mov    $0x80,%esi
-    2806:	bf 01 00 00 00       	mov    $0x1,%edi
-    struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
-    280b:	48 89 c3             	mov    %rax,%rbx
-    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
-    280e:	e8 8d fb ff ff       	call   23a0 <calloc@plt>
-    2813:	44 89 34 24          	mov    %r14d,(%rsp)
-    2817:	44 89 f2             	mov    %r14d,%edx
-    281a:	49 89 c4             	mov    %rax,%r12
-    if (x % 2 == 1) {
-    281d:	44 89 f0             	mov    %r14d,%eax
-      other = (x + 1) % total_threads;
-    2820:	41 83 c6 01          	add    $0x1,%r14d
-    if (x % 2 == 1) {
-    2824:	83 e0 01             	and    $0x1,%eax
-    2827:	85 c0                	test   %eax,%eax
-    2829:	0f 84 b3 07 00 00    	je     2fe2 <main+0x9f2>
-      my_thread_data[0] = &thread_data[other]; 
-    282f:	49 8d 8d 50 ff ff ff 	lea    -0xb0(%r13),%rcx
-      my_thread_data[1] = &thread_data[x]; 
-    2836:	4c 89 6b 08          	mov    %r13,0x8(%rbx)
-    283a:	4d 89 e8             	mov    %r13,%r8
-    283d:	31 c0                	xor    %eax,%eax
-      my_thread_data[0] = &thread_data[other]; 
-    283f:	48 89 0b             	mov    %rcx,(%rbx)
-    2842:	48 8d 35 b2 4a 00 00 	lea    0x4ab2(%rip),%rsi        # 72fb <_IO_stdin_used+0x2fb>
-    2849:	bf 01 00 00 00       	mov    $0x1,%edi
-      other = abs(x - 1) % total_threads;
-    284e:	44 8d 7a ff          	lea    -0x1(%rdx),%r15d
-      thread_data[x].thread_index = 1;
-    2852:	41 c7 45 00 01 00 00 00 	movl   $0x1,0x0(%r13)
-    285a:	e8 f1 fb ff ff       	call   2450 <__printf_chk@plt>
-      thread_data[x].protected_state = &protected_state[other];
-    285f:	48 8d 45 18          	lea    0x18(%rbp),%rax
-    2863:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
-    2868:	49 89 6d 38          	mov    %rbp,0x38(%r13)
-    286c:	8b 2c 24             	mov    (%rsp),%ebp
-    286f:	44 89 f9             	mov    %r15d,%ecx
-    2872:	bf 01 00 00 00       	mov    $0x1,%edi
-    2877:	45 8b 45 00          	mov    0x0(%r13),%r8d
-    287b:	48 8d 35 ee 4c 00 00 	lea    0x4cee(%rip),%rsi        # 7570 <_IO_stdin_used+0x570>
-    2882:	31 c0                	xor    %eax,%eax
-    2884:	89 ea                	mov    %ebp,%edx
-    2886:	e8 c5 fb ff ff       	call   2450 <__printf_chk@plt>
-    thread_data[x].other = other;
-    288b:	45 89 bd a8 00 00 00 	mov    %r15d,0xa8(%r13)
-    2892:	31 c0                	xor    %eax,%eax
-    2894:	89 ea                	mov    %ebp,%edx
-    2896:	8b 4c 24 40          	mov    0x40(%rsp),%ecx
-    289a:	48 8d 35 ff 4c 00 00 	lea    0x4cff(%rip),%rsi        # 75a0 <_IO_stdin_used+0x5a0>
-    28a1:	bf 01 00 00 00       	mov    $0x1,%edi
-    28a6:	e8 a5 fb ff ff       	call   2450 <__printf_chk@plt>
-      if (x < thread_count) {
-    28ab:	83 fd 01             	cmp    $0x1,%ebp
-    28ae:	0f 86 9a 07 00 00    	jbe    304e <main+0xa5e>
-          CPU_SET(j, sendercpu);
-    28b4:	49 81 0c 24 ff 0f 00 00 	orq    $0xfff,(%r12)
-    thread_data[x].real_thread_index = x;
-    28bc:	8b 04 24             	mov    (%rsp),%eax
-    thread_data[x].threads = my_thread_data;
-    28bf:	49 89 5d 10          	mov    %rbx,0x10(%r13)
-    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
-    28c3:	be 10 00 00 00       	mov    $0x10,%esi
-      for (int y = 0 ; y < total_barrier_count ; y++) {
-    28c8:	31 ed                	xor    %ebp,%ebp
-    thread_data[x].cpu_set = sendercpu;
-    28ca:	4d 89 a5 a0 00 00 00 	mov    %r12,0xa0(%r13)
-    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
-    28d1:	bf 64 00 00 00       	mov    $0x64,%edi
-    thread_data[x].real_thread_index = x;
-    28d6:	41 89 45 04          	mov    %eax,0x4(%r13)
-    thread_data[x].thread_count = 2;
-    28da:	48 8b 05 9f 51 00 00 	mov    0x519f(%rip),%rax        # 7a80 <_IO_stdin_used+0xa80>
-    thread_data[x].task_count = total_barrier_count;
-    28e1:	41 c7 45 30 03 00 00 00 	movl   $0x3,0x30(%r13)
-    thread_data[x].thread_count = 2;
-    28e9:	49 89 45 18          	mov    %rax,0x18(%r13)
-    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
-    28ed:	e8 ae fa ff ff       	call   23a0 <calloc@plt>
-    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
-    28f2:	be 10 00 00 00       	mov    $0x10,%esi
-    28f7:	bf 64 00 00 00       	mov    $0x64,%edi
-    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
-    28fc:	49 89 45 58          	mov    %rax,0x58(%r13)
-    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
-    2900:	e8 9b fa ff ff       	call   23a0 <calloc@plt>
-    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
-    2905:	be 28 00 00 00       	mov    $0x28,%esi
-    290a:	bf 64 00 00 00       	mov    $0x64,%edi
-    thread_data[x].timestamp_count = 0;
-    290f:	66 0f 6f 1d 49 51 00 00 	movdqa 0x5149(%rip),%xmm3        # 7a60 <_IO_stdin_used+0xa60>
-    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
-    2917:	49 89 45 60          	mov    %rax,0x60(%r13)
-    thread_data[x].timestamp_count = 0;
-    291b:	41 0f 11 5d 70       	movups %xmm3,0x70(%r13)
-    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
-    2920:	e8 7b fa ff ff       	call   23a0 <calloc@plt>
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
-    2925:	be 00 02 00 00       	mov    $0x200,%esi
-    292a:	bf 03 00 00 00       	mov    $0x3,%edi
-    thread_data[x].task_timestamp_count = 0;
-    292f:	66 0f 6f 25 29 51 00 00 	movdqa 0x5129(%rip),%xmm4        # 7a60 <_IO_stdin_used+0xa60>
-    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
-    2937:	49 89 85 80 00 00 00 	mov    %rax,0x80(%r13)
-    thread_data[x].task_timestamp_count = 0;
-    293e:	41 0f 11 a5 88 00 00 00 	movups %xmm4,0x88(%r13)
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
-    2946:	e8 55 fa ff ff       	call   23a0 <calloc@plt>
-        thread_data[x].tasks[y].sending = 1;
-    294b:	44 89 74 24 20       	mov    %r14d,0x20(%rsp)
-      thread_data[x].tasks = barriers;
-    2950:	49 89 45 28          	mov    %rax,0x28(%r13)
-      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
-    2954:	49 89 c4             	mov    %rax,%r12
-        thread_data[x].tasks[y].protected = do_protected_write; 
-    2957:	4c 63 fd             	movslq %ebp,%r15
-        struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
-    295a:	be 20 00 00 00       	mov    $0x20,%esi
-    295f:	bf 02 00 00 00       	mov    $0x2,%edi
-        thread_data[x].tasks[y].protected = do_protected_write; 
-    2964:	4c 89 fb             	mov    %r15,%rbx
-    2967:	48 8d 05 22 0d 00 00 	lea    0xd22(%rip),%rax        # 3690 <do_protected_write>
-    296e:	48 c1 e3 09          	shl    $0x9,%rbx
-    2972:	49 01 dc             	add    %rbx,%r12
-    2975:	49 89 84 24 20 01 00 00 	mov    %rax,0x120(%r12)
-        struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
-    297d:	e8 1e fa ff ff       	call   23a0 <calloc@plt>
-        thread_data[x].tasks[y].mailboxes = mailboxes;
-    2982:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
-    2987:	89 6c 24 10          	mov    %ebp,0x10(%rsp)
-    298b:	49 89 c6             	mov    %rax,%r14
-    298e:	49 89 84 24 68 01 00 00 	mov    %rax,0x168(%r12)
-        for (int b = 0 ; b < 2 ; b++) {
-    2996:	4c 8d 60 40          	lea    0x40(%rax),%r12
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
-    299a:	be 08 00 00 00       	mov    $0x8,%esi
-    299f:	bf 01 00 00 00       	mov    $0x1,%edi
-        for (int b = 0 ; b < 2 ; b++) {
-    29a4:	49 83 c6 20          	add    $0x20,%r14
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
-    29a8:	e8 f3 f9 ff ff       	call   23a0 <calloc@plt>
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
-    29ad:	be 08 00 00 00       	mov    $0x8,%esi
-    29b2:	bf 01 00 00 00       	mov    $0x1,%edi
-          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
-    29b7:	48 89 c5             	mov    %rax,%rbp
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
-    29ba:	e8 e1 f9 ff ff       	call   23a0 <calloc@plt>
-          struct Data *data = calloc(2, sizeof(struct Data));
-    29bf:	be 18 00 00 00       	mov    $0x18,%esi
-    29c4:	bf 02 00 00 00       	mov    $0x2,%edi
-          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
-    29c9:	48 89 c3             	mov    %rax,%rbx
-          struct Data *data = calloc(2, sizeof(struct Data));
-    29cc:	e8 cf f9 ff ff       	call   23a0 <calloc@plt>
-          data[0].messages_count = 0;
-    29d1:	66 0f 6f 05 97 50 00 00 	movdqa 0x5097(%rip),%xmm0        # 7a70 <_IO_stdin_used+0xa70>
-          mailboxes[b].higher = &data[1];
-    29d9:	48 8d 70 18          	lea    0x18(%rax),%rsi
-          mailboxes[b].lower = &data[0];
-    29dd:	49 89 46 e0          	mov    %rax,-0x20(%r14)
-          mailboxes[b].higher = &data[1];
-    29e1:	49 89 76 e8          	mov    %rsi,-0x18(%r14)
-          data[0].messages = messages;
-    29e5:	48 89 28             	mov    %rbp,(%rax)
-          data[1].messages = messages2;
-    29e8:	48 89 58 18          	mov    %rbx,0x18(%rax)
-          data[0].messages_count = 0;
-    29ec:	0f 11 40 08          	movups %xmm0,0x8(%rax)
-          data[1].messages_count = 0;
-    29f0:	0f 11 40 20          	movups %xmm0,0x20(%rax)
-        for (int b = 0 ; b < 2 ; b++) {
-    29f4:	4d 39 f4             	cmp    %r14,%r12
-    29f7:	75 a1                	jne    299a <main+0x3aa>
-        char *message = malloc(sizeof(char) * 256);
-    29f9:	be 01 00 00 00       	mov    $0x1,%esi
-    29fe:	bf 00 01 00 00       	mov    $0x100,%edi
-    2a03:	8b 6c 24 10          	mov    0x10(%rsp),%ebp
-    2a07:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
-    2a0c:	e8 8f f9 ff ff       	call   23a0 <calloc@plt>
-        struct Message *messaged = malloc(sizeof(struct Message));
-    2a11:	bf 18 00 00 00       	mov    $0x18,%edi
-        char *message = malloc(sizeof(char) * 256);
-    2a16:	49 89 c4             	mov    %rax,%r12
-        struct Message *messaged = malloc(sizeof(struct Message));
-    2a19:	e8 f2 f9 ff ff       	call   2410 <malloc@plt>
-  return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
-    2a1e:	44 8b 04 24          	mov    (%rsp),%r8d
-    2a22:	4c 89 e7             	mov    %r12,%rdi
-    2a25:	41 89 e9             	mov    %ebp,%r9d
-    2a28:	49 89 c6             	mov    %rax,%r14
-    2a2b:	48 8d 0d 8e 4b 00 00 	lea    0x4b8e(%rip),%rcx        # 75c0 <_IO_stdin_used+0x5c0>
-    2a32:	ba 00 01 00 00       	mov    $0x100,%edx
-    2a37:	31 c0                	xor    %eax,%eax
-    2a39:	be 01 00 00 00       	mov    $0x1,%esi
-    2a3e:	e8 dd fa ff ff       	call   2520 <__sprintf_chk@plt>
-        messaged->thread_index = thread_data[x].thread_index;
-    2a43:	49 63 45 00          	movslq 0x0(%r13),%rax
-        messaged->message = message;
-    2a47:	4d 89 26             	mov    %r12,(%r14)
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
-    2a4a:	bf 63 00 00 00       	mov    $0x63,%edi
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
-    2a4f:	4d 8b 65 28          	mov    0x28(%r13),%r12
-        messaged->task_index = y;
-    2a53:	4d 89 7e 10          	mov    %r15,0x10(%r14)
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
-    2a57:	be 20 00 00 00       	mov    $0x20,%esi
-        messaged->thread_index = thread_data[x].thread_index;
-    2a5c:	49 89 46 08          	mov    %rax,0x8(%r14)
-    2a60:	49 89 c7             	mov    %rax,%r15
-        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
-    2a63:	8d 45 01             	lea    0x1(%rbp),%eax
-    2a66:	4c 01 e3             	add    %r12,%rbx
-    2a69:	83 e0 01             	and    $0x1,%eax
-    2a6c:	89 83 88 01 00 00    	mov    %eax,0x188(%rbx)
-        thread_data[x].tasks[y].message = messaged;
-    2a72:	4c 89 b3 80 01 00 00 	mov    %r14,0x180(%rbx)
+    27d6:	45 31 e4             	xor    %r12d,%r12d
         thread_data[x].tasks[y].snapshot_count = 99;
-    2a79:	48 c7 83 50 01 00 00 63 00 00 00 	movq   $0x63,0x150(%rbx)
         thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
-    2a84:	e8 17 f9 ff ff       	call   23a0 <calloc@plt>
-        thread_data[x].tasks[y].thread_index = thread_data[x].thread_index;
-    2a89:	44 89 bb 30 01 00 00 	mov    %r15d,0x130(%rbx)
-        thread_data[x].tasks[y].sending = 1;
-    2a90:	48 bf 01 00 00 00 02 00 00 00 	movabs $0x200000001,%rdi
-        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
-    2a9a:	48 89 83 48 01 00 00 	mov    %rax,0x148(%rbx)
-        thread_data[x].tasks[y].available = 1;
-    2aa1:	48 b8 01 00 00 00 03 00 00 00 	movabs $0x300000001,%rax
         thread_data[x].tasks[y].current_snapshot = 0;
-    2aab:	48 c7 83 58 01 00 00 00 00 00 00 	movq   $0x0,0x158(%rbx)
+        thread_data[x].tasks[y].thread_index = thread_data[x].thread_index;
         thread_data[x].tasks[y].thread = &thread_data[x]; 
-    2ab6:	4c 89 ab 28 01 00 00 	mov    %r13,0x128(%rbx)
-        thread_data[x].tasks[y].arrived = 0;
-    2abd:	c7 83 80 00 00 00 00 00 00 00 	movl   $0x0,0x80(%rbx)
-        thread_data[x].tasks[y].thread_count = 2;
-    2ac7:	c7 83 34 01 00 00 02 00 00 00 	movl   $0x2,0x134(%rbx)
         thread_data[x].tasks[y].available = 1;
-    2ad1:	48 89 83 38 01 00 00 	mov    %rax,0x138(%rbx)
+    27d9:	4c 89 6c 24 50       	mov    %r13,0x50(%rsp)
+    27de:	4c 8d 70 e8          	lea    -0x18(%rax),%r14
+  for (int x = 0 ; x < buffers_required; x++) {
+    27e2:	4c 89 7c 24 18       	mov    %r15,0x18(%rsp)
+        thread_data[x].tasks[y].available = 1;
+    27e7:	4d 89 ef             	mov    %r13,%r15
+    27ea:	4c 89 f3             	mov    %r14,%rbx
+    struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
+    27ed:	be 08 00 00 00       	mov    $0x8,%esi
+    27f2:	bf 02 00 00 00       	mov    $0x2,%edi
+    27f7:	e8 a4 fb ff ff       	call   23a0 <calloc@plt>
+    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
+    27fc:	be 80 00 00 00       	mov    $0x80,%esi
+    2801:	bf 01 00 00 00       	mov    $0x1,%edi
+    struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
+    2806:	48 89 c5             	mov    %rax,%rbp
+    cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
+    2809:	e8 92 fb ff ff       	call   23a0 <calloc@plt>
+    280e:	44 89 24 24          	mov    %r12d,(%rsp)
+    2812:	44 89 e2             	mov    %r12d,%edx
+    2815:	49 89 c5             	mov    %rax,%r13
+    if (x % 2 == 1) {
+    2818:	44 89 e0             	mov    %r12d,%eax
+      other = (x + 1) % total_threads;
+    281b:	41 83 c4 01          	add    $0x1,%r12d
+    if (x % 2 == 1) {
+    281f:	83 e0 01             	and    $0x1,%eax
+    2822:	85 c0                	test   %eax,%eax
+    2824:	0f 84 b1 07 00 00    	je     2fdb <main+0x9eb>
+      my_thread_data[0] = &thread_data[other]; 
+    282a:	49 8d 8f 50 ff ff ff 	lea    -0xb0(%r15),%rcx
+      my_thread_data[1] = &thread_data[x]; 
+    2831:	4c 89 7d 08          	mov    %r15,0x8(%rbp)
+    2835:	4d 89 f8             	mov    %r15,%r8
+    2838:	31 c0                	xor    %eax,%eax
+      thread_data[x].thread_index = 1;
+    283a:	41 c7 07 01 00 00 00 	movl   $0x1,(%r15)
+    2841:	bf 01 00 00 00       	mov    $0x1,%edi
+      other = abs(x - 1) % total_threads;
+    2846:	44 8d 72 ff          	lea    -0x1(%rdx),%r14d
+    284a:	48 8d 35 aa 4a 00 00 	lea    0x4aaa(%rip),%rsi        # 72fb <_IO_stdin_used+0x2fb>
+      my_thread_data[0] = &thread_data[other]; 
+    2851:	48 89 4d 00          	mov    %rcx,0x0(%rbp)
+    2855:	e8 f6 fb ff ff       	call   2450 <__printf_chk@plt>
+      thread_data[x].protected_state = &protected_state[other];
+    285a:	48 8d 7b 18          	lea    0x18(%rbx),%rdi
+    285e:	48 89 d8             	mov    %rbx,%rax
+    2861:	48 89 7c 24 20       	mov    %rdi,0x20(%rsp)
+    2866:	8b 1c 24             	mov    (%rsp),%ebx
+    2869:	49 89 47 38          	mov    %rax,0x38(%r15)
+    286d:	44 89 f1             	mov    %r14d,%ecx
+    2870:	bf 01 00 00 00       	mov    $0x1,%edi
+    2875:	45 8b 07             	mov    (%r15),%r8d
+    2878:	48 8d 35 f1 4c 00 00 	lea    0x4cf1(%rip),%rsi        # 7570 <_IO_stdin_used+0x570>
+    287f:	31 c0                	xor    %eax,%eax
+    2881:	89 da                	mov    %ebx,%edx
+    2883:	e8 c8 fb ff ff       	call   2450 <__printf_chk@plt>
+    thread_data[x].other = other;
+    2888:	45 89 b7 a8 00 00 00 	mov    %r14d,0xa8(%r15)
+    288f:	31 c0                	xor    %eax,%eax
+    2891:	89 da                	mov    %ebx,%edx
+    2893:	8b 4c 24 40          	mov    0x40(%rsp),%ecx
+    2897:	48 8d 35 02 4d 00 00 	lea    0x4d02(%rip),%rsi        # 75a0 <_IO_stdin_used+0x5a0>
+    289e:	bf 01 00 00 00       	mov    $0x1,%edi
+    28a3:	e8 a8 fb ff ff       	call   2450 <__printf_chk@plt>
+      if (x < thread_count) {
+    28a8:	83 fb 01             	cmp    $0x1,%ebx
+    28ab:	0f 86 93 07 00 00    	jbe    3044 <main+0xa54>
+          CPU_SET(j, sendercpu);
+    28b1:	49 81 4d 00 ff 0f 00 00 	orq    $0xfff,0x0(%r13)
+    thread_data[x].real_thread_index = x;
+    28b9:	8b 04 24             	mov    (%rsp),%eax
+    thread_data[x].threads = my_thread_data;
+    28bc:	49 89 6f 10          	mov    %rbp,0x10(%r15)
+      for (int y = 0 ; y < total_barrier_count ; y++) {
+    28c0:	31 ed                	xor    %ebp,%ebp
+    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
+    28c2:	be 10 00 00 00       	mov    $0x10,%esi
+    thread_data[x].cpu_set = sendercpu;
+    28c7:	4d 89 af a0 00 00 00 	mov    %r13,0xa0(%r15)
+    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
+    28ce:	bf 64 00 00 00       	mov    $0x64,%edi
+    thread_data[x].real_thread_index = x;
+    28d3:	41 89 47 04          	mov    %eax,0x4(%r15)
+    thread_data[x].thread_count = 2;
+    28d7:	48 8b 05 a2 51 00 00 	mov    0x51a2(%rip),%rax        # 7a80 <_IO_stdin_used+0xa80>
+    thread_data[x].task_count = total_barrier_count;
+    28de:	41 c7 47 30 03 00 00 00 	movl   $0x3,0x30(%r15)
+    thread_data[x].thread_count = 2;
+    28e6:	49 89 47 18          	mov    %rax,0x18(%r15)
+    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
+    28ea:	e8 b1 fa ff ff       	call   23a0 <calloc@plt>
+    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
+    28ef:	be 10 00 00 00       	mov    $0x10,%esi
+    28f4:	bf 64 00 00 00       	mov    $0x64,%edi
+    thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
+    28f9:	49 89 47 58          	mov    %rax,0x58(%r15)
+    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
+    28fd:	e8 9e fa ff ff       	call   23a0 <calloc@plt>
+    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
+    2902:	be 28 00 00 00       	mov    $0x28,%esi
+    2907:	bf 64 00 00 00       	mov    $0x64,%edi
+    thread_data[x].timestamp_count = 0;
+    290c:	66 0f 6f 1d 4c 51 00 00 	movdqa 0x514c(%rip),%xmm3        # 7a60 <_IO_stdin_used+0xa60>
+    thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
+    2914:	49 89 47 60          	mov    %rax,0x60(%r15)
+    thread_data[x].timestamp_count = 0;
+    2918:	41 0f 11 5f 70       	movups %xmm3,0x70(%r15)
+    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
+    291d:	e8 7e fa ff ff       	call   23a0 <calloc@plt>
+      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
+    2922:	be 00 02 00 00       	mov    $0x200,%esi
+    2927:	bf 03 00 00 00       	mov    $0x3,%edi
+    thread_data[x].task_timestamp_count = 0;
+    292c:	66 0f 6f 25 2c 51 00 00 	movdqa 0x512c(%rip),%xmm4        # 7a60 <_IO_stdin_used+0xa60>
+    thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
+    2934:	49 89 87 80 00 00 00 	mov    %rax,0x80(%r15)
+    thread_data[x].task_timestamp_count = 0;
+    293b:	41 0f 11 a7 88 00 00 00 	movups %xmm4,0x88(%r15)
+      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
+    2943:	e8 58 fa ff ff       	call   23a0 <calloc@plt>
         thread_data[x].tasks[y].sending = 1;
-    2ad8:	48 89 bb 78 01 00 00 	mov    %rdi,0x178(%rbx)
+    2948:	44 89 64 24 28       	mov    %r12d,0x28(%rsp)
+      thread_data[x].tasks = barriers;
+    294d:	49 89 47 28          	mov    %rax,0x28(%r15)
+      struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
+    2951:	49 89 c6             	mov    %rax,%r14
+        thread_data[x].tasks[y].protected = do_protected_write; 
+    2954:	4c 63 e5             	movslq %ebp,%r12
+        struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
+    2957:	be 20 00 00 00       	mov    $0x20,%esi
+    295c:	bf 02 00 00 00       	mov    $0x2,%edi
+        thread_data[x].tasks[y].protected = do_protected_write; 
+    2961:	4c 89 e3             	mov    %r12,%rbx
+    2964:	48 8d 05 f5 0c 00 00 	lea    0xcf5(%rip),%rax        # 3660 <do_protected_write>
+    296b:	48 c1 e3 09          	shl    $0x9,%rbx
+    296f:	49 01 de             	add    %rbx,%r14
+    2972:	49 89 86 20 01 00 00 	mov    %rax,0x120(%r14)
+        struct Mailbox *mailboxes = calloc(thread_count, sizeof(struct Mailbox));
+    2979:	e8 22 fa ff ff       	call   23a0 <calloc@plt>
+        thread_data[x].tasks[y].mailboxes = mailboxes;
+    297e:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
+    2983:	89 6c 24 10          	mov    %ebp,0x10(%rsp)
+    2987:	4c 8d 68 40          	lea    0x40(%rax),%r13
+    298b:	49 89 86 68 01 00 00 	mov    %rax,0x168(%r14)
+        for (int b = 0 ; b < 2 ; b++) {
+    2992:	49 89 c6             	mov    %rax,%r14
+          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
+    2995:	be 08 00 00 00       	mov    $0x8,%esi
+    299a:	bf 01 00 00 00       	mov    $0x1,%edi
+        for (int b = 0 ; b < 2 ; b++) {
+    299f:	49 83 c6 20          	add    $0x20,%r14
+          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
+    29a3:	e8 f8 f9 ff ff       	call   23a0 <calloc@plt>
+          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
+    29a8:	be 08 00 00 00       	mov    $0x8,%esi
+    29ad:	bf 01 00 00 00       	mov    $0x1,%edi
+          struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
+    29b2:	48 89 c5             	mov    %rax,%rbp
+          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
+    29b5:	e8 e6 f9 ff ff       	call   23a0 <calloc@plt>
+          struct Data *data = calloc(2, sizeof(struct Data));
+    29ba:	be 18 00 00 00       	mov    $0x18,%esi
+    29bf:	bf 02 00 00 00       	mov    $0x2,%edi
+          struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
+    29c4:	48 89 c3             	mov    %rax,%rbx
+          struct Data *data = calloc(2, sizeof(struct Data));
+    29c7:	e8 d4 f9 ff ff       	call   23a0 <calloc@plt>
+          data[0].messages_count = 0;
+    29cc:	66 0f 6f 05 9c 50 00 00 	movdqa 0x509c(%rip),%xmm0        # 7a70 <_IO_stdin_used+0xa70>
+          mailboxes[b].higher = &data[1];
+    29d4:	48 8d 70 18          	lea    0x18(%rax),%rsi
+          mailboxes[b].lower = &data[0];
+    29d8:	49 89 46 e0          	mov    %rax,-0x20(%r14)
+          mailboxes[b].higher = &data[1];
+    29dc:	49 89 76 e8          	mov    %rsi,-0x18(%r14)
+          data[0].messages = messages;
+    29e0:	48 89 28             	mov    %rbp,(%rax)
+          data[1].messages = messages2;
+    29e3:	48 89 58 18          	mov    %rbx,0x18(%rax)
+          data[0].messages_count = 0;
+    29e7:	0f 11 40 08          	movups %xmm0,0x8(%rax)
+          data[1].messages_count = 0;
+    29eb:	0f 11 40 20          	movups %xmm0,0x20(%rax)
+        for (int b = 0 ; b < 2 ; b++) {
+    29ef:	4d 39 f5             	cmp    %r14,%r13
+    29f2:	75 a1                	jne    2995 <main+0x3a5>
+        char *message = malloc(sizeof(char) * 256);
+    29f4:	be 01 00 00 00       	mov    $0x1,%esi
+    29f9:	bf 00 01 00 00       	mov    $0x100,%edi
+    29fe:	8b 6c 24 10          	mov    0x10(%rsp),%ebp
+    2a02:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
+    2a07:	e8 94 f9 ff ff       	call   23a0 <calloc@plt>
+        struct Message *messaged = malloc(sizeof(struct Message));
+    2a0c:	bf 18 00 00 00       	mov    $0x18,%edi
+        char *message = malloc(sizeof(char) * 256);
+    2a11:	49 89 c5             	mov    %rax,%r13
+        struct Message *messaged = malloc(sizeof(struct Message));
+    2a14:	e8 f7 f9 ff ff       	call   2410 <malloc@plt>
+  return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
+    2a19:	44 8b 04 24          	mov    (%rsp),%r8d
+    2a1d:	4c 89 ef             	mov    %r13,%rdi
+    2a20:	41 89 e9             	mov    %ebp,%r9d
+    2a23:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+    2a28:	48 8d 0d 91 4b 00 00 	lea    0x4b91(%rip),%rcx        # 75c0 <_IO_stdin_used+0x5c0>
+    2a2f:	ba 00 01 00 00       	mov    $0x100,%edx
+    2a34:	31 c0                	xor    %eax,%eax
+    2a36:	be 01 00 00 00       	mov    $0x1,%esi
+    2a3b:	e8 e0 fa ff ff       	call   2520 <__sprintf_chk@plt>
+        messaged->thread_index = thread_data[x].thread_index;
+    2a40:	49 63 07             	movslq (%r15),%rax
+        messaged->message = message;
+    2a43:	4c 8b 54 24 08       	mov    0x8(%rsp),%r10
+        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+    2a48:	bf 63 00 00 00       	mov    $0x63,%edi
+        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
+    2a4d:	4d 8b 77 28          	mov    0x28(%r15),%r14
+        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+    2a51:	be 20 00 00 00       	mov    $0x20,%esi
+        messaged->message = message;
+    2a56:	4d 89 2a             	mov    %r13,(%r10)
+        messaged->thread_index = thread_data[x].thread_index;
+    2a59:	49 89 c5             	mov    %rax,%r13
+    2a5c:	49 89 42 08          	mov    %rax,0x8(%r10)
+        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
+    2a60:	8d 45 01             	lea    0x1(%rbp),%eax
+    2a63:	4c 01 f3             	add    %r14,%rbx
+    2a66:	83 e0 01             	and    $0x1,%eax
+        messaged->task_index = y;
+    2a69:	4d 89 62 10          	mov    %r12,0x10(%r10)
+        thread_data[x].tasks[y].next_thread = (y + 1) % thread_count;
+    2a6d:	89 83 88 01 00 00    	mov    %eax,0x188(%rbx)
+        thread_data[x].tasks[y].message = messaged;
+    2a73:	4c 89 93 80 01 00 00 	mov    %r10,0x180(%rbx)
+        thread_data[x].tasks[y].snapshot_count = 99;
+    2a7a:	48 c7 83 50 01 00 00 63 00 00 00 	movq   $0x63,0x150(%rbx)
+        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+    2a85:	e8 16 f9 ff ff       	call   23a0 <calloc@plt>
+        thread_data[x].tasks[y].thread_index = thread_data[x].thread_index;
+    2a8a:	44 89 ab 30 01 00 00 	mov    %r13d,0x130(%rbx)
+        thread_data[x].tasks[y].sending = 1;
+    2a91:	48 bf 01 00 00 00 02 00 00 00 	movabs $0x200000001,%rdi
+        thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+    2a9b:	48 89 83 48 01 00 00 	mov    %rax,0x148(%rbx)
+        thread_data[x].tasks[y].available = 1;
+    2aa2:	48 b8 01 00 00 00 03 00 00 00 	movabs $0x300000001,%rax
+        thread_data[x].tasks[y].current_snapshot = 0;
+    2aac:	48 c7 83 58 01 00 00 00 00 00 00 	movq   $0x0,0x158(%rbx)
+        thread_data[x].tasks[y].thread = &thread_data[x]; 
+    2ab7:	4c 89 bb 28 01 00 00 	mov    %r15,0x128(%rbx)
+        thread_data[x].tasks[y].arrived = 0;
+    2abe:	c7 83 80 00 00 00 00 00 00 00 	movl   $0x0,0x80(%rbx)
+        thread_data[x].tasks[y].thread_count = 2;
+    2ac8:	c7 83 34 01 00 00 02 00 00 00 	movl   $0x2,0x134(%rbx)
+        thread_data[x].tasks[y].available = 1;
+    2ad2:	48 89 83 38 01 00 00 	mov    %rax,0x138(%rbx)
+        thread_data[x].tasks[y].sending = 1;
+    2ad9:	48 89 bb 78 01 00 00 	mov    %rdi,0x178(%rbx)
         thread_data[x].tasks[y].task_count = total_barrier_count;
         thread_data[x].tasks[y].worker_count = thread_count;
         thread_data[x].tasks[y].task_index = y;
-    2adf:	89 2b                	mov    %ebp,(%rbx)
+    2ae0:	89 2b                	mov    %ebp,(%rbx)
         if (y == barrier_count - 1) {
-    2ae1:	83 fd 01             	cmp    $0x1,%ebp
-    2ae4:	0f 84 ea 04 00 00    	je     2fd4 <main+0x9e4>
+    2ae2:	83 fd 01             	cmp    $0x1,%ebp
+    2ae5:	0f 84 e2 04 00 00    	je     2fcd <main+0x9dd>
             thread_data[x].tasks[y].run = barriered_nulltask; 
           }
           */
           thread_data[x].tasks[y].run = barriered_work; 
         } else {
           if (y == 0) {
-    2aea:	85 ed                	test   %ebp,%ebp
-    2aec:	0f 84 ca 04 00 00    	je     2fbc <main+0x9cc>
+    2aeb:	85 ed                	test   %ebp,%ebp
+    2aed:	0f 84 c2 04 00 00    	je     2fb5 <main+0x9c5>
             // printf("Thread %d is an ingest thread\n", x);
             thread_data[x].tasks[y].run = barriered_work_ingest_andwork; 
             assigned = 1;
            } else {
              thread_data[x].tasks[y].run = barriered_work; 
-    2af2:	48 8d 3d a7 2b 00 00 	lea    0x2ba7(%rip),%rdi        # 56a0 <barriered_work>
+    2af3:	48 8d 3d 76 2b 00 00 	lea    0x2b76(%rip),%rdi        # 5670 <barriered_work>
            }
         }
       }
 			thread_data[x].buffers_count = buffers_per_thread;
       thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
-    2af9:	be 08 00 00 00       	mov    $0x8,%esi
+    2afa:	be 08 00 00 00       	mov    $0x8,%esi
              thread_data[x].tasks[y].run = barriered_work; 
-    2afe:	44 8b 74 24 20       	mov    0x20(%rsp),%r14d
-    2b03:	48 89 bb 18 01 00 00 	mov    %rdi,0x118(%rbx)
+    2aff:	44 8b 64 24 28       	mov    0x28(%rsp),%r12d
+    2b04:	48 89 bb 18 01 00 00 	mov    %rdi,0x118(%rbx)
       thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
-    2b0a:	bf 01 00 00 00       	mov    $0x1,%edi
+    2b0b:	bf 01 00 00 00       	mov    $0x1,%edi
 			thread_data[x].buffers_count = buffers_per_thread;
-    2b0f:	41 c7 85 ac 00 00 00 01 00 00 00 	movl   $0x1,0xac(%r13)
+    2b10:	41 c7 87 ac 00 00 00 01 00 00 00 	movl   $0x1,0xac(%r15)
       thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
-    2b1a:	e8 81 f8 ff ff       	call   23a0 <calloc@plt>
+    2b1b:	e8 80 f8 ff ff       	call   23a0 <calloc@plt>
       for (int b = 0 ; b < buffers_per_thread; b++) {	
         thread_data[x].buffers[b] = &buffers[cur_buffer++];
-    2b1f:	48 8b 5c 24 18       	mov    0x18(%rsp),%rbx
+    2b20:	48 8b 7c 24 18       	mov    0x18(%rsp),%rdi
       }
       thread_data[x].tasks[barrier_count].protected = do_protected_write; 
       thread_data[x].tasks[barrier_count].run = barriered_reset; 
-    2b24:	66 0f 6f 54 24 30    	movdqa 0x30(%rsp),%xmm2
+    2b25:	66 0f 6f 54 24 30    	movdqa 0x30(%rsp),%xmm2
       thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
-    2b2a:	49 89 45 40          	mov    %rax,0x40(%r13)
+    2b2b:	49 89 47 40          	mov    %rax,0x40(%r15)
   for (int x = 0 ; x < total_threads ; x++) {
-    2b2e:	48 8b 6c 24 28       	mov    0x28(%rsp),%rbp
+    2b2f:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx
         thread_data[x].buffers[b] = &buffers[cur_buffer++];
-    2b33:	48 89 18             	mov    %rbx,(%rax)
+    2b34:	48 89 38             	mov    %rdi,(%rax)
   for (int x = 0 ; x < total_threads ; x++) {
-    2b36:	48 83 c3 10          	add    $0x10,%rbx
+    2b37:	48 83 c7 10          	add    $0x10,%rdi
       thread_data[x].tasks[barrier_count].thread = &thread_data[x]; 
       thread_data[x].tasks[barrier_count].available = 1; 
-    2b3a:	48 b8 01 00 00 00 03 00 00 00 	movabs $0x300000001,%rax
+    2b3b:	48 b8 01 00 00 00 03 00 00 00 	movabs $0x300000001,%rax
       thread_data[x].tasks[barrier_count].thread = &thread_data[x]; 
-    2b44:	4d 89 ac 24 28 05 00 00 	mov    %r13,0x528(%r12)
+    2b45:	4d 89 be 28 05 00 00 	mov    %r15,0x528(%r14)
   for (int x = 0 ; x < total_threads ; x++) {
-    2b4c:	49 81 c5 b0 00 00 00 	add    $0xb0,%r13
+    2b4c:	49 81 c7 b0 00 00 00 	add    $0xb0,%r15
       thread_data[x].tasks[barrier_count].arrived = 0; 
-    2b53:	41 c7 84 24 80 04 00 00 00 00 00 00 	movl   $0x0,0x480(%r12)
+    2b53:	41 c7 86 80 04 00 00 00 00 00 00 	movl   $0x0,0x480(%r14)
       thread_data[x].tasks[barrier_count].task_index = barrier_count; 
-    2b5f:	41 c7 84 24 00 04 00 00 02 00 00 00 	movl   $0x2,0x400(%r12)
+    2b5e:	41 c7 86 00 04 00 00 02 00 00 00 	movl   $0x2,0x400(%r14)
       thread_data[x].tasks[barrier_count].thread_count = 2; 
       thread_data[x].tasks[barrier_count].thread_index = thread_data[x].thread_index; 
-    2b6b:	45 89 bc 24 30 05 00 00 	mov    %r15d,0x530(%r12)
+    2b69:	45 89 ae 30 05 00 00 	mov    %r13d,0x530(%r14)
       thread_data[x].tasks[barrier_count].worker_count = thread_count; 
-    2b73:	41 c7 84 24 7c 05 00 00 02 00 00 00 	movl   $0x2,0x57c(%r12)
+    2b70:	41 c7 86 7c 05 00 00 02 00 00 00 	movl   $0x2,0x57c(%r14)
       thread_data[x].tasks[barrier_count].thread_count = 2; 
-    2b7f:	41 c7 84 24 34 05 00 00 02 00 00 00 	movl   $0x2,0x534(%r12)
+    2b7b:	41 c7 86 34 05 00 00 02 00 00 00 	movl   $0x2,0x534(%r14)
       thread_data[x].tasks[barrier_count].available = 1; 
-    2b8b:	49 89 84 24 38 05 00 00 	mov    %rax,0x538(%r12)
+    2b86:	49 89 86 38 05 00 00 	mov    %rax,0x538(%r14)
   for (int x = 0 ; x < total_threads ; x++) {
-    2b93:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+    2b8d:	48 89 7c 24 18       	mov    %rdi,0x18(%rsp)
       thread_data[x].tasks[barrier_count].run = barriered_reset; 
-    2b98:	41 0f 11 94 24 18 05 00 00 	movups %xmm2,0x518(%r12)
+    2b92:	41 0f 11 96 18 05 00 00 	movups %xmm2,0x518(%r14)
   for (int x = 0 ; x < total_threads ; x++) {
-    2ba1:	41 83 fe 06          	cmp    $0x6,%r14d
-    2ba5:	0f 85 47 fc ff ff    	jne    27f2 <main+0x202>
-    2bab:	4c 8b 54 24 50       	mov    0x50(%rsp),%r10
+    2b9a:	41 83 fc 06          	cmp    $0x6,%r12d
+    2b9e:	0f 85 49 fc ff ff    	jne    27ed <main+0x1fd>
+    2ba4:	4c 8b 54 24 50       	mov    0x50(%rsp),%r10
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    2bb0:	ba 03 00 00 00       	mov    $0x3,%edx
-    2bb5:	48 8d 35 5c 47 00 00 	lea    0x475c(%rip),%rsi        # 7318 <_IO_stdin_used+0x318>
-    2bbc:	31 c0                	xor    %eax,%eax
-    2bbe:	bf 01 00 00 00       	mov    $0x1,%edi
-    2bc3:	4c 89 14 24          	mov    %r10,(%rsp)
-    2bc7:	e8 84 f8 ff ff       	call   2450 <__printf_chk@plt>
+    2ba9:	ba 03 00 00 00       	mov    $0x3,%edx
+    2bae:	48 8d 35 63 47 00 00 	lea    0x4763(%rip),%rsi        # 7318 <_IO_stdin_used+0x318>
+    2bb5:	31 c0                	xor    %eax,%eax
+    2bb7:	bf 01 00 00 00       	mov    $0x1,%edi
+    2bbc:	4c 89 14 24          	mov    %r10,(%rsp)
+    2bc0:	e8 8b f8 ff ff       	call   2450 <__printf_chk@plt>
       thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
   }
   printf("io index = %d\n", io_index);
   for (int x = io_index ; x < io_index + io_threads ; x++) {
     struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
-    2bcc:	be 08 00 00 00       	mov    $0x8,%esi
-    2bd1:	bf 02 00 00 00       	mov    $0x2,%edi
-    2bd6:	e8 c5 f7 ff ff       	call   23a0 <calloc@plt>
+    2bc5:	be 08 00 00 00       	mov    $0x8,%esi
+    2bca:	bf 02 00 00 00       	mov    $0x2,%edi
+    2bcf:	e8 cc f7 ff ff       	call   23a0 <calloc@plt>
     my_thread_data[0] = &thread_data[x]; 
-    2bdb:	4c 8b 14 24          	mov    (%rsp),%r10
+    2bd4:	4c 8b 14 24          	mov    (%rsp),%r10
   // schedule first task
   for (int n = 0 ; n < thread_count ; n++) {
     thread_data[n].tasks[0].scheduled = 1;
   }
 
   pthread_attr_t      *thread_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2bdf:	be 38 00 00 00       	mov    $0x38,%esi
-    2be4:	bf 06 00 00 00       	mov    $0x6,%edi
+    2bd8:	be 38 00 00 00       	mov    $0x38,%esi
+    2bdd:	bf 06 00 00 00       	mov    $0x6,%edi
     my_thread_data[0] = &thread_data[x]; 
-    2be9:	49 8d aa 10 02 00 00 	lea    0x210(%r10),%rbp
+    2be2:	49 8d aa 10 02 00 00 	lea    0x210(%r10),%rbp
     my_thread_data[1] = &thread_data[(x + 1) % thread_count]; 
-    2bf0:	4c 89 50 08          	mov    %r10,0x8(%rax)
+    2be9:	4c 89 50 08          	mov    %r10,0x8(%rax)
     thread_data[n].tasks[0].scheduled = 1;
-    2bf4:	4d 8d a2 b0 00 00 00 	lea    0xb0(%r10),%r12
+    2bed:	4d 8d a2 b0 00 00 00 	lea    0xb0(%r10),%r12
     thread_data[x].threads = my_thread_data;
-    2bfb:	49 89 82 20 02 00 00 	mov    %rax,0x220(%r10)
+    2bf4:	49 89 82 20 02 00 00 	mov    %rax,0x220(%r10)
     my_thread_data[0] = &thread_data[x]; 
-    2c02:	48 89 28             	mov    %rbp,(%rax)
+    2bfb:	48 89 28             	mov    %rbp,(%rax)
     thread_data[n].tasks[0].scheduled = 1;
-    2c05:	49 8b 42 28          	mov    0x28(%r10),%rax
+    2bfe:	49 8b 42 28          	mov    0x28(%r10),%rax
     thread_data[x].thread_count = 2;
-    2c09:	41 c7 82 28 02 00 00 02 00 00 00 	movl   $0x2,0x228(%r10)
+    2c02:	41 c7 82 28 02 00 00 02 00 00 00 	movl   $0x2,0x228(%r10)
     thread_data[x].thread_index = 0;
-    2c14:	41 c7 82 10 02 00 00 00 00 00 00 	movl   $0x0,0x210(%r10)
+    2c0d:	41 c7 82 10 02 00 00 00 00 00 00 	movl   $0x0,0x210(%r10)
     thread_data[x].task_count = total_barrier_count;
-    2c1f:	41 c7 82 40 02 00 00 03 00 00 00 	movl   $0x3,0x240(%r10)
+    2c18:	41 c7 82 40 02 00 00 03 00 00 00 	movl   $0x3,0x240(%r10)
     thread_data[n].tasks[0].scheduled = 1;
-    2c2a:	c7 80 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rax)
-    2c34:	49 8b 82 d8 00 00 00 	mov    0xd8(%r10),%rax
-    2c3b:	4c 89 54 24 10       	mov    %r10,0x10(%rsp)
-    2c40:	c7 80 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rax)
+    2c23:	c7 80 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rax)
+    2c2d:	49 8b 82 d8 00 00 00 	mov    0xd8(%r10),%rax
+    2c34:	4c 89 54 24 10       	mov    %r10,0x10(%rsp)
+    2c39:	c7 80 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rax)
   pthread_attr_t      *thread_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c4a:	e8 51 f7 ff ff       	call   23a0 <calloc@plt>
+    2c43:	e8 58 f7 ff ff       	call   23a0 <calloc@plt>
   pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c4f:	be 38 00 00 00       	mov    $0x38,%esi
-    2c54:	bf 06 00 00 00       	mov    $0x6,%edi
+    2c48:	be 38 00 00 00       	mov    $0x38,%esi
+    2c4d:	bf 06 00 00 00       	mov    $0x6,%edi
   pthread_attr_t      *thread_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c59:	49 89 c6             	mov    %rax,%r14
+    2c52:	49 89 c6             	mov    %rax,%r14
   pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c5c:	e8 3f f7 ff ff       	call   23a0 <calloc@plt>
+    2c55:	e8 46 f7 ff ff       	call   23a0 <calloc@plt>
   pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c61:	be 38 00 00 00       	mov    $0x38,%esi
-    2c66:	bf 06 00 00 00       	mov    $0x6,%edi
+    2c5a:	be 38 00 00 00       	mov    $0x38,%esi
+    2c5f:	bf 06 00 00 00       	mov    $0x6,%edi
   pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c6b:	49 89 c5             	mov    %rax,%r13
+    2c64:	49 89 c5             	mov    %rax,%r13
   pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c6e:	e8 2d f7 ff ff       	call   23a0 <calloc@plt>
+    2c67:	e8 34 f7 ff ff       	call   23a0 <calloc@plt>
   pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c73:	be 38 00 00 00       	mov    $0x38,%esi
-    2c78:	bf 06 00 00 00       	mov    $0x6,%edi
+    2c6c:	be 38 00 00 00       	mov    $0x38,%esi
+    2c71:	bf 06 00 00 00       	mov    $0x6,%edi
   pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c7d:	48 89 04 24          	mov    %rax,(%rsp)
+    2c76:	48 89 04 24          	mov    %rax,(%rsp)
   pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c81:	e8 1a f7 ff ff       	call   23a0 <calloc@plt>
+    2c7a:	e8 21 f7 ff ff       	call   23a0 <calloc@plt>
   pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
-    2c86:	be 08 00 00 00       	mov    $0x8,%esi
-    2c8b:	bf 06 00 00 00       	mov    $0x6,%edi
+    2c7f:	be 08 00 00 00       	mov    $0x8,%esi
+    2c84:	bf 06 00 00 00       	mov    $0x6,%edi
   pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
-    2c90:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+    2c89:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
   pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
-    2c95:	e8 06 f7 ff ff       	call   23a0 <calloc@plt>
+    2c8e:	e8 0d f7 ff ff       	call   23a0 <calloc@plt>
 
   thread_data[thread_count].type = TIMER;
-    2c9a:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2c93:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
   thread_data[thread_count].running = 1;
   thread_data[thread_count].task_count = total_barrier_count;
 
   // thread_data[thread_count].threads = thread_data;
   struct KernelThread **my_thread_data = calloc(total_threads, sizeof(struct KernelThread*)); 
-    2c9f:	be 08 00 00 00       	mov    $0x8,%esi
-    2ca4:	bf 06 00 00 00       	mov    $0x6,%edi
+    2c98:	be 08 00 00 00       	mov    $0x8,%esi
+    2c9d:	bf 06 00 00 00       	mov    $0x6,%edi
   pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
-    2ca9:	48 89 c3             	mov    %rax,%rbx
+    2ca2:	48 89 c3             	mov    %rax,%rbx
   thread_data[thread_count].task_count = total_barrier_count;
-    2cac:	48 8b 05 d5 4d 00 00 	mov    0x4dd5(%rip),%rax        # 7a88 <_IO_stdin_used+0xa88>
+    2ca5:	48 8b 05 dc 4d 00 00 	mov    0x4ddc(%rip),%rax        # 7a88 <_IO_stdin_used+0xa88>
   thread_data[thread_count].type = TIMER;
-    2cb3:	41 c7 82 68 01 00 00 00 00 00 00 	movl   $0x0,0x168(%r10)
+    2cac:	41 c7 82 68 01 00 00 00 00 00 00 	movl   $0x0,0x168(%r10)
   thread_data[thread_count].task_count = total_barrier_count;
-    2cbe:	49 89 82 90 01 00 00 	mov    %rax,0x190(%r10)
+    2cb7:	49 89 82 90 01 00 00 	mov    %rax,0x190(%r10)
   struct KernelThread **my_thread_data = calloc(total_threads, sizeof(struct KernelThread*)); 
-    2cc5:	e8 d6 f6 ff ff       	call   23a0 <calloc@plt>
+    2cbe:	e8 dd f6 ff ff       	call   23a0 <calloc@plt>
   for (int n = 0 ; n < total_threads ; n++) {
     my_thread_data[n] = &thread_data[n]; 
-    2cca:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2ccf:	bf 01 00 00 00       	mov    $0x1,%edi
-    2cd4:	48 8d 35 4c 46 00 00 	lea    0x464c(%rip),%rsi        # 7327 <_IO_stdin_used+0x327>
-    2cdb:	48 89 68 18          	mov    %rbp,0x18(%rax)
-    2cdf:	49 8d 8a 60 01 00 00 	lea    0x160(%r10),%rcx
-    2ce6:	4d 8d ba c0 02 00 00 	lea    0x2c0(%r10),%r15
-    2ced:	4c 89 10             	mov    %r10,(%rax)
-    2cf0:	49 8d 92 70 03 00 00 	lea    0x370(%r10),%rdx
+    2cc3:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2cc8:	bf 01 00 00 00       	mov    $0x1,%edi
+    2ccd:	48 8d 35 53 46 00 00 	lea    0x4653(%rip),%rsi        # 7327 <_IO_stdin_used+0x327>
+    2cd4:	48 89 68 18          	mov    %rbp,0x18(%rax)
+    2cd8:	49 8d 8a 60 01 00 00 	lea    0x160(%r10),%rcx
+    2cdf:	4d 8d ba c0 02 00 00 	lea    0x2c0(%r10),%r15
+    2ce6:	4c 89 10             	mov    %r10,(%rax)
+    2ce9:	49 8d 92 70 03 00 00 	lea    0x370(%r10),%rdx
   }
   thread_data[thread_count].threads = my_thread_data;
-    2cf7:	49 89 82 70 01 00 00 	mov    %rax,0x170(%r10)
+    2cf0:	49 89 82 70 01 00 00 	mov    %rax,0x170(%r10)
     my_thread_data[n] = &thread_data[n]; 
-    2cfe:	48 89 48 10          	mov    %rcx,0x10(%rax)
-    2d02:	4c 89 78 20          	mov    %r15,0x20(%rax)
-    2d06:	48 89 50 28          	mov    %rdx,0x28(%rax)
-    2d0a:	ba 02 00 00 00       	mov    $0x2,%edx
+    2cf7:	48 89 48 10          	mov    %rcx,0x10(%rax)
+    2cfb:	4c 89 78 20          	mov    %r15,0x20(%rax)
+    2cff:	48 89 50 28          	mov    %rdx,0x28(%rax)
+    2d03:	ba 02 00 00 00       	mov    $0x2,%edx
   thread_data[thread_count].thread_count = thread_count;
-    2d0f:	41 c7 82 78 01 00 00 02 00 00 00 	movl   $0x2,0x178(%r10)
+    2d08:	41 c7 82 78 01 00 00 02 00 00 00 	movl   $0x2,0x178(%r10)
   thread_data[thread_count].my_thread_count = 2;
-    2d1a:	41 c7 82 80 01 00 00 02 00 00 00 	movl   $0x2,0x180(%r10)
+    2d13:	41 c7 82 80 01 00 00 02 00 00 00 	movl   $0x2,0x180(%r10)
   thread_data[thread_count].thread_index = 0;
-    2d25:	41 c7 82 60 01 00 00 00 00 00 00 	movl   $0x0,0x160(%r10)
+    2d1e:	41 c7 82 60 01 00 00 00 00 00 00 	movl   $0x0,0x160(%r10)
     my_thread_data[n] = &thread_data[n]; 
-    2d30:	4c 89 60 08          	mov    %r12,0x8(%rax)
-    2d34:	31 c0                	xor    %eax,%eax
-    2d36:	48 89 4c 24 18       	mov    %rcx,0x18(%rsp)
-    2d3b:	e8 10 f7 ff ff       	call   2450 <__printf_chk@plt>
+    2d29:	4c 89 60 08          	mov    %r12,0x8(%rax)
+    2d2d:	31 c0                	xor    %eax,%eax
+    2d2f:	48 89 4c 24 18       	mov    %rcx,0x18(%rsp)
+    2d34:	e8 17 f7 ff ff       	call   2450 <__printf_chk@plt>
 
   printf("Creating scheduler thread %d\n", thread_count);
   pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
-    2d40:	48 8b 4c 24 18       	mov    0x18(%rsp),%rcx
-    2d45:	49 8d 75 70          	lea    0x70(%r13),%rsi
-    2d49:	48 8d 7b 10          	lea    0x10(%rbx),%rdi
-    2d4d:	48 8d 15 fc 0a 00 00 	lea    0xafc(%rip),%rdx        # 3850 <timer_thread>
+    2d39:	48 8b 4c 24 18       	mov    0x18(%rsp),%rcx
+    2d3e:	49 8d 75 70          	lea    0x70(%r13),%rsi
+    2d42:	48 8d 7b 10          	lea    0x10(%rbx),%rdi
+    2d46:	48 8d 15 d3 0a 00 00 	lea    0xad3(%rip),%rdx        # 3820 <timer_thread>
   for (int x = 0 ; x < thread_count ; x++) {
     thread_data[x].type = WORKER;
     thread_data[x].running = 1;
     printf("Creating kernel worker thread %d\n", x);
     pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
-    2d54:	4c 8d 2d 55 25 00 00 	lea    0x2555(%rip),%r13        # 52b0 <barriered_thread>
+    2d4d:	4c 8d 2d 2c 25 00 00 	lea    0x252c(%rip),%r13        # 5280 <barriered_thread>
   pthread_create(&thread[thread_count], &timer_attr[thread_count], &timer_thread, &thread_data[thread_count]);
-    2d5b:	e8 10 f7 ff ff       	call   2470 <pthread_create@plt>
+    2d54:	e8 17 f7 ff ff       	call   2470 <pthread_create@plt>
     thread_data[x].type = WORKER;
-    2d60:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2d65:	31 d2                	xor    %edx,%edx
-    2d67:	31 c0                	xor    %eax,%eax
-    2d69:	4c 8d 0d 78 48 00 00 	lea    0x4878(%rip),%r9        # 75e8 <_IO_stdin_used+0x5e8>
-    2d70:	bf 01 00 00 00       	mov    $0x1,%edi
-    2d75:	41 c7 42 08 01 00 00 00 	movl   $0x1,0x8(%r10)
-    2d7d:	4c 89 ce             	mov    %r9,%rsi
+    2d59:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2d5e:	31 d2                	xor    %edx,%edx
+    2d60:	31 c0                	xor    %eax,%eax
+    2d62:	4c 8d 0d 7f 48 00 00 	lea    0x487f(%rip),%r9        # 75e8 <_IO_stdin_used+0x5e8>
+    2d69:	bf 01 00 00 00       	mov    $0x1,%edi
+    2d6e:	41 c7 42 08 01 00 00 00 	movl   $0x1,0x8(%r10)
+    2d76:	4c 89 ce             	mov    %r9,%rsi
     thread_data[x].running = 1;
-    2d80:	41 c7 42 34 01 00 00 00 	movl   $0x1,0x34(%r10)
-    2d88:	e8 c3 f6 ff ff       	call   2450 <__printf_chk@plt>
+    2d79:	41 c7 42 34 01 00 00 00 	movl   $0x1,0x34(%r10)
+    2d81:	e8 ca f6 ff ff       	call   2450 <__printf_chk@plt>
     pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
-    2d8d:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
-    2d92:	4c 89 ea             	mov    %r13,%rdx
-    2d95:	4c 89 f6             	mov    %r14,%rsi
-    2d98:	48 89 df             	mov    %rbx,%rdi
-    2d9b:	e8 d0 f6 ff ff       	call   2470 <pthread_create@plt>
+    2d86:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+    2d8b:	4c 89 ea             	mov    %r13,%rdx
+    2d8e:	4c 89 f6             	mov    %r14,%rsi
+    2d91:	48 89 df             	mov    %rbx,%rdi
+    2d94:	e8 d7 f6 ff ff       	call   2470 <pthread_create@plt>
     pthread_setaffinity_np(thread[x], sizeof(thread_data[x].cpu_set), thread_data[x].cpu_set);
-    2da0:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2da5:	48 8b 3b             	mov    (%rbx),%rdi
-    2da8:	be 08 00 00 00       	mov    $0x8,%esi
-    2dad:	49 8b 92 a0 00 00 00 	mov    0xa0(%r10),%rdx
-    2db4:	e8 27 f5 ff ff       	call   22e0 <pthread_setaffinity_np@plt>
+    2d99:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2d9e:	48 8b 3b             	mov    (%rbx),%rdi
+    2da1:	be 08 00 00 00       	mov    $0x8,%esi
+    2da6:	49 8b 92 a0 00 00 00 	mov    0xa0(%r10),%rdx
+    2dad:	e8 2e f5 ff ff       	call   22e0 <pthread_setaffinity_np@plt>
     thread_data[x].type = WORKER;
-    2db9:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2dbe:	ba 01 00 00 00       	mov    $0x1,%edx
-    2dc3:	31 c0                	xor    %eax,%eax
-    2dc5:	4c 8d 0d 1c 48 00 00 	lea    0x481c(%rip),%r9        # 75e8 <_IO_stdin_used+0x5e8>
-    2dcc:	bf 01 00 00 00       	mov    $0x1,%edi
-    2dd1:	41 c7 82 b8 00 00 00 01 00 00 00 	movl   $0x1,0xb8(%r10)
-    2ddc:	4c 89 ce             	mov    %r9,%rsi
+    2db2:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2db7:	ba 01 00 00 00       	mov    $0x1,%edx
+    2dbc:	31 c0                	xor    %eax,%eax
+    2dbe:	4c 8d 0d 23 48 00 00 	lea    0x4823(%rip),%r9        # 75e8 <_IO_stdin_used+0x5e8>
+    2dc5:	bf 01 00 00 00       	mov    $0x1,%edi
+    2dca:	41 c7 82 b8 00 00 00 01 00 00 00 	movl   $0x1,0xb8(%r10)
+    2dd5:	4c 89 ce             	mov    %r9,%rsi
     thread_data[x].running = 1;
-    2ddf:	41 c7 82 e4 00 00 00 01 00 00 00 	movl   $0x1,0xe4(%r10)
-    2dea:	e8 61 f6 ff ff       	call   2450 <__printf_chk@plt>
+    2dd8:	41 c7 82 e4 00 00 00 01 00 00 00 	movl   $0x1,0xe4(%r10)
+    2de3:	e8 68 f6 ff ff       	call   2450 <__printf_chk@plt>
     pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
-    2def:	4c 89 e1             	mov    %r12,%rcx
-    2df2:	49 8d 76 38          	lea    0x38(%r14),%rsi
-    2df6:	48 8d 7b 08          	lea    0x8(%rbx),%rdi
-    2dfa:	4c 89 ea             	mov    %r13,%rdx
-    2dfd:	4c 8d 6b 20          	lea    0x20(%rbx),%r13
-    2e01:	4d 89 fe             	mov    %r15,%r14
+    2de8:	4c 89 e1             	mov    %r12,%rcx
+    2deb:	49 8d 76 38          	lea    0x38(%r14),%rsi
+    2def:	48 8d 7b 08          	lea    0x8(%rbx),%rdi
+    2df3:	4c 89 ea             	mov    %r13,%rdx
+    2df6:	4c 8d 6b 20          	lea    0x20(%rbx),%r13
+    2dfa:	4d 89 fe             	mov    %r15,%r14
     printf("Creating IO thread %d\n", x);
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
   }
   int external_index = io_index + io_threads;
 	int next_buffer = 0;
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
-    2e04:	41 bf 04 00 00 00    	mov    $0x4,%r15d
+    2dfd:	41 bf 04 00 00 00    	mov    $0x4,%r15d
     pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
-    2e0a:	e8 61 f6 ff ff       	call   2470 <pthread_create@plt>
+    2e03:	e8 68 f6 ff ff       	call   2470 <pthread_create@plt>
     pthread_setaffinity_np(thread[x], sizeof(thread_data[x].cpu_set), thread_data[x].cpu_set);
-    2e0f:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2e14:	48 8b 7b 08          	mov    0x8(%rbx),%rdi
-    2e18:	be 08 00 00 00       	mov    $0x8,%esi
-    2e1d:	49 8b 92 50 01 00 00 	mov    0x150(%r10),%rdx
-    2e24:	e8 b7 f4 ff ff       	call   22e0 <pthread_setaffinity_np@plt>
+    2e08:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2e0d:	48 8b 7b 08          	mov    0x8(%rbx),%rdi
+    2e11:	be 08 00 00 00       	mov    $0x8,%esi
+    2e16:	49 8b 92 50 01 00 00 	mov    0x150(%r10),%rdx
+    2e1d:	e8 be f4 ff ff       	call   22e0 <pthread_setaffinity_np@plt>
     thread_data[x].type = IO;
-    2e29:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2e22:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
     thread_data[x].ring = calloc(1, sizeof(struct io_uring));
-    2e2e:	be d8 00 00 00       	mov    $0xd8,%esi
+    2e27:	be d8 00 00 00       	mov    $0xd8,%esi
     thread_data[x].task_count = 0;
-    2e33:	48 8b 3d 56 4c 00 00 	mov    0x4c56(%rip),%rdi        # 7a90 <_IO_stdin_used+0xa90>
+    2e2c:	48 8b 3d 5d 4c 00 00 	mov    0x4c5d(%rip),%rdi        # 7a90 <_IO_stdin_used+0xa90>
     thread_data[x].type = IO;
-    2e3a:	41 c7 82 18 02 00 00 02 00 00 00 	movl   $0x2,0x218(%r10)
+    2e33:	41 c7 82 18 02 00 00 02 00 00 00 	movl   $0x2,0x218(%r10)
     thread_data[x].task_count = 0;
-    2e45:	49 89 ba 40 02 00 00 	mov    %rdi,0x240(%r10)
+    2e3e:	49 89 ba 40 02 00 00 	mov    %rdi,0x240(%r10)
     thread_data[x].ring = calloc(1, sizeof(struct io_uring));
-    2e4c:	bf 01 00 00 00       	mov    $0x1,%edi
-    2e51:	e8 4a f5 ff ff       	call   23a0 <calloc@plt>
-    2e56:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2e45:	bf 01 00 00 00       	mov    $0x1,%edi
+    2e4a:	e8 51 f5 ff ff       	call   23a0 <calloc@plt>
+    2e4f:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
     thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
-    2e5b:	be 00 08 00 00       	mov    $0x800,%esi
-    2e60:	31 ff                	xor    %edi,%edi
+    2e54:	be 00 08 00 00       	mov    $0x800,%esi
+    2e59:	31 ff                	xor    %edi,%edi
     thread_data[x].ring = calloc(1, sizeof(struct io_uring));
-    2e62:	49 89 82 58 02 00 00 	mov    %rax,0x258(%r10)
+    2e5b:	49 89 82 58 02 00 00 	mov    %rax,0x258(%r10)
     thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
-    2e69:	e8 42 f6 ff ff       	call   24b0 <eventfd@plt>
-    2e6e:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2e62:	e8 49 f6 ff ff       	call   24b0 <eventfd@plt>
+    2e67:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
-    2e73:	be 08 00 00 00       	mov    $0x8,%esi
-    2e78:	bf 02 00 00 00       	mov    $0x2,%edi
+    2e6c:	be 08 00 00 00       	mov    $0x8,%esi
+    2e71:	bf 02 00 00 00       	mov    $0x2,%edi
     thread_data[x]._eventfd = eventfd(0, EFD_NONBLOCK); 
-    2e7d:	41 89 82 60 02 00 00 	mov    %eax,0x260(%r10)
+    2e76:	41 89 82 60 02 00 00 	mov    %eax,0x260(%r10)
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
-    2e84:	e8 17 f5 ff ff       	call   23a0 <calloc@plt>
+    2e7d:	e8 1e f5 ff ff       	call   23a0 <calloc@plt>
       my_thread_data[n] = &thread_data[n]; 
-    2e89:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
-    2e8e:	ba 03 00 00 00       	mov    $0x3,%edx
-    2e93:	48 8d 35 ab 44 00 00 	lea    0x44ab(%rip),%rsi        # 7345 <_IO_stdin_used+0x345>
-    2e9a:	4c 89 60 08          	mov    %r12,0x8(%rax)
-    2e9e:	bf 01 00 00 00       	mov    $0x1,%edi
-    2ea3:	4c 89 10             	mov    %r10,(%rax)
+    2e82:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    2e87:	ba 03 00 00 00       	mov    $0x3,%edx
+    2e8c:	48 8d 35 b2 44 00 00 	lea    0x44b2(%rip),%rsi        # 7345 <_IO_stdin_used+0x345>
+    2e93:	4c 89 60 08          	mov    %r12,0x8(%rax)
+    2e97:	bf 01 00 00 00       	mov    $0x1,%edi
+    2e9c:	4c 89 10             	mov    %r10,(%rax)
     thread_data[x].threads = my_thread_data;
-    2ea6:	49 89 82 20 02 00 00 	mov    %rax,0x220(%r10)
-    2ead:	31 c0                	xor    %eax,%eax
+    2e9f:	49 89 82 20 02 00 00 	mov    %rax,0x220(%r10)
+    2ea6:	31 c0                	xor    %eax,%eax
     thread_data[x].thread_count = thread_count;
-    2eaf:	41 c7 82 28 02 00 00 02 00 00 00 	movl   $0x2,0x228(%r10)
+    2ea8:	41 c7 82 28 02 00 00 02 00 00 00 	movl   $0x2,0x228(%r10)
     thread_data[x].thread_index = x;
-    2eba:	41 c7 82 10 02 00 00 03 00 00 00 	movl   $0x3,0x210(%r10)
-    2ec5:	e8 86 f5 ff ff       	call   2450 <__printf_chk@plt>
+    2eb3:	41 c7 82 10 02 00 00 03 00 00 00 	movl   $0x3,0x210(%r10)
+    2ebe:	e8 8d f5 ff ff       	call   2450 <__printf_chk@plt>
     pthread_create(&thread[x], &io_attr[x], &io_thread, &thread_data[x]);
-    2eca:	48 8b 34 24          	mov    (%rsp),%rsi
-    2ece:	48 8d 7b 18          	lea    0x18(%rbx),%rdi
-    2ed2:	48 89 e9             	mov    %rbp,%rcx
-    2ed5:	48 8d 15 e4 1b 00 00 	lea    0x1be4(%rip),%rdx        # 4ac0 <io_thread>
-    2edc:	48 81 c6 a8 00 00 00 	add    $0xa8,%rsi
-    2ee3:	e8 88 f5 ff ff       	call   2470 <pthread_create@plt>
+    2ec3:	48 8b 34 24          	mov    (%rsp),%rsi
+    2ec7:	48 8d 7b 18          	lea    0x18(%rbx),%rdi
+    2ecb:	48 89 e9             	mov    %rbp,%rcx
+    2ece:	48 8d 15 bb 1b 00 00 	lea    0x1bbb(%rip),%rdx        # 4a90 <io_thread>
+    2ed5:	48 81 c6 a8 00 00 00 	add    $0xa8,%rsi
+    2edc:	e8 8f f5 ff ff       	call   2470 <pthread_create@plt>
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
-    2ee8:	48 8b 6c 24 08       	mov    0x8(%rsp),%rbp
-    2eed:	48 89 1c 24          	mov    %rbx,(%rsp)
-    2ef1:	4c 89 eb             	mov    %r13,%rbx
-    2ef4:	48 81 c5 e0 00 00 00 	add    $0xe0,%rbp
-    2efb:	49 89 ed             	mov    %rbp,%r13
-    2efe:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
-    2f03:	44 89 fa             	mov    %r15d,%edx
-    2f06:	48 8d 35 4f 44 00 00 	lea    0x444f(%rip),%rsi        # 735c <_IO_stdin_used+0x35c>
-    2f0d:	bf 01 00 00 00       	mov    $0x1,%edi
-    2f12:	31 c0                	xor    %eax,%eax
-    2f14:	e8 37 f5 ff ff       	call   2450 <__printf_chk@plt>
+    2ee1:	48 8b 6c 24 08       	mov    0x8(%rsp),%rbp
+    2ee6:	48 89 1c 24          	mov    %rbx,(%rsp)
+    2eea:	4c 89 eb             	mov    %r13,%rbx
+    2eed:	48 81 c5 e0 00 00 00 	add    $0xe0,%rbp
+    2ef4:	49 89 ed             	mov    %rbp,%r13
+    2ef7:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
+    2efc:	44 89 fa             	mov    %r15d,%edx
+    2eff:	48 8d 35 56 44 00 00 	lea    0x4456(%rip),%rsi        # 735c <_IO_stdin_used+0x35c>
+    2f06:	bf 01 00 00 00       	mov    $0x1,%edi
+    2f0b:	31 c0                	xor    %eax,%eax
+    2f0d:	e8 3e f5 ff ff       	call   2450 <__printf_chk@plt>
     printf("Creating external thread %d\n", x);
     thread_data[x].type = EXTERNAL;
     thread_data[x].running = 1;
     thread_data[x].task_count = 0;
     thread_data[x].buffers = calloc(1, sizeof(struct Buffers*));
-    2f19:	be 08 00 00 00       	mov    $0x8,%esi
-    2f1e:	bf 01 00 00 00       	mov    $0x1,%edi
+    2f12:	be 08 00 00 00       	mov    $0x8,%esi
+    2f17:	bf 01 00 00 00       	mov    $0x1,%edi
     thread_data[x].task_count = 0;
-    2f23:	48 8b 05 66 4b 00 00 	mov    0x4b66(%rip),%rax        # 7a90 <_IO_stdin_used+0xa90>
+    2f1c:	48 8b 05 6d 4b 00 00 	mov    0x4b6d(%rip),%rax        # 7a90 <_IO_stdin_used+0xa90>
     thread_data[x].type = EXTERNAL;
-    2f2a:	41 c7 46 08 03 00 00 00 	movl   $0x3,0x8(%r14)
+    2f23:	41 c7 46 08 03 00 00 00 	movl   $0x3,0x8(%r14)
     thread_data[x].task_count = 0;
-    2f32:	49 89 46 30          	mov    %rax,0x30(%r14)
+    2f2b:	49 89 46 30          	mov    %rax,0x30(%r14)
     thread_data[x].buffers = calloc(1, sizeof(struct Buffers*));
-    2f36:	e8 65 f4 ff ff       	call   23a0 <calloc@plt>
+    2f2f:	e8 6c f4 ff ff       	call   23a0 <calloc@plt>
 		thread_data[x].buffers[0] = &buffers[next_buffer++];
-    2f3b:	48 8b 7c 24 58       	mov    0x58(%rsp),%rdi
+    2f34:	48 8b 7c 24 58       	mov    0x58(%rsp),%rdi
 	  thread_data[x].buffers_count = 1;
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
-    2f40:	be 08 00 00 00       	mov    $0x8,%esi
+    2f39:	be 08 00 00 00       	mov    $0x8,%esi
 	  thread_data[x].buffers_count = 1;
-    2f45:	41 c7 86 ac 00 00 00 01 00 00 00 	movl   $0x1,0xac(%r14)
+    2f3e:	41 c7 86 ac 00 00 00 01 00 00 00 	movl   $0x1,0xac(%r14)
     thread_data[x].buffers = calloc(1, sizeof(struct Buffers*));
-    2f50:	49 89 46 40          	mov    %rax,0x40(%r14)
+    2f49:	49 89 46 40          	mov    %rax,0x40(%r14)
 		thread_data[x].buffers[0] = &buffers[next_buffer++];
-    2f54:	48 89 38             	mov    %rdi,(%rax)
+    2f4d:	48 89 38             	mov    %rdi,(%rax)
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
-    2f57:	bf 02 00 00 00       	mov    $0x2,%edi
-    2f5c:	e8 3f f4 ff ff       	call   23a0 <calloc@plt>
+    2f50:	bf 02 00 00 00       	mov    $0x2,%edi
+    2f55:	e8 46 f4 ff ff       	call   23a0 <calloc@plt>
       my_thread_data[n] = &thread_data[n]; 
     }
     thread_data[x].threads = my_thread_data;
     thread_data[x].thread_count = thread_count;
     thread_data[x].total_thread_count = total_threads;
     thread_data[x].thread_index = x;
-    2f61:	45 89 3e             	mov    %r15d,(%r14)
+    2f5a:	45 89 3e             	mov    %r15d,(%r14)
     pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
-    2f64:	4c 89 f1             	mov    %r14,%rcx
-    2f67:	4c 89 ee             	mov    %r13,%rsi
+    2f5d:	4c 89 f1             	mov    %r14,%rcx
+    2f60:	4c 89 ee             	mov    %r13,%rsi
     thread_data[x].threads = my_thread_data;
-    2f6a:	49 89 46 10          	mov    %rax,0x10(%r14)
+    2f63:	49 89 46 10          	mov    %rax,0x10(%r14)
     pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
-    2f6e:	48 89 df             	mov    %rbx,%rdi
+    2f67:	48 89 df             	mov    %rbx,%rdi
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
-    2f71:	49 83 c5 38          	add    $0x38,%r13
+    2f6a:	49 83 c5 38          	add    $0x38,%r13
     pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
-    2f75:	48 8d 15 c4 07 00 00 	lea    0x7c4(%rip),%rdx        # 3740 <external_thread>
+    2f6e:	48 8d 15 9b 07 00 00 	lea    0x79b(%rip),%rdx        # 3710 <external_thread>
       my_thread_data[n] = &thread_data[n]; 
-    2f7c:	48 89 28             	mov    %rbp,(%rax)
+    2f75:	48 89 28             	mov    %rbp,(%rax)
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
-    2f7f:	49 81 c6 b0 00 00 00 	add    $0xb0,%r14
-    2f86:	48 83 c3 08          	add    $0x8,%rbx
+    2f78:	49 81 c6 b0 00 00 00 	add    $0xb0,%r14
+    2f7f:	48 83 c3 08          	add    $0x8,%rbx
       my_thread_data[n] = &thread_data[n]; 
-    2f8a:	4c 89 60 08          	mov    %r12,0x8(%rax)
+    2f83:	4c 89 60 08          	mov    %r12,0x8(%rax)
     thread_data[x].thread_count = thread_count;
-    2f8e:	48 8b 05 eb 4a 00 00 	mov    0x4aeb(%rip),%rax        # 7a80 <_IO_stdin_used+0xa80>
-    2f95:	49 89 86 68 ff ff ff 	mov    %rax,-0x98(%r14)
+    2f87:	48 8b 05 f2 4a 00 00 	mov    0x4af2(%rip),%rax        # 7a80 <_IO_stdin_used+0xa80>
+    2f8e:	49 89 86 68 ff ff ff 	mov    %rax,-0x98(%r14)
     pthread_create(&thread[x], &external_attr[x], &external_thread, &thread_data[x]);
-    2f9c:	e8 cf f4 ff ff       	call   2470 <pthread_create@plt>
+    2f95:	e8 d6 f4 ff ff       	call   2470 <pthread_create@plt>
   for (int x = external_index, buffer_index = 0 ; x < external_index + external_threads; x++, buffer_index++) {
-    2fa1:	48 83 44 24 58 10    	addq   $0x10,0x58(%rsp)
-    2fa7:	41 83 ff 04          	cmp    $0x4,%r15d
-    2fab:	0f 85 c9 00 00 00    	jne    307a <main+0xa8a>
-    2fb1:	41 bf 05 00 00 00    	mov    $0x5,%r15d
-    2fb7:	e9 47 ff ff ff       	jmp    2f03 <main+0x913>
-    2fbc:	48 8d 05 dd 2b 00 00 	lea    0x2bdd(%rip),%rax        # 5ba0 <barriered_work_ingest_andwork>
-    2fc3:	bd 01 00 00 00       	mov    $0x1,%ebp
+    2f9a:	48 83 44 24 58 10    	addq   $0x10,0x58(%rsp)
+    2fa0:	41 83 ff 04          	cmp    $0x4,%r15d
+    2fa4:	0f 85 c7 00 00 00    	jne    3071 <main+0xa81>
+    2faa:	41 bf 05 00 00 00    	mov    $0x5,%r15d
+    2fb0:	e9 47 ff ff ff       	jmp    2efc <main+0x90c>
+    2fb5:	48 8d 05 b4 2b 00 00 	lea    0x2bb4(%rip),%rax        # 5b70 <barriered_work_ingest_andwork>
+    2fbc:	bd 01 00 00 00       	mov    $0x1,%ebp
           thread_data[x].tasks[y].run = barriered_work; 
-    2fc8:	48 89 83 18 01 00 00 	mov    %rax,0x118(%rbx)
+    2fc1:	48 89 83 18 01 00 00 	mov    %rax,0x118(%rbx)
       for (int y = 0 ; y < total_barrier_count ; y++) {
-    2fcf:	e9 83 f9 ff ff       	jmp    2957 <main+0x367>
-    2fd4:	48 8d 05 c5 26 00 00 	lea    0x26c5(%rip),%rax        # 56a0 <barriered_work>
-    2fdb:	bd 02 00 00 00       	mov    $0x2,%ebp
-    2fe0:	eb e6                	jmp    2fc8 <main+0x9d8>
+    2fc8:	e9 87 f9 ff ff       	jmp    2954 <main+0x364>
+    2fcd:	48 8d 05 9c 26 00 00 	lea    0x269c(%rip),%rax        # 5670 <barriered_work>
+    2fd4:	bd 02 00 00 00       	mov    $0x2,%ebp
+    2fd9:	eb e6                	jmp    2fc1 <main+0x9d1>
       other = (x + 1) % total_threads;
-    2fe2:	b8 ab aa aa aa       	mov    $0xaaaaaaab,%eax
-    2fe7:	45 89 f7             	mov    %r14d,%r15d
+    2fdb:	b8 ab aa aa aa       	mov    $0xaaaaaaab,%eax
+    2fe0:	45 89 e2             	mov    %r12d,%r10d
+    2fe3:	45 89 e6             	mov    %r12d,%r14d
       my_thread_data[0] = &thread_data[x]; 
-    2fea:	4c 89 2b             	mov    %r13,(%rbx)
-    2fed:	4c 89 e9             	mov    %r13,%rcx
+    2fe6:	4c 89 7d 00          	mov    %r15,0x0(%rbp)
       other = (x + 1) % total_threads;
-    2ff0:	4c 0f af f8          	imul   %rax,%r15
+    2fea:	4c 0f af d0          	imul   %rax,%r10
+    2fee:	4c 89 f9             	mov    %r15,%rcx
       thread_data[x].thread_index = 0;
-    2ff4:	41 c7 45 00 00 00 00 00 	movl   $0x0,0x0(%r13)
-    2ffc:	bf 01 00 00 00       	mov    $0x1,%edi
-    3001:	48 8d 35 01 43 00 00 	lea    0x4301(%rip),%rsi        # 7309 <_IO_stdin_used+0x309>
+    2ff1:	41 c7 07 00 00 00 00 	movl   $0x0,(%r15)
+    2ff8:	48 8d 35 0a 43 00 00 	lea    0x430a(%rip),%rsi        # 7309 <_IO_stdin_used+0x309>
+    2fff:	bf 01 00 00 00       	mov    $0x1,%edi
       other = (x + 1) % total_threads;
-    3008:	49 c1 ef 22          	shr    $0x22,%r15
-    300c:	43 8d 04 7f          	lea    (%r15,%r15,2),%eax
-    3010:	45 89 f7             	mov    %r14d,%r15d
-    3013:	01 c0                	add    %eax,%eax
-    3015:	41 29 c7             	sub    %eax,%r15d
+    3004:	49 c1 ea 22          	shr    $0x22,%r10
+    3008:	43 8d 04 52          	lea    (%r10,%r10,2),%eax
+    300c:	01 c0                	add    %eax,%eax
+    300e:	41 29 c6             	sub    %eax,%r14d
       my_thread_data[1] = &thread_data[other]; 
-    3018:	49 63 c7             	movslq %r15d,%rax
-    301b:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
-    301f:	4c 8d 04 50          	lea    (%rax,%rdx,2),%r8
-    3023:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
-    3028:	8b 14 24             	mov    (%rsp),%edx
-    302b:	49 c1 e0 04          	shl    $0x4,%r8
-    302f:	49 01 c0             	add    %rax,%r8
-    3032:	31 c0                	xor    %eax,%eax
-    3034:	4c 89 43 08          	mov    %r8,0x8(%rbx)
-    3038:	e8 13 f4 ff ff       	call   2450 <__printf_chk@plt>
+    3011:	49 63 c6             	movslq %r14d,%rax
+    3014:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
+    3018:	4c 8d 04 50          	lea    (%rax,%rdx,2),%r8
+    301c:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+    3021:	8b 14 24             	mov    (%rsp),%edx
+    3024:	49 c1 e0 04          	shl    $0x4,%r8
+    3028:	49 01 c0             	add    %rax,%r8
+    302b:	31 c0                	xor    %eax,%eax
+    302d:	4c 89 45 08          	mov    %r8,0x8(%rbp)
+    3031:	e8 1a f4 ff ff       	call   2450 <__printf_chk@plt>
       thread_data[x].protected_state = &protected_state[x];
-    303d:	48 8d 45 18          	lea    0x18(%rbp),%rax
-    3041:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
-    3046:	48 89 c5             	mov    %rax,%rbp
-    3049:	e9 1a f8 ff ff       	jmp    2868 <main+0x278>
+    3036:	48 8d 43 18          	lea    0x18(%rbx),%rax
+    303a:	48 89 44 24 20       	mov    %rax,0x20(%rsp)
+    303f:	e9 22 f8 ff ff       	jmp    2866 <main+0x276>
         CPU_SET(curcpu, sendercpu);
-    304e:	48 63 44 24 40       	movslq 0x40(%rsp),%rax
-    3053:	48 89 c7             	mov    %rax,%rdi
-    3056:	48 3d ff 03 00 00    	cmp    $0x3ff,%rax
-    305c:	77 12                	ja     3070 <main+0xa80>
-    305e:	48 c1 e8 06          	shr    $0x6,%rax
-    3062:	ba 01 00 00 00       	mov    $0x1,%edx
-    3067:	89 f9                	mov    %edi,%ecx
-    3069:	48 d3 e2             	shl    %cl,%rdx
-    306c:	49 09 14 c4          	or     %rdx,(%r12,%rax,8)
+    3044:	48 63 44 24 40       	movslq 0x40(%rsp),%rax
+    3049:	48 89 c7             	mov    %rax,%rdi
+    304c:	48 3d ff 03 00 00    	cmp    $0x3ff,%rax
+    3052:	77 13                	ja     3067 <main+0xa77>
+    3054:	48 c1 e8 06          	shr    $0x6,%rax
+    3058:	ba 01 00 00 00       	mov    $0x1,%edx
+    305d:	89 f9                	mov    %edi,%ecx
+    305f:	48 d3 e2             	shl    %cl,%rdx
+    3062:	49 09 54 c5 00       	or     %rdx,0x0(%r13,%rax,8)
         curcpu += 2;
-    3070:	83 44 24 40 02       	addl   $0x2,0x40(%rsp)
-    3075:	e9 42 f8 ff ff       	jmp    28bc <main+0x2cc>
-    307a:	48 8d 3d f8 42 00 00 	lea    0x42f8(%rip),%rdi        # 7379 <_IO_stdin_used+0x379>
-    3081:	48 89 6c 24 08       	mov    %rbp,0x8(%rsp)
-    3086:	48 8b 1c 24          	mov    (%rsp),%rbx
-    308a:	31 ed                	xor    %ebp,%ebp
-    308c:	e8 5f f2 ff ff       	call   22f0 <puts@plt>
+    3067:	83 44 24 40 02       	addl   $0x2,0x40(%rsp)
+    306c:	e9 48 f8 ff ff       	jmp    28b9 <main+0x2c9>
+    3071:	48 8d 3d 01 43 00 00 	lea    0x4301(%rip),%rdi        # 7379 <_IO_stdin_used+0x379>
+    3078:	48 89 6c 24 08       	mov    %rbp,0x8(%rsp)
+    307d:	48 8b 1c 24          	mov    (%rsp),%rbx
+    3081:	31 ed                	xor    %ebp,%ebp
+    3083:	e8 68 f2 ff ff       	call   22f0 <puts@plt>
   }
   printf("Waiting for threads to finish\n");  
   for (int x = 0 ; x < total_threads ; x++) {
-    3091:	4c 8b 74 24 08       	mov    0x8(%rsp),%r14
-    3096:	4c 8d 6c 24 60       	lea    0x60(%rsp),%r13
-    309b:	4c 8d 25 f5 42 00 00 	lea    0x42f5(%rip),%r12        # 7397 <_IO_stdin_used+0x397>
+    3088:	4c 8b 74 24 08       	mov    0x8(%rsp),%r14
+    308d:	4c 8d 6c 24 60       	lea    0x60(%rsp),%r13
+    3092:	4c 8d 25 fe 42 00 00 	lea    0x42fe(%rip),%r12        # 7397 <_IO_stdin_used+0x397>
     void * result; 
     pthread_join(thread[x], &result);
-    30a2:	48 8b 3c eb          	mov    (%rbx,%rbp,8),%rdi
-    30a6:	4c 89 ee             	mov    %r13,%rsi
-    30a9:	e8 42 f4 ff ff       	call   24f0 <pthread_join@plt>
-    30ae:	89 ea                	mov    %ebp,%edx
-    30b0:	4c 89 e6             	mov    %r12,%rsi
-    30b3:	bf 01 00 00 00       	mov    $0x1,%edi
-    30b8:	31 c0                	xor    %eax,%eax
+    3099:	48 8b 3c eb          	mov    (%rbx,%rbp,8),%rdi
+    309d:	4c 89 ee             	mov    %r13,%rsi
+    30a0:	e8 4b f4 ff ff       	call   24f0 <pthread_join@plt>
+    30a5:	89 ea                	mov    %ebp,%edx
+    30a7:	4c 89 e6             	mov    %r12,%rsi
+    30aa:	bf 01 00 00 00       	mov    $0x1,%edi
+    30af:	31 c0                	xor    %eax,%eax
   for (int x = 0 ; x < total_threads ; x++) {
-    30ba:	48 83 c5 01          	add    $0x1,%rbp
-    30be:	e8 8d f3 ff ff       	call   2450 <__printf_chk@plt>
-    30c3:	48 83 fd 06          	cmp    $0x6,%rbp
-    30c7:	75 d9                	jne    30a2 <main+0xab2>
-    30c9:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
-    30ce:	4d 89 f2             	mov    %r14,%r10
+    30b1:	48 83 c5 01          	add    $0x1,%rbp
+    30b5:	e8 96 f3 ff ff       	call   2450 <__printf_chk@plt>
+    30ba:	48 83 fd 06          	cmp    $0x6,%rbp
+    30be:	75 d9                	jne    3099 <main+0xaa9>
+    30c0:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
+    30c5:	4d 89 f2             	mov    %r14,%r10
     printf("Finished thread %d\n", x);
   }
   long total = 0;
   long ingests = 0;
+    30c8:	45 31 ff             	xor    %r15d,%r15d
+  long total = 0;
+    30cb:	31 db                	xor    %ebx,%ebx
   long sends = 0;
   long sents = 0;
-    30d1:	31 c9                	xor    %ecx,%ecx
-  long ingests = 0;
-    30d3:	45 31 db             	xor    %r11d,%r11d
-    30d6:	4c 89 5c 24 20       	mov    %r11,0x20(%rsp)
-  long sends = 0;
-    30db:	45 31 c9             	xor    %r9d,%r9d
-    30de:	4d 8d 76 28          	lea    0x28(%r14),%r14
   long received = 0;
-    30e2:	45 31 e4             	xor    %r12d,%r12d
-    30e5:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
-  long total = 0;
-    30ea:	45 31 ff             	xor    %r15d,%r15d
-    30ed:	4c 89 cd             	mov    %r9,%rbp
   for (int x = 0 ; x < thread_count ; x++) {
-    30f0:	c7 44 24 10 00 00 00 00 	movl   $0x0,0x10(%rsp)
-    30f8:	48 89 4c 24 28       	mov    %rcx,0x28(%rsp)
-    30fd:	4c 89 54 24 40       	mov    %r10,0x40(%rsp)
-    3102:	bf 0a 00 00 00       	mov    $0xa,%edi
-    3107:	8b 5c 24 10          	mov    0x10(%rsp),%ebx
-    310b:	e8 c0 f1 ff ff       	call   22d0 <putchar@plt>
-    3110:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    3115:	bf 01 00 00 00       	mov    $0x1,%edi
-    311a:	48 8d 35 8a 42 00 00 	lea    0x428a(%rip),%rsi        # 73ab <_IO_stdin_used+0x3ab>
-    3121:	83 f3 01             	xor    $0x1,%ebx
-    3124:	48 8b 10             	mov    (%rax),%rdx
-    3127:	31 c0                	xor    %eax,%eax
-    3129:	e8 22 f3 ff ff       	call   2450 <__printf_chk@plt>
-      other = (x + 1) % total_threads;
-    }
-    printf("\n");
-    printf("Total Protected %ld\n", protected_state[me].protected);
-
-    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
-    312e:	41 8b 56 08          	mov    0x8(%r14),%edx
-    3132:	85 d2                	test   %edx,%edx
-    3134:	0f 8e 57 04 00 00    	jle    3591 <main+0xfa1>
-    313a:	48 63 ca             	movslq %edx,%rcx
-    313d:	49 8b 06             	mov    (%r14),%rax
-    long v = 0;
-    3140:	31 d2                	xor    %edx,%edx
-    3142:	48 c1 e1 09          	shl    $0x9,%rcx
-    3146:	48 01 c1             	add    %rax,%rcx
-    3149:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-      v += thread_data[me].tasks[n].v;
-    3150:	48 03 90 10 01 00 00 	add    0x110(%rax),%rdx
-    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
-    3157:	48 05 00 02 00 00    	add    $0x200,%rax
-    315d:	48 39 c8             	cmp    %rcx,%rax
-    3160:	75 ee                	jne    3150 <main+0xb60>
-    }
-    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
-    3162:	48 63 c3             	movslq %ebx,%rax
-    3165:	48 8b 5c 24 40       	mov    0x40(%rsp),%rbx
-    316a:	48 f7 d8             	neg    %rax
-    316d:	25 b0 00 00 00       	and    $0xb0,%eax
-    3172:	48 01 d8             	add    %rbx,%rax
-    3175:	48 63 48 30          	movslq 0x30(%rax),%rcx
-    3179:	85 c9                	test   %ecx,%ecx
-    317b:	7e 25                	jle    31a2 <main+0xbb2>
-    317d:	48 8b 40 28          	mov    0x28(%rax),%rax
-    3181:	48 c1 e1 09          	shl    $0x9,%rcx
-    3185:	48 01 c1             	add    %rax,%rcx
-    3188:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-      v += thread_data[other].tasks[n].v;
-    3190:	48 03 90 10 01 00 00 	add    0x110(%rax),%rdx
-    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
-    3197:	48 05 00 02 00 00    	add    $0x200,%rax
-    319d:	48 39 c8             	cmp    %rcx,%rax
-    31a0:	75 ee                	jne    3190 <main+0xba0>
-    31a2:	48 8d 35 17 42 00 00 	lea    0x4217(%rip),%rsi        # 73c0 <_IO_stdin_used+0x3c0>
-    31a9:	bf 01 00 00 00       	mov    $0x1,%edi
-    31ae:	31 c0                	xor    %eax,%eax
-    31b0:	e8 9b f2 ff ff       	call   2450 <__printf_chk@plt>
-    }
-    printf("Total V %ld\n", v);
-    printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
-    31b5:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    31ba:	bf 01 00 00 00       	mov    $0x1,%edi
-    31bf:	48 8d 35 4a 44 00 00 	lea    0x444a(%rip),%rsi        # 7610 <_IO_stdin_used+0x610>
-    31c6:	48 8b 08             	mov    (%rax),%rcx
-    31c9:	48 b8 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rax
-    31d3:	48 f7 e9             	imul   %rcx
-    31d6:	48 c1 f9 3f          	sar    $0x3f,%rcx
-    31da:	31 c0                	xor    %eax,%eax
-    31dc:	48 d1 fa             	sar    %rdx
-    31df:	48 29 ca             	sub    %rcx,%rdx
-    31e2:	e8 69 f2 ff ff       	call   2450 <__printf_chk@plt>
-    31e7:	bf 0a 00 00 00       	mov    $0xa,%edi
-    31ec:	e8 df f0 ff ff       	call   22d0 <putchar@plt>
-    printf("\n");
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
-    31f1:	41 8b 56 08          	mov    0x8(%r14),%edx
-    31f5:	85 d2                	test   %edx,%edx
-    31f7:	7e 58                	jle    3251 <main+0xc61>
-    31f9:	49 8b 06             	mov    (%r14),%rax
-    31fc:	48 63 f2             	movslq %edx,%rsi
-    31ff:	4c 8b 4c 24 20       	mov    0x20(%rsp),%r9
-    3204:	48 c1 e6 09          	shl    $0x9,%rsi
-    3208:	4c 8b 54 24 28       	mov    0x28(%rsp),%r10
-    320d:	48 01 c6             	add    %rax,%rsi
-      total += thread_data[x].tasks[n].n;
-      ingests += thread_data[x].tasks[n].ingest_count;
-      sends += thread_data[x].tasks[n].sends;
-      for (int k = 0 ; k < thread_count ; k++) {
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
-    3210:	48 8b 90 68 01 00 00 	mov    0x168(%rax),%rdx
-      total += thread_data[x].tasks[n].n;
-    3217:	4c 03 b8 08 01 00 00 	add    0x108(%rax),%r15
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
-    321e:	48 05 00 02 00 00    	add    $0x200,%rax
-      ingests += thread_data[x].tasks[n].ingest_count;
-    3224:	4c 03 88 60 ff ff ff 	add    -0xa0(%rax),%r9
-      sends += thread_data[x].tasks[n].sends;
-    322b:	48 03 a8 70 ff ff ff 	add    -0x90(%rax),%rbp
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
-    3232:	4c 03 52 10          	add    0x10(%rdx),%r10
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
-    3236:	4c 03 62 18          	add    0x18(%rdx),%r12
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
-    323a:	4c 03 52 30          	add    0x30(%rdx),%r10
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
-    323e:	4c 03 62 38          	add    0x38(%rdx),%r12
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
-    3242:	48 39 c6             	cmp    %rax,%rsi
-    3245:	75 c9                	jne    3210 <main+0xc20>
-    3247:	4c 89 4c 24 20       	mov    %r9,0x20(%rsp)
-    324c:	4c 89 54 24 28       	mov    %r10,0x28(%rsp)
+    30cd:	c7 44 24 10 00 00 00 00 	movl   $0x0,0x10(%rsp)
+  long sents = 0;
+    30d5:	45 31 db             	xor    %r11d,%r11d
+  long sends = 0;
+    30d8:	31 c9                	xor    %ecx,%ecx
+    30da:	48 89 dd             	mov    %rbx,%rbp
+    30dd:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+    30e2:	4d 8d 76 28          	lea    0x28(%r14),%r14
+    30e6:	4d 89 fd             	mov    %r15,%r13
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
       struct timespec start = thread_data[x].task_snapshot[n].task_start;
       struct timespec end = thread_data[x].task_snapshot[n].task_end;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
       printf("%d tasks (%d) synchronized in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    3251:	48 bb db 34 b6 d7 82 de 1b 43 	movabs $0x431bde82d7b634db,%rbx
+    30e9:	49 bc db 34 b6 d7 82 de 1b 43 	movabs $0x431bde82d7b634db,%r12
+    30f3:	4c 89 54 24 20       	mov    %r10,0x20(%rsp)
+    30f8:	bf 0a 00 00 00       	mov    $0xa,%edi
+    30fd:	4c 89 5c 24 08       	mov    %r11,0x8(%rsp)
+    3102:	8b 5c 24 10          	mov    0x10(%rsp),%ebx
+    3106:	48 89 0c 24          	mov    %rcx,(%rsp)
+    310a:	e8 c1 f1 ff ff       	call   22d0 <putchar@plt>
+    310f:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    3114:	bf 01 00 00 00       	mov    $0x1,%edi
+    3119:	83 f3 01             	xor    $0x1,%ebx
+    311c:	48 8d 35 88 42 00 00 	lea    0x4288(%rip),%rsi        # 73ab <_IO_stdin_used+0x3ab>
+    3123:	48 8b 10             	mov    (%rax),%rdx
+    3126:	31 c0                	xor    %eax,%eax
+    3128:	e8 23 f3 ff ff       	call   2450 <__printf_chk@plt>
+    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
+    312d:	41 8b 56 08          	mov    0x8(%r14),%edx
+    3131:	48 8b 0c 24          	mov    (%rsp),%rcx
+    3135:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
+    313a:	85 d2                	test   %edx,%edx
+    313c:	0f 8e 17 04 00 00    	jle    3559 <main+0xf69>
+    3142:	48 63 f2             	movslq %edx,%rsi
+    3145:	49 8b 06             	mov    (%r14),%rax
+    long v = 0;
+    3148:	31 d2                	xor    %edx,%edx
+    314a:	48 c1 e6 09          	shl    $0x9,%rsi
+    314e:	48 01 c6             	add    %rax,%rsi
+    3151:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+      v += thread_data[me].tasks[n].v;
+    3158:	48 03 90 10 01 00 00 	add    0x110(%rax),%rdx
+    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
+    315f:	48 05 00 02 00 00    	add    $0x200,%rax
+    3165:	48 39 f0             	cmp    %rsi,%rax
+    3168:	75 ee                	jne    3158 <main+0xb68>
+    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
+    316a:	48 63 c3             	movslq %ebx,%rax
+    316d:	48 8b 7c 24 20       	mov    0x20(%rsp),%rdi
+    3172:	48 f7 d8             	neg    %rax
+    3175:	25 b0 00 00 00       	and    $0xb0,%eax
+    317a:	48 01 f8             	add    %rdi,%rax
+    317d:	48 63 70 30          	movslq 0x30(%rax),%rsi
+    3181:	85 f6                	test   %esi,%esi
+    3183:	7e 1d                	jle    31a2 <main+0xbb2>
+    3185:	48 8b 40 28          	mov    0x28(%rax),%rax
+    3189:	48 c1 e6 09          	shl    $0x9,%rsi
+    318d:	48 01 c6             	add    %rax,%rsi
+      v += thread_data[other].tasks[n].v;
+    3190:	48 03 90 10 01 00 00 	add    0x110(%rax),%rdx
+    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
+    3197:	48 05 00 02 00 00    	add    $0x200,%rax
+    319d:	48 39 f0             	cmp    %rsi,%rax
+    31a0:	75 ee                	jne    3190 <main+0xba0>
+    31a2:	48 8d 35 17 42 00 00 	lea    0x4217(%rip),%rsi        # 73c0 <_IO_stdin_used+0x3c0>
+    31a9:	bf 01 00 00 00       	mov    $0x1,%edi
+    31ae:	31 c0                	xor    %eax,%eax
+    31b0:	48 89 0c 24          	mov    %rcx,(%rsp)
+    31b4:	4c 89 5c 24 08       	mov    %r11,0x8(%rsp)
+    31b9:	e8 92 f2 ff ff       	call   2450 <__printf_chk@plt>
+    printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
+    31be:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    31c3:	bf 01 00 00 00       	mov    $0x1,%edi
+    31c8:	48 8b 30             	mov    (%rax),%rsi
+    31cb:	48 b8 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rax
+    31d5:	48 f7 ee             	imul   %rsi
+    31d8:	48 c1 fe 3f          	sar    $0x3f,%rsi
+    31dc:	31 c0                	xor    %eax,%eax
+    31de:	48 d1 fa             	sar    %rdx
+    31e1:	48 29 f2             	sub    %rsi,%rdx
+    31e4:	48 8d 35 25 44 00 00 	lea    0x4425(%rip),%rsi        # 7610 <_IO_stdin_used+0x610>
+    31eb:	e8 60 f2 ff ff       	call   2450 <__printf_chk@plt>
+    31f0:	bf 0a 00 00 00       	mov    $0xa,%edi
+    31f5:	e8 d6 f0 ff ff       	call   22d0 <putchar@plt>
+    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
+    31fa:	41 8b 56 08          	mov    0x8(%r14),%edx
+    31fe:	48 8b 0c 24          	mov    (%rsp),%rcx
+    3202:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
+    3207:	85 d2                	test   %edx,%edx
+    3209:	7e 4c                	jle    3257 <main+0xc67>
+    320b:	49 8b 06             	mov    (%r14),%rax
+    320e:	4c 63 c2             	movslq %edx,%r8
+    3211:	49 c1 e0 09          	shl    $0x9,%r8
+    3215:	49 01 c0             	add    %rax,%r8
+    3218:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
+    3220:	48 8b 90 68 01 00 00 	mov    0x168(%rax),%rdx
+      total += thread_data[x].tasks[n].n;
+    3227:	48 03 a8 08 01 00 00 	add    0x108(%rax),%rbp
+    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
+    322e:	48 05 00 02 00 00    	add    $0x200,%rax
+      ingests += thread_data[x].tasks[n].ingest_count;
+    3234:	4c 03 a8 60 ff ff ff 	add    -0xa0(%rax),%r13
+      sends += thread_data[x].tasks[n].sends;
+    323b:	48 03 88 70 ff ff ff 	add    -0x90(%rax),%rcx
+        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
+    3242:	4c 03 5a 10          	add    0x10(%rdx),%r11
+        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
+    3246:	4c 03 7a 18          	add    0x18(%rdx),%r15
+        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
+    324a:	4c 03 5a 30          	add    0x30(%rdx),%r11
+        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
+    324e:	4c 03 7a 38          	add    0x38(%rdx),%r15
+    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
+    3252:	49 39 c0             	cmp    %rax,%r8
+    3255:	75 c9                	jne    3220 <main+0xc30>
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
-    325b:	45 31 ed             	xor    %r13d,%r13d
-    325e:	49 83 7e 68 00       	cmpq   $0x0,0x68(%r14)
-    3263:	7e 7f                	jle    32e4 <main+0xcf4>
-    3265:	4c 89 ef             	mov    %r13,%rdi
-    3268:	4c 89 f0             	mov    %r14,%rax
-    326b:	49 89 ed             	mov    %rbp,%r13
-    326e:	4d 89 e6             	mov    %r12,%r14
-    3271:	48 89 fd             	mov    %rdi,%rbp
-    3274:	49 89 c4             	mov    %rax,%r12
-    3277:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    3257:	31 db                	xor    %ebx,%ebx
+    3259:	49 83 7e 68 00       	cmpq   $0x0,0x68(%r14)
+    325e:	7e 75                	jle    32d5 <main+0xce5>
+    3260:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+    3265:	48 89 2c 24          	mov    %rbp,(%rsp)
+    3269:	4c 89 f5             	mov    %r14,%rbp
+    326c:	4d 89 de             	mov    %r11,%r14
+    326f:	90                   	nop
       struct timespec start = thread_data[x].task_snapshot[n].task_start;
-    3280:	49 8b 44 24 58       	mov    0x58(%r12),%rax
-    3285:	48 8d 54 ad 00       	lea    0x0(%rbp,%rbp,4),%rdx
-    328a:	48 83 ec 08          	sub    $0x8,%rsp
-    328e:	bf 01 00 00 00       	mov    $0x1,%edi
+    3270:	48 8b 45 58          	mov    0x58(%rbp),%rax
+    3274:	48 8d 14 9b          	lea    (%rbx,%rbx,4),%rdx
+    3278:	48 83 ec 08          	sub    $0x8,%rsp
+    327c:	bf 01 00 00 00       	mov    $0x1,%edi
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
-    3293:	48 83 c5 01          	add    $0x1,%rbp
+    3281:	48 83 c3 01          	add    $0x1,%rbx
       struct timespec start = thread_data[x].task_snapshot[n].task_start;
-    3297:	48 8d 0c d0          	lea    (%rax,%rdx,8),%rcx
+    3285:	48 8d 0c d0          	lea    (%rax,%rdx,8),%rcx
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-    329b:	48 8b 71 18          	mov    0x18(%rcx),%rsi
-    329f:	48 2b 71 08          	sub    0x8(%rcx),%rsi
+    3289:	48 8b 71 18          	mov    0x18(%rcx),%rsi
+    328d:	48 2b 71 08          	sub    0x8(%rcx),%rsi
       printf("%d tasks (%d) synchronized in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    32a3:	48 89 f0             	mov    %rsi,%rax
+    3291:	48 89 f0             	mov    %rsi,%rax
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-    32a6:	4c 8b 41 10          	mov    0x10(%rcx),%r8
-    32aa:	4c 2b 01             	sub    (%rcx),%r8
+    3294:	4c 8b 41 10          	mov    0x10(%rcx),%r8
+    3298:	4c 2b 01             	sub    (%rcx),%r8
       printf("%d tasks (%d) synchronized in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    32ad:	48 f7 e3             	mul    %rbx
-    32b0:	8b 49 20             	mov    0x20(%rcx),%ecx
-    32b3:	56                   	push   %rsi
-    32b4:	31 c0                	xor    %eax,%eax
-    32b6:	48 8d 35 73 43 00 00 	lea    0x4373(%rip),%rsi        # 7630 <_IO_stdin_used+0x630>
-    32bd:	48 c1 ea 12          	shr    $0x12,%rdx
-    32c1:	49 89 d1             	mov    %rdx,%r9
-    32c4:	ba 02 00 00 00       	mov    $0x2,%edx
-    32c9:	e8 82 f1 ff ff       	call   2450 <__printf_chk@plt>
+    329b:	49 f7 e4             	mul    %r12
+    329e:	8b 49 20             	mov    0x20(%rcx),%ecx
+    32a1:	56                   	push   %rsi
+    32a2:	31 c0                	xor    %eax,%eax
+    32a4:	48 8d 35 85 43 00 00 	lea    0x4385(%rip),%rsi        # 7630 <_IO_stdin_used+0x630>
+    32ab:	48 c1 ea 12          	shr    $0x12,%rdx
+    32af:	49 89 d1             	mov    %rdx,%r9
+    32b2:	ba 02 00 00 00       	mov    $0x2,%edx
+    32b7:	e8 94 f1 ff ff       	call   2450 <__printf_chk@plt>
     for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
-    32ce:	41 5b                	pop    %r11
-    32d0:	58                   	pop    %rax
-    32d1:	49 39 6c 24 68       	cmp    %rbp,0x68(%r12)
-    32d6:	7f a8                	jg     3280 <main+0xc90>
-    32d8:	4c 89 e0             	mov    %r12,%rax
-    32db:	4c 89 ed             	mov    %r13,%rbp
-    32de:	4d 89 f4             	mov    %r14,%r12
-    32e1:	49 89 c6             	mov    %rax,%r14
+    32bc:	41 58                	pop    %r8
+    32be:	41 59                	pop    %r9
+    32c0:	48 39 5d 68          	cmp    %rbx,0x68(%rbp)
+    32c4:	7f aa                	jg     3270 <main+0xc80>
+    32c6:	4d 89 f3             	mov    %r14,%r11
+    32c9:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
+    32ce:	49 89 ee             	mov    %rbp,%r14
+    32d1:	48 8b 2c 24          	mov    (%rsp),%rbp
       // printf("%ldns per thread\n", (seconds2 / 2));
     }
     // printf("cycles %ld\n", thread_data[x].cycles);
 
     for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
-    32e4:	41 8b 96 84 00 00 00 	mov    0x84(%r14),%edx
-    32eb:	85 d2                	test   %edx,%edx
-    32ed:	0f 8e 3d 01 00 00    	jle    3430 <main+0xe40>
-    32f3:	48 89 6c 24 30       	mov    %rbp,0x30(%rsp)
+    32d5:	45 8b 8e 84 00 00 00 	mov    0x84(%r14),%r9d
+    32dc:	45 85 c9             	test   %r9d,%r9d
+    32df:	0f 8e 1a 01 00 00    	jle    33ff <main+0xe0f>
+    32e5:	48 89 6c 24 28       	mov    %rbp,0x28(%rsp)
       for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-    32f8:	49 8b 7e 18          	mov    0x18(%r14),%rdi
-    32fc:	31 db                	xor    %ebx,%ebx
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
+    32ea:	31 d2                	xor    %edx,%edx
+    32ec:	4d 8b 46 18          	mov    0x18(%r14),%r8
+    32f0:	4c 89 6c 24 40       	mov    %r13,0x40(%rsp)
+    32f5:	48 89 d3             	mov    %rdx,%rbx
+    32f8:	48 89 4c 24 30       	mov    %rcx,0x30(%rsp)
+    32fd:	4c 89 5c 24 50       	mov    %r11,0x50(%rsp)
+    3302:	4c 89 7c 24 58       	mov    %r15,0x58(%rsp)
+    3307:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    3310:	49 8b 14 d8          	mov    (%r8,%rbx,8),%rdx
+    3314:	41 89 dd             	mov    %ebx,%r13d
+    3317:	4c 8d 3c dd 00 00 00 00 	lea    0x0(,%rbx,8),%r15
+    331f:	31 c0                	xor    %eax,%eax
+    3321:	8b 0a                	mov    (%rdx),%ecx
+    3323:	85 c9                	test   %ecx,%ecx
+    3325:	0f 8e ae 00 00 00    	jle    33d9 <main+0xde9>
+    332b:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
+    3330:	48 89 c1             	mov    %rax,%rcx
+    3333:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
+    3338:	31 db                	xor    %ebx,%ebx
+    333a:	4c 89 f0             	mov    %r14,%rax
+    333d:	48 89 cd             	mov    %rcx,%rbp
+    3340:	48 89 0c 24          	mov    %rcx,(%rsp)
+    3344:	49 89 de             	mov    %rbx,%r14
+    3347:	48 c1 e5 08          	shl    $0x8,%rbp
+    334b:	48 89 c3             	mov    %rax,%rbx
+    334e:	eb 08                	jmp    3358 <main+0xd68>
+      for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
+    3350:	48 8b 43 18          	mov    0x18(%rbx),%rax
+    3354:	4a 8b 14 38          	mov    (%rax,%r15,1),%rdx
+	for (int k = 0 ; k < snapshot_limit ; k++) {
 	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
+    3358:	48 8b 42 08          	mov    0x8(%rdx),%rax
+    335c:	48 83 ec 08          	sub    $0x8,%rsp
+    3360:	bf 01 00 00 00       	mov    $0x1,%edi
+    3365:	48 8b b4 28 88 00 00 00 	mov    0x88(%rax,%rbp,1),%rsi
+    336d:	4c 01 f6             	add    %r14,%rsi
+	for (int k = 0 ; k < snapshot_limit ; k++) {
+    3370:	49 83 c6 20          	add    $0x20,%r14
 	  struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
 	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
 	  const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    32fe:	49 bd db 34 b6 d7 82 de 1b 43 	movabs $0x431bde82d7b634db,%r13
-    3308:	4c 89 7c 24 50       	mov    %r15,0x50(%rsp)
-    330d:	4c 89 64 24 58       	mov    %r12,0x58(%rsp)
-    3312:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-      for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-    3318:	48 8b 04 df          	mov    (%rdi,%rbx,8),%rax
-    331c:	4c 8d 3c dd 00 00 00 00 	lea    0x0(,%rbx,8),%r15
-    3324:	8b 30                	mov    (%rax),%esi
-    3326:	85 f6                	test   %esi,%esi
-    3328:	0f 8e e7 00 00 00    	jle    3415 <main+0xe25>
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
-    332e:	45 31 c0             	xor    %r8d,%r8d
-    3331:	48 8b 48 08          	mov    0x8(%rax),%rcx
-    3335:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
-    333a:	4c 89 f5             	mov    %r14,%rbp
-    333d:	4c 89 fb             	mov    %r15,%rbx
-    3340:	4c 89 c2             	mov    %r8,%rdx
-    3343:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    3348:	49 89 d6             	mov    %rdx,%r14
-    334b:	49 c1 e6 08          	shl    $0x8,%r14
-    334f:	4a 8d 04 31          	lea    (%rcx,%r14,1),%rax
-    3353:	44 8b 80 94 00 00 00 	mov    0x94(%rax),%r8d
-    335a:	45 85 c0             	test   %r8d,%r8d
-    335d:	0f 8e 98 00 00 00    	jle    33fb <main+0xe0b>
-    3363:	48 89 14 24          	mov    %rdx,(%rsp)
-    3367:	45 31 e4             	xor    %r12d,%r12d
-    336a:	48 89 ef             	mov    %rbp,%rdi
-    336d:	4c 8d 3c 92          	lea    (%rdx,%rdx,4),%r15
-    3371:	4c 89 e5             	mov    %r12,%rbp
-    3374:	49 c1 e7 03          	shl    $0x3,%r15
-    3378:	49 89 fc             	mov    %rdi,%r12
-    337b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
-    3380:	48 89 e9             	mov    %rbp,%rcx
-    3383:	48 83 ec 08          	sub    $0x8,%rsp
-    3387:	bf 01 00 00 00       	mov    $0x1,%edi
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
-    338c:	48 83 c5 01          	add    $0x1,%rbp
-	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
-    3390:	48 c1 e1 05          	shl    $0x5,%rcx
-    3394:	48 03 88 88 00 00 00 	add    0x88(%rax),%rcx
-	  const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-    339b:	48 8b 71 18          	mov    0x18(%rcx),%rsi
-    339f:	48 2b 71 08          	sub    0x8(%rcx),%rsi
-	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    33a3:	48 89 f0             	mov    %rsi,%rax
+    3374:	48 8b 4e 18          	mov    0x18(%rsi),%rcx
+    3378:	48 2b 4e 08          	sub    0x8(%rsi),%rcx
+	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, b, seconds, seconds2 / 1000000, seconds2);
+    337c:	48 89 c8             	mov    %rcx,%rax
 	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-    33a6:	4c 8b 41 10          	mov    0x10(%rcx),%r8
-    33aa:	4c 2b 01             	sub    (%rcx),%r8
-	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-    33ad:	49 f7 e5             	mul    %r13
-    33b0:	49 8b 44 24 58       	mov    0x58(%r12),%rax
-    33b5:	42 8b 4c 38 20       	mov    0x20(%rax,%r15,1),%ecx
-    33ba:	56                   	push   %rsi
-    33bb:	31 c0                	xor    %eax,%eax
-    33bd:	48 8d 35 bc 42 00 00 	lea    0x42bc(%rip),%rsi        # 7680 <_IO_stdin_used+0x680>
-    33c4:	48 c1 ea 12          	shr    $0x12,%rdx
-    33c8:	49 89 d1             	mov    %rdx,%r9
-    33cb:	ba 02 00 00 00       	mov    $0x2,%edx
-    33d0:	e8 7b f0 ff ff       	call   2450 <__printf_chk@plt>
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
-    33d5:	49 8b 7c 24 18       	mov    0x18(%r12),%rdi
-    33da:	41 59                	pop    %r9
-    33dc:	41 5a                	pop    %r10
-    33de:	48 8b 34 1f          	mov    (%rdi,%rbx,1),%rsi
-    33e2:	48 8b 4e 08          	mov    0x8(%rsi),%rcx
-    33e6:	4a 8d 04 31          	lea    (%rcx,%r14,1),%rax
-    33ea:	39 a8 94 00 00 00    	cmp    %ebp,0x94(%rax)
-    33f0:	7f 8e                	jg     3380 <main+0xd90>
+    337f:	4c 8b 46 10          	mov    0x10(%rsi),%r8
+    3383:	4c 2b 06             	sub    (%rsi),%r8
+    3386:	51                   	push   %rcx
+	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, b, seconds, seconds2 / 1000000, seconds2);
+    3387:	49 f7 e4             	mul    %r12
+    338a:	48 8d 35 ef 42 00 00 	lea    0x42ef(%rip),%rsi        # 7680 <_IO_stdin_used+0x680>
+    3391:	44 89 e9             	mov    %r13d,%ecx
+    3394:	31 c0                	xor    %eax,%eax
+    3396:	48 c1 ea 12          	shr    $0x12,%rdx
+    339a:	49 89 d1             	mov    %rdx,%r9
+    339d:	ba 02 00 00 00       	mov    $0x2,%edx
+    33a2:	e8 a9 f0 ff ff       	call   2450 <__printf_chk@plt>
+	for (int k = 0 ; k < snapshot_limit ; k++) {
+    33a7:	5e                   	pop    %rsi
+    33a8:	5f                   	pop    %rdi
+    33a9:	49 81 fe 40 01 00 00 	cmp    $0x140,%r14
+    33b0:	75 9e                	jne    3350 <main+0xd60>
       for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-    33f2:	48 8b 14 24          	mov    (%rsp),%rdx
-    33f6:	8b 36                	mov    (%rsi),%esi
-    33f8:	4c 89 e5             	mov    %r12,%rbp
-    33fb:	48 83 c2 01          	add    $0x1,%rdx
-    33ff:	39 d6                	cmp    %edx,%esi
-    3401:	0f 8f 41 ff ff ff    	jg     3348 <main+0xd58>
+    33b2:	4c 8b 43 18          	mov    0x18(%rbx),%r8
+    33b6:	48 8b 0c 24          	mov    (%rsp),%rcx
+    33ba:	49 89 de             	mov    %rbx,%r14
+    33bd:	4b 8b 14 38          	mov    (%r8,%r15,1),%rdx
+    33c1:	48 83 c1 01          	add    $0x1,%rcx
+    33c5:	39 0a                	cmp    %ecx,(%rdx)
+    33c7:	0f 8f 6b ff ff ff    	jg     3338 <main+0xd48>
     for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
-    3407:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
-    340c:	8b 95 84 00 00 00    	mov    0x84(%rbp),%edx
-    3412:	49 89 ee             	mov    %rbp,%r14
-    3415:	48 83 c3 01          	add    $0x1,%rbx
-    3419:	39 da                	cmp    %ebx,%edx
-    341b:	0f 8f f7 fe ff ff    	jg     3318 <main+0xd28>
-    3421:	48 8b 6c 24 30       	mov    0x30(%rsp),%rbp
-    3426:	4c 8b 7c 24 50       	mov    0x50(%rsp),%r15
-    342b:	4c 8b 64 24 58       	mov    0x58(%rsp),%r12
+    33cd:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
+    33d2:	45 8b 8e 84 00 00 00 	mov    0x84(%r14),%r9d
+    33d9:	48 83 c3 01          	add    $0x1,%rbx
+    33dd:	41 39 d9             	cmp    %ebx,%r9d
+    33e0:	0f 8f 2a ff ff ff    	jg     3310 <main+0xd20>
+    33e6:	48 8b 6c 24 28       	mov    0x28(%rsp),%rbp
+    33eb:	4c 8b 6c 24 40       	mov    0x40(%rsp),%r13
+    33f0:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+    33f5:	4c 8b 5c 24 50       	mov    0x50(%rsp),%r11
+    33fa:	4c 8b 7c 24 58       	mov    0x58(%rsp),%r15
   for (int x = 0 ; x < thread_count ; x++) {
-    3430:	8b 44 24 10          	mov    0x10(%rsp),%eax
-    3434:	48 83 44 24 18 18    	addq   $0x18,0x18(%rsp)
-    343a:	49 81 c6 b0 00 00 00 	add    $0xb0,%r14
-    3441:	85 c0                	test   %eax,%eax
-    3443:	75 0d                	jne    3452 <main+0xe62>
-    3445:	c7 44 24 10 01 00 00 00 	movl   $0x1,0x10(%rsp)
-    344d:	e9 b0 fc ff ff       	jmp    3102 <main+0xb12>
-    3452:	48 8b 4c 24 28       	mov    0x28(%rsp),%rcx
-    3457:	4c 8b 5c 24 20       	mov    0x20(%rsp),%r11
-    345c:	4c 89 fa             	mov    %r15,%rdx
-    345f:	31 c0                	xor    %eax,%eax
-    3461:	48 8d 35 65 3f 00 00 	lea    0x3f65(%rip),%rsi        # 73cd <_IO_stdin_used+0x3cd>
-    3468:	bf 01 00 00 00       	mov    $0x1,%edi
-    346d:	48 89 2c 24          	mov    %rbp,(%rsp)
+    33ff:	8b 44 24 10          	mov    0x10(%rsp),%eax
+    3403:	48 83 44 24 18 18    	addq   $0x18,0x18(%rsp)
+    3409:	49 81 c6 b0 00 00 00 	add    $0xb0,%r14
+    3410:	85 c0                	test   %eax,%eax
+    3412:	75 0d                	jne    3421 <main+0xe31>
+    3414:	c7 44 24 10 01 00 00 00 	movl   $0x1,0x10(%rsp)
+    341c:	e9 d7 fc ff ff       	jmp    30f8 <main+0xb08>
+    3421:	48 89 ea             	mov    %rbp,%rdx
+    3424:	48 8d 35 a2 3f 00 00 	lea    0x3fa2(%rip),%rsi        # 73cd <_IO_stdin_used+0x3cd>
+    342b:	31 c0                	xor    %eax,%eax
+    342d:	4c 89 3c 24          	mov    %r15,(%rsp)
+    3431:	bf 01 00 00 00       	mov    $0x1,%edi
+    3436:	4c 89 5c 24 08       	mov    %r11,0x8(%rsp)
+    343b:	48 89 eb             	mov    %rbp,%rbx
+    343e:	4d 89 ef             	mov    %r13,%r15
+    3441:	48 89 4c 24 10       	mov    %rcx,0x10(%rsp)
     }
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
   printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
   printf("Total external thread ingests per second %ld\n", ingests / DURATION);
-    3471:	48 bb 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rbx
-    347b:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
-    3480:	4c 89 5c 24 10       	mov    %r11,0x10(%rsp)
-    3485:	e8 c6 ef ff ff       	call   2450 <__printf_chk@plt>
-    348a:	bf 0a 00 00 00       	mov    $0xa,%edi
-    348f:	e8 3c ee ff ff       	call   22d0 <putchar@plt>
-    3494:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
-    3499:	bf 01 00 00 00       	mov    $0x1,%edi
-    349e:	48 8d 35 33 42 00 00 	lea    0x4233(%rip),%rsi        # 76d8 <_IO_stdin_used+0x6d8>
-    34a5:	48 8b 50 08          	mov    0x8(%rax),%rdx
-    34a9:	31 c0                	xor    %eax,%eax
-    34ab:	e8 a0 ef ff ff       	call   2450 <__printf_chk@plt>
-    34b0:	4c 8b 5c 24 10       	mov    0x10(%rsp),%r11
-    34b5:	bf 01 00 00 00       	mov    $0x1,%edi
-    34ba:	48 8d 35 3f 42 00 00 	lea    0x423f(%rip),%rsi        # 7700 <_IO_stdin_used+0x700>
-    34c1:	4c 89 d8             	mov    %r11,%rax
-    34c4:	49 c1 fb 3f          	sar    $0x3f,%r11
-    34c8:	48 f7 eb             	imul   %rbx
-    34cb:	31 c0                	xor    %eax,%eax
-    34cd:	48 d1 fa             	sar    %rdx
-    34d0:	4c 29 da             	sub    %r11,%rdx
-    34d3:	e8 78 ef ff ff       	call   2450 <__printf_chk@plt>
+    3446:	49 c1 ff 3f          	sar    $0x3f,%r15
+    344a:	48 bd 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rbp
+    3454:	e8 f7 ef ff ff       	call   2450 <__printf_chk@plt>
+    3459:	bf 0a 00 00 00       	mov    $0xa,%edi
+    345e:	e8 6d ee ff ff       	call   22d0 <putchar@plt>
+    3463:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
+    3468:	bf 01 00 00 00       	mov    $0x1,%edi
+    346d:	48 8d 35 64 42 00 00 	lea    0x4264(%rip),%rsi        # 76d8 <_IO_stdin_used+0x6d8>
+    3474:	48 8b 50 08          	mov    0x8(%rax),%rdx
+    3478:	31 c0                	xor    %eax,%eax
+    347a:	e8 d1 ef ff ff       	call   2450 <__printf_chk@plt>
+    347f:	4c 89 e8             	mov    %r13,%rax
+    3482:	bf 01 00 00 00       	mov    $0x1,%edi
+    3487:	48 8d 35 72 42 00 00 	lea    0x4272(%rip),%rsi        # 7700 <_IO_stdin_used+0x700>
+    348e:	48 f7 ed             	imul   %rbp
+    3491:	31 c0                	xor    %eax,%eax
+    3493:	48 d1 fa             	sar    %rdx
+    3496:	4c 29 fa             	sub    %r15,%rdx
+    3499:	e8 b2 ef ff ff       	call   2450 <__printf_chk@plt>
   printf("Total intra thread sends per second %ld\n", sends / DURATION);
-    34d8:	4c 8b 0c 24          	mov    (%rsp),%r9
-    34dc:	bf 01 00 00 00       	mov    $0x1,%edi
-    34e1:	48 8d 35 48 42 00 00 	lea    0x4248(%rip),%rsi        # 7730 <_IO_stdin_used+0x730>
-    34e8:	4c 89 c8             	mov    %r9,%rax
-    34eb:	49 c1 f9 3f          	sar    $0x3f,%r9
-    34ef:	48 f7 eb             	imul   %rbx
-    34f2:	31 c0                	xor    %eax,%eax
-    34f4:	48 d1 fa             	sar    %rdx
-    34f7:	4c 29 ca             	sub    %r9,%rdx
-    34fa:	e8 51 ef ff ff       	call   2450 <__printf_chk@plt>
+    349e:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+    34a3:	bf 01 00 00 00       	mov    $0x1,%edi
+    34a8:	48 8d 35 81 42 00 00 	lea    0x4281(%rip),%rsi        # 7730 <_IO_stdin_used+0x730>
+    34af:	48 89 c8             	mov    %rcx,%rax
+    34b2:	48 c1 f9 3f          	sar    $0x3f,%rcx
+    34b6:	48 f7 ed             	imul   %rbp
+    34b9:	31 c0                	xor    %eax,%eax
+    34bb:	48 d1 fa             	sar    %rdx
+    34be:	48 29 ca             	sub    %rcx,%rdx
+    34c1:	e8 8a ef ff ff       	call   2450 <__printf_chk@plt>
   printf("Total Requests per second %ld\n", total / DURATION);
-    34ff:	4c 89 f8             	mov    %r15,%rax
-    3502:	49 c1 ff 3f          	sar    $0x3f,%r15
-    3506:	48 8d 35 53 42 00 00 	lea    0x4253(%rip),%rsi        # 7760 <_IO_stdin_used+0x760>
-    350d:	48 f7 eb             	imul   %rbx
-    3510:	bf 01 00 00 00       	mov    $0x1,%edi
-    3515:	31 c0                	xor    %eax,%eax
-    3517:	48 d1 fa             	sar    %rdx
-    351a:	4c 29 fa             	sub    %r15,%rdx
-    351d:	e8 2e ef ff ff       	call   2450 <__printf_chk@plt>
+    34c6:	48 89 d8             	mov    %rbx,%rax
+    34c9:	48 c1 fb 3f          	sar    $0x3f,%rbx
+    34cd:	48 8d 35 8c 42 00 00 	lea    0x428c(%rip),%rsi        # 7760 <_IO_stdin_used+0x760>
+    34d4:	48 f7 ed             	imul   %rbp
+    34d7:	bf 01 00 00 00       	mov    $0x1,%edi
+    34dc:	31 c0                	xor    %eax,%eax
+    34de:	48 d1 fa             	sar    %rdx
+    34e1:	48 29 da             	sub    %rbx,%rdx
+    34e4:	e8 67 ef ff ff       	call   2450 <__printf_chk@plt>
   printf("Total sents %ld\n", sents / DURATION);
-    3522:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
-    3527:	bf 01 00 00 00       	mov    $0x1,%edi
-    352c:	48 8d 35 ae 3e 00 00 	lea    0x3eae(%rip),%rsi        # 73e1 <_IO_stdin_used+0x3e1>
-    3533:	48 89 c8             	mov    %rcx,%rax
-    3536:	48 c1 f9 3f          	sar    $0x3f,%rcx
-    353a:	48 f7 eb             	imul   %rbx
-    353d:	31 c0                	xor    %eax,%eax
-    353f:	48 d1 fa             	sar    %rdx
-    3542:	48 29 ca             	sub    %rcx,%rdx
-    3545:	e8 06 ef ff ff       	call   2450 <__printf_chk@plt>
+    34e9:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
+    34ee:	bf 01 00 00 00       	mov    $0x1,%edi
+    34f3:	48 8d 35 e7 3e 00 00 	lea    0x3ee7(%rip),%rsi        # 73e1 <_IO_stdin_used+0x3e1>
+    34fa:	4c 89 d8             	mov    %r11,%rax
+    34fd:	49 c1 fb 3f          	sar    $0x3f,%r11
+    3501:	48 f7 ed             	imul   %rbp
+    3504:	31 c0                	xor    %eax,%eax
+    3506:	48 d1 fa             	sar    %rdx
+    3509:	4c 29 da             	sub    %r11,%rdx
+    350c:	e8 3f ef ff ff       	call   2450 <__printf_chk@plt>
   printf("Total receives %ld\n", received / DURATION);
-    354a:	4c 89 e0             	mov    %r12,%rax
-    354d:	bf 01 00 00 00       	mov    $0x1,%edi
-    3552:	48 8d 35 99 3e 00 00 	lea    0x3e99(%rip),%rsi        # 73f2 <_IO_stdin_used+0x3f2>
-    3559:	48 f7 eb             	imul   %rbx
-    355c:	4c 89 e0             	mov    %r12,%rax
-    355f:	48 c1 f8 3f          	sar    $0x3f,%rax
-    3563:	48 d1 fa             	sar    %rdx
-    3566:	48 29 c2             	sub    %rax,%rdx
-    3569:	31 c0                	xor    %eax,%eax
-    356b:	e8 e0 ee ff ff       	call   2450 <__printf_chk@plt>
+    3511:	4c 8b 0c 24          	mov    (%rsp),%r9
+    3515:	bf 01 00 00 00       	mov    $0x1,%edi
+    351a:	48 8d 35 d1 3e 00 00 	lea    0x3ed1(%rip),%rsi        # 73f2 <_IO_stdin_used+0x3f2>
+    3521:	4c 89 c8             	mov    %r9,%rax
+    3524:	49 c1 f9 3f          	sar    $0x3f,%r9
+    3528:	48 f7 ed             	imul   %rbp
+    352b:	48 d1 fa             	sar    %rdx
+    352e:	4c 29 ca             	sub    %r9,%rdx
+    3531:	31 c0                	xor    %eax,%eax
+    3533:	e8 18 ef ff ff       	call   2450 <__printf_chk@plt>
   // verify(thread_data, thread_count);
   return 0;
 
 }
-    3570:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
-    3575:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    357e:	75 18                	jne    3598 <main+0xfa8>
-    3580:	48 83 c4 78          	add    $0x78,%rsp
-    3584:	31 c0                	xor    %eax,%eax
-    3586:	5b                   	pop    %rbx
-    3587:	5d                   	pop    %rbp
-    3588:	41 5c                	pop    %r12
-    358a:	41 5d                	pop    %r13
-    358c:	41 5e                	pop    %r14
-    358e:	41 5f                	pop    %r15
-    3590:	c3                   	ret
+    3538:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
+    353d:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    3546:	75 18                	jne    3560 <main+0xf70>
+    3548:	48 83 c4 78          	add    $0x78,%rsp
+    354c:	31 c0                	xor    %eax,%eax
+    354e:	5b                   	pop    %rbx
+    354f:	5d                   	pop    %rbp
+    3550:	41 5c                	pop    %r12
+    3552:	41 5d                	pop    %r13
+    3554:	41 5e                	pop    %r14
+    3556:	41 5f                	pop    %r15
+    3558:	c3                   	ret
     long v = 0;
-    3591:	31 d2                	xor    %edx,%edx
-    3593:	e9 ca fb ff ff       	jmp    3162 <main+0xb72>
+    3559:	31 d2                	xor    %edx,%edx
+    355b:	e9 0a fc ff ff       	jmp    316a <main+0xb7a>
 }
-    3598:	e8 93 ed ff ff       	call   2330 <__stack_chk_fail@plt>
-    359d:	0f 1f 00             	nopl   (%rax)
+    3560:	e8 cb ed ff ff       	call   2330 <__stack_chk_fail@plt>
+    3565:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    356f:	90                   	nop
 
-00000000000035a0 <_start>:
-    35a0:	f3 0f 1e fa          	endbr64
-    35a4:	31 ed                	xor    %ebp,%ebp
-    35a6:	49 89 d1             	mov    %rdx,%r9
-    35a9:	5e                   	pop    %rsi
-    35aa:	48 89 e2             	mov    %rsp,%rdx
-    35ad:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp
-    35b1:	50                   	push   %rax
-    35b2:	54                   	push   %rsp
-    35b3:	45 31 c0             	xor    %r8d,%r8d
-    35b6:	31 c9                	xor    %ecx,%ecx
-    35b8:	48 8d 3d 31 f0 ff ff 	lea    -0xfcf(%rip),%rdi        # 25f0 <main>
-    35bf:	ff 15 13 6a 00 00    	call   *0x6a13(%rip)        # 9fd8 <__libc_start_main@GLIBC_2.34>
-    35c5:	f4                   	hlt
-    35c6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+0000000000003570 <_start>:
+    3570:	f3 0f 1e fa          	endbr64
+    3574:	31 ed                	xor    %ebp,%ebp
+    3576:	49 89 d1             	mov    %rdx,%r9
+    3579:	5e                   	pop    %rsi
+    357a:	48 89 e2             	mov    %rsp,%rdx
+    357d:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp
+    3581:	50                   	push   %rax
+    3582:	54                   	push   %rsp
+    3583:	45 31 c0             	xor    %r8d,%r8d
+    3586:	31 c9                	xor    %ecx,%ecx
+    3588:	48 8d 3d 61 f0 ff ff 	lea    -0xf9f(%rip),%rdi        # 25f0 <main>
+    358f:	ff 15 43 6a 00 00    	call   *0x6a43(%rip)        # 9fd8 <__libc_start_main@GLIBC_2.34>
+    3595:	f4                   	hlt
+    3596:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-00000000000035d0 <deregister_tm_clones>:
+00000000000035a0 <deregister_tm_clones>:
+    35a0:	48 8d 3d 79 6a 00 00 	lea    0x6a79(%rip),%rdi        # a020 <stderr@GLIBC_2.2.5>
+    35a7:	48 8d 05 72 6a 00 00 	lea    0x6a72(%rip),%rax        # a020 <stderr@GLIBC_2.2.5>
+    35ae:	48 39 f8             	cmp    %rdi,%rax
+    35b1:	74 15                	je     35c8 <deregister_tm_clones+0x28>
+    35b3:	48 8b 05 26 6a 00 00 	mov    0x6a26(%rip),%rax        # 9fe0 <_ITM_deregisterTMCloneTable@Base>
+    35ba:	48 85 c0             	test   %rax,%rax
+    35bd:	74 09                	je     35c8 <deregister_tm_clones+0x28>
+    35bf:	ff e0                	jmp    *%rax
+    35c1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    35c8:	c3                   	ret
+    35c9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+
+00000000000035d0 <register_tm_clones>:
     35d0:	48 8d 3d 49 6a 00 00 	lea    0x6a49(%rip),%rdi        # a020 <stderr@GLIBC_2.2.5>
-    35d7:	48 8d 05 42 6a 00 00 	lea    0x6a42(%rip),%rax        # a020 <stderr@GLIBC_2.2.5>
-    35de:	48 39 f8             	cmp    %rdi,%rax
-    35e1:	74 15                	je     35f8 <deregister_tm_clones+0x28>
-    35e3:	48 8b 05 f6 69 00 00 	mov    0x69f6(%rip),%rax        # 9fe0 <_ITM_deregisterTMCloneTable@Base>
-    35ea:	48 85 c0             	test   %rax,%rax
-    35ed:	74 09                	je     35f8 <deregister_tm_clones+0x28>
-    35ef:	ff e0                	jmp    *%rax
-    35f1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    35f8:	c3                   	ret
-    35f9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    35d7:	48 8d 35 42 6a 00 00 	lea    0x6a42(%rip),%rsi        # a020 <stderr@GLIBC_2.2.5>
+    35de:	48 29 fe             	sub    %rdi,%rsi
+    35e1:	48 89 f0             	mov    %rsi,%rax
+    35e4:	48 c1 ee 3f          	shr    $0x3f,%rsi
+    35e8:	48 c1 f8 03          	sar    $0x3,%rax
+    35ec:	48 01 c6             	add    %rax,%rsi
+    35ef:	48 d1 fe             	sar    %rsi
+    35f2:	74 14                	je     3608 <register_tm_clones+0x38>
+    35f4:	48 8b 05 f5 69 00 00 	mov    0x69f5(%rip),%rax        # 9ff0 <_ITM_registerTMCloneTable@Base>
+    35fb:	48 85 c0             	test   %rax,%rax
+    35fe:	74 08                	je     3608 <register_tm_clones+0x38>
+    3600:	ff e0                	jmp    *%rax
+    3602:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    3608:	c3                   	ret
+    3609:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000003600 <register_tm_clones>:
-    3600:	48 8d 3d 19 6a 00 00 	lea    0x6a19(%rip),%rdi        # a020 <stderr@GLIBC_2.2.5>
-    3607:	48 8d 35 12 6a 00 00 	lea    0x6a12(%rip),%rsi        # a020 <stderr@GLIBC_2.2.5>
-    360e:	48 29 fe             	sub    %rdi,%rsi
-    3611:	48 89 f0             	mov    %rsi,%rax
-    3614:	48 c1 ee 3f          	shr    $0x3f,%rsi
-    3618:	48 c1 f8 03          	sar    $0x3,%rax
-    361c:	48 01 c6             	add    %rax,%rsi
-    361f:	48 d1 fe             	sar    %rsi
-    3622:	74 14                	je     3638 <register_tm_clones+0x38>
-    3624:	48 8b 05 c5 69 00 00 	mov    0x69c5(%rip),%rax        # 9ff0 <_ITM_registerTMCloneTable@Base>
-    362b:	48 85 c0             	test   %rax,%rax
-    362e:	74 08                	je     3638 <register_tm_clones+0x38>
-    3630:	ff e0                	jmp    *%rax
-    3632:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    3638:	c3                   	ret
-    3639:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+0000000000003610 <__do_global_dtors_aux>:
+    3610:	f3 0f 1e fa          	endbr64
+    3614:	80 3d 0d 6a 00 00 00 	cmpb   $0x0,0x6a0d(%rip)        # a028 <completed.0>
+    361b:	75 2b                	jne    3648 <__do_global_dtors_aux+0x38>
+    361d:	55                   	push   %rbp
+    361e:	48 83 3d d2 69 00 00 00 	cmpq   $0x0,0x69d2(%rip)        # 9ff8 <__cxa_finalize@GLIBC_2.2.5>
+    3626:	48 89 e5             	mov    %rsp,%rbp
+    3629:	74 0c                	je     3637 <__do_global_dtors_aux+0x27>
+    362b:	48 8b 3d d6 69 00 00 	mov    0x69d6(%rip),%rdi        # a008 <__dso_handle>
+    3632:	e8 79 ec ff ff       	call   22b0 <__cxa_finalize@plt>
+    3637:	e8 64 ff ff ff       	call   35a0 <deregister_tm_clones>
+    363c:	c6 05 e5 69 00 00 01 	movb   $0x1,0x69e5(%rip)        # a028 <completed.0>
+    3643:	5d                   	pop    %rbp
+    3644:	c3                   	ret
+    3645:	0f 1f 00             	nopl   (%rax)
+    3648:	c3                   	ret
+    3649:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000003640 <__do_global_dtors_aux>:
-    3640:	f3 0f 1e fa          	endbr64
-    3644:	80 3d dd 69 00 00 00 	cmpb   $0x0,0x69dd(%rip)        # a028 <completed.0>
-    364b:	75 2b                	jne    3678 <__do_global_dtors_aux+0x38>
-    364d:	55                   	push   %rbp
-    364e:	48 83 3d a2 69 00 00 00 	cmpq   $0x0,0x69a2(%rip)        # 9ff8 <__cxa_finalize@GLIBC_2.2.5>
-    3656:	48 89 e5             	mov    %rsp,%rbp
-    3659:	74 0c                	je     3667 <__do_global_dtors_aux+0x27>
-    365b:	48 8b 3d a6 69 00 00 	mov    0x69a6(%rip),%rdi        # a008 <__dso_handle>
-    3662:	e8 49 ec ff ff       	call   22b0 <__cxa_finalize@plt>
-    3667:	e8 64 ff ff ff       	call   35d0 <deregister_tm_clones>
-    366c:	c6 05 b5 69 00 00 01 	movb   $0x1,0x69b5(%rip)        # a028 <completed.0>
-    3673:	5d                   	pop    %rbp
-    3674:	c3                   	ret
-    3675:	0f 1f 00             	nopl   (%rax)
-    3678:	c3                   	ret
-    3679:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+0000000000003650 <frame_dummy>:
+    3650:	f3 0f 1e fa          	endbr64
+    3654:	e9 77 ff ff ff       	jmp    35d0 <register_tm_clones>
+    3659:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000003680 <frame_dummy>:
-    3680:	f3 0f 1e fa          	endbr64
-    3684:	e9 77 ff ff ff       	jmp    3600 <register_tm_clones>
-    3689:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-
-0000000000003690 <do_protected_write>:
+0000000000003660 <do_protected_write>:
 int do_protected_write(struct BarrierTask *data) {
-    3690:	f3 0f 1e fa          	endbr64
+    3660:	f3 0f 1e fa          	endbr64
   struct ProtectedState *protected = data->thread->protected_state;
-    3694:	48 8b 87 28 01 00 00 	mov    0x128(%rdi),%rax
-    369b:	48 8b 40 38          	mov    0x38(%rax),%rax
+    3664:	48 8b 87 28 01 00 00 	mov    0x128(%rdi),%rax
+    366b:	48 8b 40 38          	mov    0x38(%rax),%rax
   data->v++; // thread local
-    369f:	48 83 87 10 01 00 00 01 	addq   $0x1,0x110(%rdi)
+    366f:	48 83 87 10 01 00 00 01 	addq   $0x1,0x110(%rdi)
   if (protected->balance > 0) {
-    36a7:	48 8b 48 08          	mov    0x8(%rax),%rcx
+    3677:	48 8b 48 08          	mov    0x8(%rax),%rcx
   protected->protected++; // shared between all threads
-    36ab:	48 83 00 01          	addq   $0x1,(%rax)
+    367b:	48 83 00 01          	addq   $0x1,(%rax)
     protected->balance -= 500; // shared between all threads
-    36af:	48 8d b1 0c fe ff ff 	lea    -0x1f4(%rcx),%rsi
-    36b6:	48 85 c9             	test   %rcx,%rcx
-    36b9:	48 8d 91 f4 01 00 00 	lea    0x1f4(%rcx),%rdx
-    36c0:	48 0f 4f d6          	cmovg  %rsi,%rdx
-    36c4:	48 89 50 08          	mov    %rdx,0x8(%rax)
+    367f:	48 8d b1 0c fe ff ff 	lea    -0x1f4(%rcx),%rsi
+    3686:	48 85 c9             	test   %rcx,%rcx
+    3689:	48 8d 91 f4 01 00 00 	lea    0x1f4(%rcx),%rdx
+    3690:	48 0f 4f d6          	cmovg  %rsi,%rdx
+    3694:	48 89 50 08          	mov    %rdx,0x8(%rax)
 }
-    36c8:	31 c0                	xor    %eax,%eax
-    36ca:	c3                   	ret
-    36cb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    3698:	31 c0                	xor    %eax,%eax
+    369a:	c3                   	ret
+    369b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-00000000000036d0 <barriered_reset>:
+00000000000036a0 <barriered_reset>:
 int barriered_reset(struct BarrierTask *data) {
-    36d0:	f3 0f 1e fa          	endbr64
+    36a0:	f3 0f 1e fa          	endbr64
     for (int x = 0 ; x < data->task_count ; x++) {
-    36d4:	48 63 8f 3c 01 00 00 	movslq 0x13c(%rdi),%rcx
-    36db:	85 c9                	test   %ecx,%ecx
-    36dd:	7e 4f                	jle    372e <barriered_reset+0x5e>
+    36a4:	48 63 8f 3c 01 00 00 	movslq 0x13c(%rdi),%rcx
+    36ab:	85 c9                	test   %ecx,%ecx
+    36ad:	7e 4f                	jle    36fe <barriered_reset+0x5e>
       data->thread->threads[data->thread_index]->tasks[x].arrived++; 
-    36df:	48 8b 87 28 01 00 00 	mov    0x128(%rdi),%rax
-    36e6:	48 63 b7 30 01 00 00 	movslq 0x130(%rdi),%rsi
-    36ed:	48 c1 e1 09          	shl    $0x9,%rcx
-    36f1:	48 8b 50 10          	mov    0x10(%rax),%rdx
-    36f5:	48 8b 14 f2          	mov    (%rdx,%rsi,8),%rdx
+    36af:	48 8b 87 28 01 00 00 	mov    0x128(%rdi),%rax
+    36b6:	48 63 b7 30 01 00 00 	movslq 0x130(%rdi),%rsi
+    36bd:	48 c1 e1 09          	shl    $0x9,%rcx
+    36c1:	48 8b 50 10          	mov    0x10(%rax),%rdx
+    36c5:	48 8b 14 f2          	mov    (%rdx,%rsi,8),%rdx
       data->thread->tasks[x].available = 1; 
-    36f9:	48 8b 70 28          	mov    0x28(%rax),%rsi
-    36fd:	31 c0                	xor    %eax,%eax
+    36c9:	48 8b 70 28          	mov    0x28(%rax),%rsi
+    36cd:	31 c0                	xor    %eax,%eax
       data->thread->threads[data->thread_index]->tasks[x].arrived++; 
-    36ff:	48 8b 52 28          	mov    0x28(%rdx),%rdx
-    3703:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    3708:	83 84 02 80 00 00 00 01 	addl   $0x1,0x80(%rdx,%rax,1)
+    36cf:	48 8b 52 28          	mov    0x28(%rdx),%rdx
+    36d3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    36d8:	83 84 02 80 00 00 00 01 	addl   $0x1,0x80(%rdx,%rax,1)
       data->thread->threads[data->thread_index]->tasks[x].prearrive++; 
-    3710:	83 84 02 00 01 00 00 01 	addl   $0x1,0x100(%rdx,%rax,1)
+    36e0:	83 84 02 00 01 00 00 01 	addl   $0x1,0x100(%rdx,%rax,1)
       data->thread->tasks[x].available = 1; 
-    3718:	c7 84 06 38 01 00 00 01 00 00 00 	movl   $0x1,0x138(%rsi,%rax,1)
+    36e8:	c7 84 06 38 01 00 00 01 00 00 00 	movl   $0x1,0x138(%rsi,%rax,1)
     for (int x = 0 ; x < data->task_count ; x++) {
-    3723:	48 05 00 02 00 00    	add    $0x200,%rax
-    3729:	48 39 c1             	cmp    %rax,%rcx
-    372c:	75 da                	jne    3708 <barriered_reset+0x38>
+    36f3:	48 05 00 02 00 00    	add    $0x200,%rax
+    36f9:	48 39 c1             	cmp    %rax,%rcx
+    36fc:	75 da                	jne    36d8 <barriered_reset+0x38>
   asm volatile ("sfence" ::: "memory");
-    372e:	0f ae f8             	sfence
+    36fe:	0f ae f8             	sfence
 }
-    3731:	31 c0                	xor    %eax,%eax
-    3733:	c3                   	ret
-    3734:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    373f:	90                   	nop
+    3701:	31 c0                	xor    %eax,%eax
+    3703:	c3                   	ret
+    3704:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    370f:	90                   	nop
 
-0000000000003740 <external_thread>:
+0000000000003710 <external_thread>:
 void * external_thread(void *arg) {
-    3740:	f3 0f 1e fa          	endbr64
+    3710:	f3 0f 1e fa          	endbr64
   while (data->running == 1) {
-    3744:	83 7f 34 01          	cmpl   $0x1,0x34(%rdi)
-    3748:	0f 85 fb 00 00 00    	jne    3849 <external_thread+0x109>
+    3714:	83 7f 34 01          	cmpl   $0x1,0x34(%rdi)
+    3718:	0f 85 fb 00 00 00    	jne    3819 <external_thread+0x109>
 void * external_thread(void *arg) {
-    374e:	41 57                	push   %r15
-    3750:	49 89 ff             	mov    %rdi,%r15
-    3753:	41 56                	push   %r14
-    3755:	41 55                	push   %r13
+    371e:	41 57                	push   %r15
+    3720:	49 89 ff             	mov    %rdi,%r15
+    3723:	41 56                	push   %r14
+    3725:	41 55                	push   %r13
 					data->buffers[b]->buffer[x].data = "Hello world";
-    3757:	4c 8d 2d a6 38 00 00 	lea    0x38a6(%rip),%r13        # 7004 <_IO_stdin_used+0x4>
+    3727:	4c 8d 2d d6 38 00 00 	lea    0x38d6(%rip),%r13        # 7004 <_IO_stdin_used+0x4>
 void * external_thread(void *arg) {
-    375e:	41 54                	push   %r12
-    3760:	55                   	push   %rbp
-    3761:	53                   	push   %rbx
-    3762:	48 83 ec 08          	sub    $0x8,%rsp
+    372e:	41 54                	push   %r12
+    3730:	55                   	push   %rbp
+    3731:	53                   	push   %rbx
+    3732:	48 83 ec 08          	sub    $0x8,%rsp
     for (int b = 0; b < data->buffers_count; b++) {
-    3766:	8b 8f ac 00 00 00    	mov    0xac(%rdi),%ecx
-    376c:	48 8b 7f 40          	mov    0x40(%rdi),%rdi
-    3770:	85 c9                	test   %ecx,%ecx
-    3772:	7e 6e                	jle    37e2 <external_thread+0xa2>
+    3736:	8b 8f ac 00 00 00    	mov    0xac(%rdi),%ecx
+    373c:	48 8b 7f 40          	mov    0x40(%rdi),%rdi
+    3740:	85 c9                	test   %ecx,%ecx
+    3742:	7e 6e                	jle    37b2 <external_thread+0xa2>
       for (int x = 0; x < data->buffers[b]->count; x++) {
-    3774:	45 31 e4             	xor    %r12d,%r12d
-    3777:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-    3780:	4e 8d 34 e5 00 00 00 00 	lea    0x0(,%r12,8),%r14
-    3788:	31 db                	xor    %ebx,%ebx
-    378a:	4a 8d 34 37          	lea    (%rdi,%r14,1),%rsi
-    378e:	48 8b 06             	mov    (%rsi),%rax
-    3791:	8b 10                	mov    (%rax),%edx
-    3793:	85 d2                	test   %edx,%edx
-    3795:	7e 2a                	jle    37c1 <external_thread+0x81>
-    3797:	48 8b 48 08          	mov    0x8(%rax),%rcx
+    3744:	45 31 e4             	xor    %r12d,%r12d
+    3747:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    3750:	4e 8d 34 e5 00 00 00 00 	lea    0x0(,%r12,8),%r14
+    3758:	31 db                	xor    %ebx,%ebx
+    375a:	4a 8d 34 37          	lea    (%rdi,%r14,1),%rsi
+    375e:	48 8b 06             	mov    (%rsi),%rax
+    3761:	8b 10                	mov    (%rax),%edx
+    3763:	85 d2                	test   %edx,%edx
+    3765:	7e 2a                	jle    3791 <external_thread+0x81>
+    3767:	48 8b 48 08          	mov    0x8(%rax),%rcx
 				if (data->buffers[b]->buffer[x].available == 0) {
-    379b:	48 89 dd             	mov    %rbx,%rbp
-    379e:	48 c1 e5 08          	shl    $0x8,%rbp
-    37a2:	48 8d 04 29          	lea    (%rcx,%rbp,1),%rax
-    37a6:	44 8b 80 80 00 00 00 	mov    0x80(%rax),%r8d
-    37ad:	45 85 c0             	test   %r8d,%r8d
-    37b0:	74 36                	je     37e8 <external_thread+0xa8>
+    376b:	48 89 dd             	mov    %rbx,%rbp
+    376e:	48 c1 e5 08          	shl    $0x8,%rbp
+    3772:	48 8d 04 29          	lea    (%rcx,%rbp,1),%rax
+    3776:	44 8b 80 80 00 00 00 	mov    0x80(%rax),%r8d
+    377d:	45 85 c0             	test   %r8d,%r8d
+    3780:	74 36                	je     37b8 <external_thread+0xa8>
       for (int x = 0; x < data->buffers[b]->count; x++) {
-    37b2:	48 83 c3 01          	add    $0x1,%rbx
-    37b6:	39 da                	cmp    %ebx,%edx
-    37b8:	7f e1                	jg     379b <external_thread+0x5b>
+    3782:	48 83 c3 01          	add    $0x1,%rbx
+    3786:	39 da                	cmp    %ebx,%edx
+    3788:	7f e1                	jg     376b <external_thread+0x5b>
     for (int b = 0; b < data->buffers_count; b++) {
-    37ba:	41 8b 8f ac 00 00 00 	mov    0xac(%r15),%ecx
-    37c1:	49 83 c4 01          	add    $0x1,%r12
-    37c5:	44 39 e1             	cmp    %r12d,%ecx
-    37c8:	7f b6                	jg     3780 <external_thread+0x40>
+    378a:	41 8b 8f ac 00 00 00 	mov    0xac(%r15),%ecx
+    3791:	49 83 c4 01          	add    $0x1,%r12
+    3795:	44 39 e1             	cmp    %r12d,%ecx
+    3798:	7f b6                	jg     3750 <external_thread+0x40>
   while (data->running == 1) {
-    37ca:	41 83 7f 34 01       	cmpl   $0x1,0x34(%r15)
-    37cf:	74 9f                	je     3770 <external_thread+0x30>
+    379a:	41 83 7f 34 01       	cmpl   $0x1,0x34(%r15)
+    379f:	74 9f                	je     3740 <external_thread+0x30>
 }
-    37d1:	48 83 c4 08          	add    $0x8,%rsp
-    37d5:	31 c0                	xor    %eax,%eax
-    37d7:	5b                   	pop    %rbx
-    37d8:	5d                   	pop    %rbp
-    37d9:	41 5c                	pop    %r12
-    37db:	41 5d                	pop    %r13
-    37dd:	41 5e                	pop    %r14
-    37df:	41 5f                	pop    %r15
-    37e1:	c3                   	ret
+    37a1:	48 83 c4 08          	add    $0x8,%rsp
+    37a5:	31 c0                	xor    %eax,%eax
+    37a7:	5b                   	pop    %rbx
+    37a8:	5d                   	pop    %rbp
+    37a9:	41 5c                	pop    %r12
+    37ab:	41 5d                	pop    %r13
+    37ad:	41 5e                	pop    %r14
+    37af:	41 5f                	pop    %r15
+    37b1:	c3                   	ret
   while (data->running == 1) {
-    37e2:	eb fe                	jmp    37e2 <external_thread+0xa2>
-    37e4:	0f 1f 40 00          	nopl   0x0(%rax)
+    37b2:	eb fe                	jmp    37b2 <external_thread+0xa2>
+    37b4:	0f 1f 40 00          	nopl   0x0(%rax)
 					data->buffers[b]->buffer[x].data = "Hello world";
-    37e8:	4c 89 28             	mov    %r13,(%rax)
+    37b8:	4c 89 28             	mov    %r13,(%rax)
 					clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers[b]->buffer[x].snapshots[data->buffers[b]->buffer[x].ingest_snapshot].start);
-    37eb:	48 8b 06             	mov    (%rsi),%rax
-    37ee:	48 8b 78 08          	mov    0x8(%rax),%rdi
-    37f2:	48 01 ef             	add    %rbp,%rdi
-    37f5:	48 63 b7 94 00 00 00 	movslq 0x94(%rdi),%rsi
-    37fc:	48 c1 e6 05          	shl    $0x5,%rsi
-    3800:	48 03 b7 88 00 00 00 	add    0x88(%rdi),%rsi
-    3807:	bf 04 00 00 00       	mov    $0x4,%edi
-    380c:	e8 ff ea ff ff       	call   2310 <clock_gettime@plt>
+    37bb:	48 8b 06             	mov    (%rsi),%rax
+    37be:	48 8b 78 08          	mov    0x8(%rax),%rdi
+    37c2:	48 01 ef             	add    %rbp,%rdi
+    37c5:	48 63 b7 94 00 00 00 	movslq 0x94(%rdi),%rsi
+    37cc:	48 c1 e6 05          	shl    $0x5,%rsi
+    37d0:	48 03 b7 88 00 00 00 	add    0x88(%rdi),%rsi
+    37d7:	bf 04 00 00 00       	mov    $0x4,%edi
+    37dc:	e8 2f eb ff ff       	call   2310 <clock_gettime@plt>
 					data->buffers[b]->buffer[x].available = 1;
-    3811:	49 8b 47 40          	mov    0x40(%r15),%rax
-    3815:	4a 8b 04 30          	mov    (%rax,%r14,1),%rax
-    3819:	48 8b 40 08          	mov    0x8(%rax),%rax
-    381d:	c7 84 28 80 00 00 00 01 00 00 00 	movl   $0x1,0x80(%rax,%rbp,1)
+    37e1:	49 8b 47 40          	mov    0x40(%r15),%rax
+    37e5:	4a 8b 04 30          	mov    (%rax,%r14,1),%rax
+    37e9:	48 8b 40 08          	mov    0x8(%rax),%rax
+    37ed:	c7 84 28 80 00 00 00 01 00 00 00 	movl   $0x1,0x80(%rax,%rbp,1)
           asm volatile ("sfence" ::: "memory");
-    3828:	0f ae f8             	sfence
+    37f8:	0f ae f8             	sfence
       for (int x = 0; x < data->buffers[b]->count; x++) {
-    382b:	49 8b 7f 40          	mov    0x40(%r15),%rdi
-    382f:	48 83 c3 01          	add    $0x1,%rbx
-    3833:	4a 8d 34 37          	lea    (%rdi,%r14,1),%rsi
-    3837:	48 8b 06             	mov    (%rsi),%rax
-    383a:	8b 10                	mov    (%rax),%edx
-    383c:	39 da                	cmp    %ebx,%edx
-    383e:	0f 8f 53 ff ff ff    	jg     3797 <external_thread+0x57>
-    3844:	e9 71 ff ff ff       	jmp    37ba <external_thread+0x7a>
+    37fb:	49 8b 7f 40          	mov    0x40(%r15),%rdi
+    37ff:	48 83 c3 01          	add    $0x1,%rbx
+    3803:	4a 8d 34 37          	lea    (%rdi,%r14,1),%rsi
+    3807:	48 8b 06             	mov    (%rsi),%rax
+    380a:	8b 10                	mov    (%rax),%edx
+    380c:	39 da                	cmp    %ebx,%edx
+    380e:	0f 8f 53 ff ff ff    	jg     3767 <external_thread+0x57>
+    3814:	e9 71 ff ff ff       	jmp    378a <external_thread+0x7a>
 }
-    3849:	31 c0                	xor    %eax,%eax
-    384b:	c3                   	ret
-    384c:	0f 1f 40 00          	nopl   0x0(%rax)
+    3819:	31 c0                	xor    %eax,%eax
+    381b:	c3                   	ret
+    381c:	0f 1f 40 00          	nopl   0x0(%rax)
 
-0000000000003850 <timer_thread>:
+0000000000003820 <timer_thread>:
 void* timer_thread(void *arg) {
-    3850:	f3 0f 1e fa          	endbr64
-    3854:	41 57                	push   %r15
-    3856:	48 8d 35 b3 37 00 00 	lea    0x37b3(%rip),%rsi        # 7010 <_IO_stdin_used+0x10>
-    385d:	49 89 ff             	mov    %rdi,%r15
-    3860:	41 56                	push   %r14
-    3862:	41 55                	push   %r13
-    3864:	41 54                	push   %r12
-    3866:	55                   	push   %rbp
-    3867:	53                   	push   %rbx
-    3868:	48 83 ec 58          	sub    $0x58,%rsp
-    386c:	8b 17                	mov    (%rdi),%edx
-    386e:	bf 01 00 00 00       	mov    $0x1,%edi
-    3873:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    387c:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
-    3881:	31 c0                	xor    %eax,%eax
-    3883:	e8 c8 eb ff ff       	call   2450 <__printf_chk@plt>
+    3820:	f3 0f 1e fa          	endbr64
+    3824:	41 57                	push   %r15
+    3826:	48 8d 35 e3 37 00 00 	lea    0x37e3(%rip),%rsi        # 7010 <_IO_stdin_used+0x10>
+    382d:	49 89 ff             	mov    %rdi,%r15
+    3830:	41 56                	push   %r14
+    3832:	41 55                	push   %r13
+    3834:	41 54                	push   %r12
+    3836:	55                   	push   %rbp
+    3837:	53                   	push   %rbx
+    3838:	48 83 ec 58          	sub    $0x58,%rsp
+    383c:	8b 17                	mov    (%rdi),%edx
+    383e:	bf 01 00 00 00       	mov    $0x1,%edi
+    3843:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    384c:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+    3851:	31 c0                	xor    %eax,%eax
+    3853:	e8 f8 eb ff ff       	call   2450 <__printf_chk@plt>
   struct timespec preempt = {
-    3888:	66 0f 6f 05 f0 40 00 00 	movdqa 0x40f0(%rip),%xmm0        # 7980 <_IO_stdin_used+0x980>
-    3890:	ba 88 13 00 00       	mov    $0x1388,%edx
-    3895:	31 c0                	xor    %eax,%eax
-    3897:	48 8d 35 84 37 00 00 	lea    0x3784(%rip),%rsi        # 7022 <_IO_stdin_used+0x22>
-    389e:	bf 01 00 00 00       	mov    $0x1,%edi
-    38a3:	0f 29 44 24 10       	movaps %xmm0,0x10(%rsp)
-    38a8:	e8 a3 eb ff ff       	call   2450 <__printf_chk@plt>
+    3858:	66 0f 6f 05 20 41 00 00 	movdqa 0x4120(%rip),%xmm0        # 7980 <_IO_stdin_used+0x980>
+    3860:	ba 88 13 00 00       	mov    $0x1388,%edx
+    3865:	31 c0                	xor    %eax,%eax
+    3867:	48 8d 35 b4 37 00 00 	lea    0x37b4(%rip),%rsi        # 7022 <_IO_stdin_used+0x22>
+    386e:	bf 01 00 00 00       	mov    $0x1,%edi
+    3873:	0f 29 44 24 10       	movaps %xmm0,0x10(%rsp)
+    3878:	e8 d3 eb ff ff       	call   2450 <__printf_chk@plt>
   while (data->running && n < times) {
-    38ad:	45 8b 67 34          	mov    0x34(%r15),%r12d
-    38b1:	45 85 e4             	test   %r12d,%r12d
-    38b4:	0f 84 9b 00 00 00    	je     3955 <timer_thread+0x105>
+    387d:	45 8b 67 34          	mov    0x34(%r15),%r12d
+    3881:	45 85 e4             	test   %r12d,%r12d
+    3884:	0f 84 9b 00 00 00    	je     3925 <timer_thread+0x105>
   int n = 0;
-    38ba:	45 31 f6             	xor    %r14d,%r14d
+    388a:	45 31 f6             	xor    %r14d,%r14d
   int y = 0;
-    38bd:	45 31 e4             	xor    %r12d,%r12d
-    38c0:	49 89 e5             	mov    %rsp,%r13
+    388d:	45 31 e4             	xor    %r12d,%r12d
+    3890:	49 89 e5             	mov    %rsp,%r13
     y++;
-    38c3:	31 db                	xor    %ebx,%ebx
-    38c5:	48 8d 6c 24 10       	lea    0x10(%rsp),%rbp
+    3893:	31 db                	xor    %ebx,%ebx
+    3895:	48 8d 6c 24 10       	lea    0x10(%rsp),%rbp
     nanosleep(&preempt , &rem2);
-    38ca:	48 89 ef             	mov    %rbp,%rdi
-    38cd:	4c 89 ee             	mov    %r13,%rsi
+    389a:	48 89 ef             	mov    %rbp,%rdi
+    389d:	4c 89 ee             	mov    %r13,%rsi
     n++;
-    38d0:	41 83 c6 01          	add    $0x1,%r14d
+    38a0:	41 83 c6 01          	add    $0x1,%r14d
     nanosleep(&preempt , &rem2);
-    38d4:	e8 77 ea ff ff       	call   2350 <nanosleep@plt>
+    38a4:	e8 a7 ea ff ff       	call   2350 <nanosleep@plt>
     for (int x = 0 ; x < data->thread_count ; x++) {
-    38d9:	49 63 47 18          	movslq 0x18(%r15),%rax
+    38a9:	49 63 47 18          	movslq 0x18(%r15),%rax
     y++;
-    38dd:	41 8d 7c 24 01       	lea    0x1(%r12),%edi
+    38ad:	41 8d 7c 24 01       	lea    0x1(%r12),%edi
     for (int x = 0 ; x < data->thread_count ; x++) {
-    38e2:	85 c0                	test   %eax,%eax
-    38e4:	7e 47                	jle    392d <timer_thread+0xdd>
-    38e6:	49 8b 4f 10          	mov    0x10(%r15),%rcx
+    38b2:	85 c0                	test   %eax,%eax
+    38b4:	7e 47                	jle    38fd <timer_thread+0xdd>
+    38b6:	49 8b 4f 10          	mov    0x10(%r15),%rcx
         data->threads[x]->tasks[y].scheduled = 0;
-    38ea:	49 c1 e4 09          	shl    $0x9,%r12
-    38ee:	4c 8d 04 c1          	lea    (%rcx,%rax,8),%r8
-    38f2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    38ba:	49 c1 e4 09          	shl    $0x9,%r12
+    38be:	4c 8d 04 c1          	lea    (%rcx,%rax,8),%r8
+    38c2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
         int next = (y + 1) % data->threads[x]->task_count;
-    38f8:	4c 8b 11             	mov    (%rcx),%r10
-    38fb:	89 f8                	mov    %edi,%eax
+    38c8:	4c 8b 11             	mov    (%rcx),%r10
+    38cb:	89 f8                	mov    %edi,%eax
     for (int x = 0 ; x < data->thread_count ; x++) {
-    38fd:	48 83 c1 08          	add    $0x8,%rcx
+    38cd:	48 83 c1 08          	add    $0x8,%rcx
         int next = (y + 1) % data->threads[x]->task_count;
-    3901:	99                   	cltd
-    3902:	41 f7 7a 30          	idivl  0x30(%r10)
+    38d1:	99                   	cltd
+    38d2:	41 f7 7a 30          	idivl  0x30(%r10)
         data->threads[x]->tasks[next].scheduled = 1;
-    3906:	49 8b 72 28          	mov    0x28(%r10),%rsi
-    390a:	48 63 d2             	movslq %edx,%rdx
-    390d:	48 c1 e2 09          	shl    $0x9,%rdx
-    3911:	c7 84 16 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rsi,%rdx,1)
+    38d6:	49 8b 72 28          	mov    0x28(%r10),%rsi
+    38da:	48 63 d2             	movslq %edx,%rdx
+    38dd:	48 c1 e2 09          	shl    $0x9,%rdx
+    38e1:	c7 84 16 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rsi,%rdx,1)
         data->threads[x]->tasks[y].scheduled = 0;
-    391c:	42 c7 84 26 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rsi,%r12,1)
+    38ec:	42 c7 84 26 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rsi,%r12,1)
     for (int x = 0 ; x < data->thread_count ; x++) {
-    3928:	49 39 c8             	cmp    %rcx,%r8
-    392b:	75 cb                	jne    38f8 <timer_thread+0xa8>
+    38f8:	49 39 c8             	cmp    %rcx,%r8
+    38fb:	75 cb                	jne    38c8 <timer_thread+0xa8>
     asm volatile ("mfence" ::: "memory");
-    392d:	0f ae f0             	mfence
+    38fd:	0f ae f0             	mfence
     if (y >= data->threads[0]->task_count) {
-    3930:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3900:	49 8b 47 10          	mov    0x10(%r15),%rax
   while (data->running && n < times) {
-    3934:	41 8b 57 34          	mov    0x34(%r15),%edx
+    3904:	41 8b 57 34          	mov    0x34(%r15),%edx
     if (y >= data->threads[0]->task_count) {
-    3938:	48 8b 00             	mov    (%rax),%rax
+    3908:	48 8b 00             	mov    (%rax),%rax
     y++;
-    393b:	39 78 30             	cmp    %edi,0x30(%rax)
-    393e:	0f 4e fb             	cmovle %ebx,%edi
-    3941:	4c 63 e7             	movslq %edi,%r12
+    390b:	39 78 30             	cmp    %edi,0x30(%rax)
+    390e:	0f 4e fb             	cmovle %ebx,%edi
+    3911:	4c 63 e7             	movslq %edi,%r12
   while (data->running && n < times) {
-    3944:	85 d2                	test   %edx,%edx
-    3946:	74 0d                	je     3955 <timer_thread+0x105>
-    3948:	41 81 fe 88 13 00 00 	cmp    $0x1388,%r14d
-    394f:	0f 85 75 ff ff ff    	jne    38ca <timer_thread+0x7a>
-    3955:	48 8d 3d dc 36 00 00 	lea    0x36dc(%rip),%rdi        # 7038 <_IO_stdin_used+0x38>
-    395c:	e8 8f e9 ff ff       	call   22f0 <puts@plt>
+    3914:	85 d2                	test   %edx,%edx
+    3916:	74 0d                	je     3925 <timer_thread+0x105>
+    3918:	41 81 fe 88 13 00 00 	cmp    $0x1388,%r14d
+    391f:	0f 85 75 ff ff ff    	jne    389a <timer_thread+0x7a>
+    3925:	48 8d 3d 0c 37 00 00 	lea    0x370c(%rip),%rdi        # 7038 <_IO_stdin_used+0x38>
+    392c:	e8 bf e9 ff ff       	call   22f0 <puts@plt>
   for (int x = 0 ; x < data->total_thread_count ; x++) {
-    3961:	49 63 57 1c          	movslq 0x1c(%r15),%rdx
-    3965:	85 d2                	test   %edx,%edx
-    3967:	7e 6b                	jle    39d4 <timer_thread+0x184>
+    3931:	49 63 57 1c          	movslq 0x1c(%r15),%rdx
+    3935:	85 d2                	test   %edx,%edx
+    3937:	7e 6b                	jle    39a4 <timer_thread+0x184>
     for (int y = 0 ; y < data->task_count ; y++) {
-    3969:	49 63 47 30          	movslq 0x30(%r15),%rax
-    396d:	85 c0                	test   %eax,%eax
-    396f:	7e 63                	jle    39d4 <timer_thread+0x184>
-    3971:	48 c1 e0 09          	shl    $0x9,%rax
+    3939:	49 63 47 30          	movslq 0x30(%r15),%rax
+    393d:	85 c0                	test   %eax,%eax
+    393f:	7e 63                	jle    39a4 <timer_thread+0x184>
+    3941:	48 c1 e0 09          	shl    $0x9,%rax
       data->threads[x]->tasks[y].sending = 0;
-    3975:	4d 8b 47 10          	mov    0x10(%r15),%r8
-    3979:	48 8d 0c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rcx
-    3981:	31 ff                	xor    %edi,%edi
-    3983:	48 89 c2             	mov    %rax,%rdx
-    3986:	49 8b 04 38          	mov    (%r8,%rdi,1),%rax
-    398a:	48 8b 40 28          	mov    0x28(%rax),%rax
-    398e:	48 8d 34 02          	lea    (%rdx,%rax,1),%rsi
-    3992:	f6 c6 02             	test   $0x2,%dh
-    3995:	74 15                	je     39ac <timer_thread+0x15c>
-    3997:	c7 80 78 01 00 00 00 00 00 00 	movl   $0x0,0x178(%rax)
+    3945:	4d 8b 47 10          	mov    0x10(%r15),%r8
+    3949:	48 8d 0c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rcx
+    3951:	31 ff                	xor    %edi,%edi
+    3953:	48 89 c2             	mov    %rax,%rdx
+    3956:	49 8b 04 38          	mov    (%r8,%rdi,1),%rax
+    395a:	48 8b 40 28          	mov    0x28(%rax),%rax
+    395e:	48 8d 34 02          	lea    (%rdx,%rax,1),%rsi
+    3962:	f6 c6 02             	test   $0x2,%dh
+    3965:	74 15                	je     397c <timer_thread+0x15c>
+    3967:	c7 80 78 01 00 00 00 00 00 00 	movl   $0x0,0x178(%rax)
     for (int y = 0 ; y < data->task_count ; y++) {
-    39a1:	48 05 00 02 00 00    	add    $0x200,%rax
-    39a7:	48 39 c6             	cmp    %rax,%rsi
-    39aa:	74 1f                	je     39cb <timer_thread+0x17b>
+    3971:	48 05 00 02 00 00    	add    $0x200,%rax
+    3977:	48 39 c6             	cmp    %rax,%rsi
+    397a:	74 1f                	je     399b <timer_thread+0x17b>
       data->threads[x]->tasks[y].sending = 0;
-    39ac:	c7 80 78 01 00 00 00 00 00 00 	movl   $0x0,0x178(%rax)
+    397c:	c7 80 78 01 00 00 00 00 00 00 	movl   $0x0,0x178(%rax)
     for (int y = 0 ; y < data->task_count ; y++) {
-    39b6:	48 05 00 04 00 00    	add    $0x400,%rax
+    3986:	48 05 00 04 00 00    	add    $0x400,%rax
       data->threads[x]->tasks[y].sending = 0;
-    39bc:	c7 80 78 ff ff ff 00 00 00 00 	movl   $0x0,-0x88(%rax)
+    398c:	c7 80 78 ff ff ff 00 00 00 00 	movl   $0x0,-0x88(%rax)
     for (int y = 0 ; y < data->task_count ; y++) {
-    39c6:	48 39 c6             	cmp    %rax,%rsi
-    39c9:	75 e1                	jne    39ac <timer_thread+0x15c>
+    3996:	48 39 c6             	cmp    %rax,%rsi
+    3999:	75 e1                	jne    397c <timer_thread+0x15c>
   for (int x = 0 ; x < data->total_thread_count ; x++) {
-    39cb:	48 83 c7 08          	add    $0x8,%rdi
-    39cf:	48 39 f9             	cmp    %rdi,%rcx
-    39d2:	75 b2                	jne    3986 <timer_thread+0x136>
+    399b:	48 83 c7 08          	add    $0x8,%rdi
+    399f:	48 39 f9             	cmp    %rdi,%rcx
+    39a2:	75 b2                	jne    3956 <timer_thread+0x136>
   asm volatile ("mfence" ::: "memory");
-    39d4:	0f ae f0             	mfence
+    39a4:	0f ae f0             	mfence
   struct timespec drain = {
-    39d7:	66 0f 6f 05 b1 3f 00 00 	movdqa 0x3fb1(%rip),%xmm0        # 7990 <_IO_stdin_used+0x990>
-    39df:	48 8d 2d 77 36 00 00 	lea    0x3677(%rip),%rbp        # 705d <_IO_stdin_used+0x5d>
-    39e6:	0f 29 44 24 30       	movaps %xmm0,0x30(%rsp)
+    39a7:	66 0f 6f 05 e1 3f 00 00 	movdqa 0x3fe1(%rip),%xmm0        # 7990 <_IO_stdin_used+0x990>
+    39af:	48 8d 2d a7 36 00 00 	lea    0x36a7(%rip),%rbp        # 705d <_IO_stdin_used+0x5d>
+    39b6:	0f 29 44 24 30       	movaps %xmm0,0x30(%rsp)
     for (int x = 0 ; x < data->thread_count ; x++) {
-    39eb:	49 63 47 18          	movslq 0x18(%r15),%rax
+    39bb:	49 63 47 18          	movslq 0x18(%r15),%rax
     y++;
-    39ef:	41 8d 7c 24 01       	lea    0x1(%r12),%edi
+    39bf:	41 8d 7c 24 01       	lea    0x1(%r12),%edi
     for (int x = 0 ; x < data->thread_count ; x++) {
-    39f4:	85 c0                	test   %eax,%eax
-    39f6:	7e 4c                	jle    3a44 <timer_thread+0x1f4>
-    39f8:	49 8b 4f 10          	mov    0x10(%r15),%rcx
+    39c4:	85 c0                	test   %eax,%eax
+    39c6:	7e 4c                	jle    3a14 <timer_thread+0x1f4>
+    39c8:	49 8b 4f 10          	mov    0x10(%r15),%rcx
         data->threads[x]->tasks[y].scheduled = 0;
-    39fc:	4d 63 c4             	movslq %r12d,%r8
-    39ff:	49 c1 e0 09          	shl    $0x9,%r8
-    3a03:	4c 8d 0c c1          	lea    (%rcx,%rax,8),%r9
-    3a07:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    39cc:	4d 63 c4             	movslq %r12d,%r8
+    39cf:	49 c1 e0 09          	shl    $0x9,%r8
+    39d3:	4c 8d 0c c1          	lea    (%rcx,%rax,8),%r9
+    39d7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
         int next = (y + 1) % data->threads[x]->task_count;
-    3a10:	48 8b 19             	mov    (%rcx),%rbx
-    3a13:	89 f8                	mov    %edi,%eax
+    39e0:	48 8b 19             	mov    (%rcx),%rbx
+    39e3:	89 f8                	mov    %edi,%eax
     for (int x = 0 ; x < data->thread_count ; x++) {
-    3a15:	48 83 c1 08          	add    $0x8,%rcx
+    39e5:	48 83 c1 08          	add    $0x8,%rcx
         int next = (y + 1) % data->threads[x]->task_count;
-    3a19:	99                   	cltd
-    3a1a:	f7 7b 30             	idivl  0x30(%rbx)
+    39e9:	99                   	cltd
+    39ea:	f7 7b 30             	idivl  0x30(%rbx)
         data->threads[x]->tasks[next].scheduled = 1;
-    3a1d:	48 8b 73 28          	mov    0x28(%rbx),%rsi
-    3a21:	48 63 d2             	movslq %edx,%rdx
-    3a24:	48 c1 e2 09          	shl    $0x9,%rdx
-    3a28:	c7 84 16 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rsi,%rdx,1)
+    39ed:	48 8b 73 28          	mov    0x28(%rbx),%rsi
+    39f1:	48 63 d2             	movslq %edx,%rdx
+    39f4:	48 c1 e2 09          	shl    $0x9,%rdx
+    39f8:	c7 84 16 40 01 00 00 01 00 00 00 	movl   $0x1,0x140(%rsi,%rdx,1)
         data->threads[x]->tasks[y].scheduled = 0;
-    3a33:	42 c7 84 06 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rsi,%r8,1)
+    3a03:	42 c7 84 06 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rsi,%r8,1)
     for (int x = 0 ; x < data->thread_count ; x++) {
-    3a3f:	4c 39 c9             	cmp    %r9,%rcx
-    3a42:	75 cc                	jne    3a10 <timer_thread+0x1c0>
+    3a0f:	4c 39 c9             	cmp    %r9,%rcx
+    3a12:	75 cc                	jne    39e0 <timer_thread+0x1c0>
     asm volatile ("mfence" ::: "memory");
-    3a44:	0f ae f0             	mfence
+    3a14:	0f ae f0             	mfence
     if (y >= data->threads[0]->task_count) {
-    3a47:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3a17:	49 8b 47 10          	mov    0x10(%r15),%rax
     y++;
-    3a4b:	45 31 e4             	xor    %r12d,%r12d
+    3a1b:	45 31 e4             	xor    %r12d,%r12d
     if (y >= data->threads[0]->task_count) {
-    3a4e:	48 8b 10             	mov    (%rax),%rdx
+    3a1e:	48 8b 10             	mov    (%rax),%rdx
     y++;
-    3a51:	39 7a 30             	cmp    %edi,0x30(%rdx)
-    3a54:	44 0f 4f e7          	cmovg  %edi,%r12d
+    3a21:	39 7a 30             	cmp    %edi,0x30(%rdx)
+    3a24:	44 0f 4f e7          	cmovg  %edi,%r12d
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-    3a58:	41 8b 7f 20          	mov    0x20(%r15),%edi
-    3a5c:	85 ff                	test   %edi,%edi
-    3a5e:	0f 8e bc 00 00 00    	jle    3b20 <timer_thread+0x2d0>
-    3a64:	45 31 ed             	xor    %r13d,%r13d
+    3a28:	41 8b 7f 20          	mov    0x20(%r15),%edi
+    3a2c:	85 ff                	test   %edi,%edi
+    3a2e:	0f 8e bc 00 00 00    	jle    3af0 <timer_thread+0x2d0>
+    3a34:	45 31 ed             	xor    %r13d,%r13d
     int all_empty = 1;
-    3a67:	41 b9 01 00 00 00    	mov    $0x1,%r9d
-    3a6d:	0f 1f 00             	nopl   (%rax)
-    3a70:	4a 8d 1c ed 00 00 00 00 	lea    0x0(,%r13,8),%rbx
+    3a37:	41 b9 01 00 00 00    	mov    $0x1,%r9d
+    3a3d:	0f 1f 00             	nopl   (%rax)
+    3a40:	4a 8d 1c ed 00 00 00 00 	lea    0x0(,%r13,8),%rbx
             all_empty = 0;
-    3a78:	45 31 f6             	xor    %r14d,%r14d
-    3a7b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    3a48:	45 31 f6             	xor    %r14d,%r14d
+    3a4b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
           if (((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count > 0) {
-    3a80:	48 8b 14 18          	mov    (%rax,%rbx,1),%rdx
-    3a84:	4c 89 f0             	mov    %r14,%rax
-    3a87:	48 c1 e0 09          	shl    $0x9,%rax
-    3a8b:	48 03 42 28          	add    0x28(%rdx),%rax
+    3a50:	48 8b 14 18          	mov    (%rax,%rbx,1),%rdx
+    3a54:	4c 89 f0             	mov    %r14,%rax
+    3a57:	48 c1 e0 09          	shl    $0x9,%rax
+    3a5b:	48 03 42 28          	add    0x28(%rdx),%rax
         for (int k = 0 ; k < data->my_thread_count; k++) {
-    3a8f:	31 d2                	xor    %edx,%edx
-    3a91:	48 8b 80 68 01 00 00 	mov    0x168(%rax),%rax
-    3a98:	eb 16                	jmp    3ab0 <timer_thread+0x260>
-    3a9a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    3a5f:	31 d2                	xor    %edx,%edx
+    3a61:	48 8b 80 68 01 00 00 	mov    0x168(%rax),%rax
+    3a68:	eb 16                	jmp    3a80 <timer_thread+0x260>
+    3a6a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
           if (((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count > 0) {
-    3aa0:	4d 85 c0             	test   %r8,%r8
-    3aa3:	7f 1f                	jg     3ac4 <timer_thread+0x274>
+    3a70:	4d 85 c0             	test   %r8,%r8
+    3a73:	7f 1f                	jg     3a94 <timer_thread+0x274>
         for (int k = 0 ; k < data->my_thread_count; k++) {
-    3aa5:	83 c2 01             	add    $0x1,%edx
-    3aa8:	48 83 c0 20          	add    $0x20,%rax
-    3aac:	39 fa                	cmp    %edi,%edx
-    3aae:	74 2a                	je     3ada <timer_thread+0x28a>
+    3a75:	83 c2 01             	add    $0x1,%edx
+    3a78:	48 83 c0 20          	add    $0x20,%rax
+    3a7c:	39 fa                	cmp    %edi,%edx
+    3a7e:	74 2a                	je     3aaa <timer_thread+0x28a>
           if (((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count > 0) {
-    3ab0:	48 8b 08             	mov    (%rax),%rcx
-    3ab3:	48 8b 70 08          	mov    0x8(%rax),%rsi
-    3ab7:	48 8b 49 08          	mov    0x8(%rcx),%rcx
-    3abb:	4c 8b 46 08          	mov    0x8(%rsi),%r8
-    3abf:	48 85 c9             	test   %rcx,%rcx
-    3ac2:	7e dc                	jle    3aa0 <timer_thread+0x250>
-    3ac4:	bf 01 00 00 00       	mov    $0x1,%edi
-    3ac9:	48 89 ee             	mov    %rbp,%rsi
-    3acc:	31 c0                	xor    %eax,%eax
-    3ace:	e8 7d e9 ff ff       	call   2450 <__printf_chk@plt>
+    3a80:	48 8b 08             	mov    (%rax),%rcx
+    3a83:	48 8b 70 08          	mov    0x8(%rax),%rsi
+    3a87:	48 8b 49 08          	mov    0x8(%rcx),%rcx
+    3a8b:	4c 8b 46 08          	mov    0x8(%rsi),%r8
+    3a8f:	48 85 c9             	test   %rcx,%rcx
+    3a92:	7e dc                	jle    3a70 <timer_thread+0x250>
+    3a94:	bf 01 00 00 00       	mov    $0x1,%edi
+    3a99:	48 89 ee             	mov    %rbp,%rsi
+    3a9c:	31 c0                	xor    %eax,%eax
+    3a9e:	e8 ad e9 ff ff       	call   2450 <__printf_chk@plt>
             break;
-    3ad3:	41 8b 7f 20          	mov    0x20(%r15),%edi
+    3aa3:	41 8b 7f 20          	mov    0x20(%r15),%edi
             all_empty = 0;
-    3ad7:	45 31 c9             	xor    %r9d,%r9d
+    3aa7:	45 31 c9             	xor    %r9d,%r9d
       for (int y = 0 ; y < data->my_thread_count ; y++) {
-    3ada:	49 83 c6 01          	add    $0x1,%r14
-    3ade:	44 39 f7             	cmp    %r14d,%edi
-    3ae1:	7e 0d                	jle    3af0 <timer_thread+0x2a0>
-    3ae3:	49 8b 47 10          	mov    0x10(%r15),%rax
-    3ae7:	eb 97                	jmp    3a80 <timer_thread+0x230>
-    3ae9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    3aaa:	49 83 c6 01          	add    $0x1,%r14
+    3aae:	44 39 f7             	cmp    %r14d,%edi
+    3ab1:	7e 0d                	jle    3ac0 <timer_thread+0x2a0>
+    3ab3:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3ab7:	eb 97                	jmp    3a50 <timer_thread+0x230>
+    3ab9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-    3af0:	49 83 c5 01          	add    $0x1,%r13
-    3af4:	44 39 ef             	cmp    %r13d,%edi
-    3af7:	7e 0d                	jle    3b06 <timer_thread+0x2b6>
+    3ac0:	49 83 c5 01          	add    $0x1,%r13
+    3ac4:	44 39 ef             	cmp    %r13d,%edi
+    3ac7:	7e 0d                	jle    3ad6 <timer_thread+0x2b6>
       for (int y = 0 ; y < data->my_thread_count ; y++) {
-    3af9:	85 ff                	test   %edi,%edi
-    3afb:	7e 09                	jle    3b06 <timer_thread+0x2b6>
-    3afd:	49 8b 47 10          	mov    0x10(%r15),%rax
-    3b01:	e9 6a ff ff ff       	jmp    3a70 <timer_thread+0x220>
+    3ac9:	85 ff                	test   %edi,%edi
+    3acb:	7e 09                	jle    3ad6 <timer_thread+0x2b6>
+    3acd:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3ad1:	e9 6a ff ff ff       	jmp    3a40 <timer_thread+0x220>
     if (all_empty == 1) {
-    3b06:	41 83 f9 01          	cmp    $0x1,%r9d
-    3b0a:	74 14                	je     3b20 <timer_thread+0x2d0>
+    3ad6:	41 83 f9 01          	cmp    $0x1,%r9d
+    3ada:	74 14                	je     3af0 <timer_thread+0x2d0>
       nanosleep(&drain , &drainrem);
-    3b0c:	48 8d 74 24 20       	lea    0x20(%rsp),%rsi
-    3b11:	48 8d 7c 24 30       	lea    0x30(%rsp),%rdi
-    3b16:	e8 35 e8 ff ff       	call   2350 <nanosleep@plt>
-    3b1b:	e9 cb fe ff ff       	jmp    39eb <timer_thread+0x19b>
-    3b20:	48 8d 3d 2d 35 00 00 	lea    0x352d(%rip),%rdi        # 7054 <_IO_stdin_used+0x54>
-    3b27:	e8 c4 e7 ff ff       	call   22f0 <puts@plt>
+    3adc:	48 8d 74 24 20       	lea    0x20(%rsp),%rsi
+    3ae1:	48 8d 7c 24 30       	lea    0x30(%rsp),%rdi
+    3ae6:	e8 65 e8 ff ff       	call   2350 <nanosleep@plt>
+    3aeb:	e9 cb fe ff ff       	jmp    39bb <timer_thread+0x19b>
+    3af0:	48 8d 3d 5d 35 00 00 	lea    0x355d(%rip),%rdi        # 7054 <_IO_stdin_used+0x54>
+    3af7:	e8 f4 e7 ff ff       	call   22f0 <puts@plt>
   while (data->running) {
-    3b2c:	41 8b 47 34          	mov    0x34(%r15),%eax
-    3b30:	85 c0                	test   %eax,%eax
-    3b32:	0f 84 cf 00 00 00    	je     3c07 <timer_thread+0x3b7>
+    3afc:	41 8b 47 34          	mov    0x34(%r15),%eax
+    3b00:	85 c0                	test   %eax,%eax
+    3b02:	0f 84 cf 00 00 00    	je     3bd7 <timer_thread+0x3b7>
     for (int x = 0 ; x < data->total_thread_count ; x++) {
-    3b38:	41 8b 4f 1c          	mov    0x1c(%r15),%ecx
-    3b3c:	85 c9                	test   %ecx,%ecx
-    3b3e:	7e 2d                	jle    3b6d <timer_thread+0x31d>
-    3b40:	49 8b 47 10          	mov    0x10(%r15),%rax
-    3b44:	31 db                	xor    %ebx,%ebx
-    3b46:	48 8d 2d 21 35 00 00 	lea    0x3521(%rip),%rbp        # 706e <_IO_stdin_used+0x6e>
-    3b4d:	0f 1f 00             	nopl   (%rax)
+    3b08:	41 8b 4f 1c          	mov    0x1c(%r15),%ecx
+    3b0c:	85 c9                	test   %ecx,%ecx
+    3b0e:	7e 2d                	jle    3b3d <timer_thread+0x31d>
+    3b10:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3b14:	31 db                	xor    %ebx,%ebx
+    3b16:	48 8d 2d 51 35 00 00 	lea    0x3551(%rip),%rbp        # 706e <_IO_stdin_used+0x6e>
+    3b1d:	0f 1f 00             	nopl   (%rax)
       data->threads[x]->running = 0;
-    3b50:	48 8b 14 d8          	mov    (%rax,%rbx,8),%rdx
+    3b20:	48 8b 14 d8          	mov    (%rax,%rbx,8),%rdx
       if (data->threads[x]->type == IO) {
-    3b54:	83 7a 08 02          	cmpl   $0x2,0x8(%rdx)
+    3b24:	83 7a 08 02          	cmpl   $0x2,0x8(%rdx)
       data->threads[x]->running = 0;
-    3b58:	c7 42 34 00 00 00 00 	movl   $0x0,0x34(%rdx)
+    3b28:	c7 42 34 00 00 00 00 	movl   $0x0,0x34(%rdx)
       if (data->threads[x]->type == IO) {
-    3b5f:	0f 84 cf 00 00 00    	je     3c34 <timer_thread+0x3e4>
+    3b2f:	0f 84 cf 00 00 00    	je     3c04 <timer_thread+0x3e4>
     for (int x = 0 ; x < data->total_thread_count ; x++) {
-    3b65:	48 83 c3 01          	add    $0x1,%rbx
-    3b69:	39 d9                	cmp    %ebx,%ecx
-    3b6b:	7f e3                	jg     3b50 <timer_thread+0x300>
+    3b35:	48 83 c3 01          	add    $0x1,%rbx
+    3b39:	39 d9                	cmp    %ebx,%ecx
+    3b3b:	7f e3                	jg     3b20 <timer_thread+0x300>
     for (int x = 0 ; x < data->thread_count ; x++) {
-    3b6d:	49 63 57 18          	movslq 0x18(%r15),%rdx
-    3b71:	85 d2                	test   %edx,%edx
-    3b73:	7e 7b                	jle    3bf0 <timer_thread+0x3a0>
+    3b3d:	49 63 57 18          	movslq 0x18(%r15),%rdx
+    3b41:	85 d2                	test   %edx,%edx
+    3b43:	7e 7b                	jle    3bc0 <timer_thread+0x3a0>
       for (int y = 0 ; y < data->task_count ; y++) {
-    3b75:	49 63 47 30          	movslq 0x30(%r15),%rax
-    3b79:	85 c0                	test   %eax,%eax
-    3b7b:	7e 73                	jle    3bf0 <timer_thread+0x3a0>
-    3b7d:	48 c1 e0 09          	shl    $0x9,%rax
+    3b45:	49 63 47 30          	movslq 0x30(%r15),%rax
+    3b49:	85 c0                	test   %eax,%eax
+    3b4b:	7e 73                	jle    3bc0 <timer_thread+0x3a0>
+    3b4d:	48 c1 e0 09          	shl    $0x9,%rax
         data->threads[x]->tasks[y].scheduled = 0;
-    3b81:	4d 8b 47 10          	mov    0x10(%r15),%r8
-    3b85:	48 8d 3c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rdi
-    3b8d:	31 c9                	xor    %ecx,%ecx
-    3b8f:	48 89 c6             	mov    %rax,%rsi
-    3b92:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    3b98:	49 8b 04 08          	mov    (%r8,%rcx,1),%rax
-    3b9c:	48 8b 40 28          	mov    0x28(%rax),%rax
-    3ba0:	48 8d 14 30          	lea    (%rax,%rsi,1),%rdx
-    3ba4:	f7 c6 00 02 00 00    	test   $0x200,%esi
-    3baa:	74 1c                	je     3bc8 <timer_thread+0x378>
-    3bac:	c7 80 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rax)
+    3b51:	4d 8b 47 10          	mov    0x10(%r15),%r8
+    3b55:	48 8d 3c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rdi
+    3b5d:	31 c9                	xor    %ecx,%ecx
+    3b5f:	48 89 c6             	mov    %rax,%rsi
+    3b62:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    3b68:	49 8b 04 08          	mov    (%r8,%rcx,1),%rax
+    3b6c:	48 8b 40 28          	mov    0x28(%rax),%rax
+    3b70:	48 8d 14 30          	lea    (%rax,%rsi,1),%rdx
+    3b74:	f7 c6 00 02 00 00    	test   $0x200,%esi
+    3b7a:	74 1c                	je     3b98 <timer_thread+0x378>
+    3b7c:	c7 80 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rax)
       for (int y = 0 ; y < data->task_count ; y++) {
-    3bb6:	48 05 00 02 00 00    	add    $0x200,%rax
-    3bbc:	48 39 d0             	cmp    %rdx,%rax
-    3bbf:	74 26                	je     3be7 <timer_thread+0x397>
-    3bc1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    3b86:	48 05 00 02 00 00    	add    $0x200,%rax
+    3b8c:	48 39 d0             	cmp    %rdx,%rax
+    3b8f:	74 26                	je     3bb7 <timer_thread+0x397>
+    3b91:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
         data->threads[x]->tasks[y].scheduled = 0;
-    3bc8:	c7 80 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rax)
+    3b98:	c7 80 40 01 00 00 00 00 00 00 	movl   $0x0,0x140(%rax)
       for (int y = 0 ; y < data->task_count ; y++) {
-    3bd2:	48 05 00 04 00 00    	add    $0x400,%rax
+    3ba2:	48 05 00 04 00 00    	add    $0x400,%rax
         data->threads[x]->tasks[y].scheduled = 0;
-    3bd8:	c7 80 40 ff ff ff 00 00 00 00 	movl   $0x0,-0xc0(%rax)
+    3ba8:	c7 80 40 ff ff ff 00 00 00 00 	movl   $0x0,-0xc0(%rax)
       for (int y = 0 ; y < data->task_count ; y++) {
-    3be2:	48 39 d0             	cmp    %rdx,%rax
-    3be5:	75 e1                	jne    3bc8 <timer_thread+0x378>
+    3bb2:	48 39 d0             	cmp    %rdx,%rax
+    3bb5:	75 e1                	jne    3b98 <timer_thread+0x378>
     for (int x = 0 ; x < data->thread_count ; x++) {
-    3be7:	48 83 c1 08          	add    $0x8,%rcx
-    3beb:	48 39 f9             	cmp    %rdi,%rcx
-    3bee:	75 a8                	jne    3b98 <timer_thread+0x348>
+    3bb7:	48 83 c1 08          	add    $0x8,%rcx
+    3bbb:	48 39 f9             	cmp    %rdi,%rcx
+    3bbe:	75 a8                	jne    3b68 <timer_thread+0x348>
     asm volatile ("mfence" ::: "memory");
-    3bf0:	0f ae f0             	mfence
-    3bf3:	48 8d 3d 86 34 00 00 	lea    0x3486(%rip),%rdi        # 7080 <_IO_stdin_used+0x80>
-    3bfa:	e8 f1 e6 ff ff       	call   22f0 <puts@plt>
+    3bc0:	0f ae f0             	mfence
+    3bc3:	48 8d 3d b6 34 00 00 	lea    0x34b6(%rip),%rdi        # 7080 <_IO_stdin_used+0x80>
+    3bca:	e8 21 e7 ff ff       	call   22f0 <puts@plt>
     data->running = 0;
-    3bff:	41 c7 47 34 00 00 00 00 	movl   $0x0,0x34(%r15)
-    3c07:	48 8d 3d 79 34 00 00 	lea    0x3479(%rip),%rdi        # 7087 <_IO_stdin_used+0x87>
-    3c0e:	e8 dd e6 ff ff       	call   22f0 <puts@plt>
+    3bcf:	41 c7 47 34 00 00 00 00 	movl   $0x0,0x34(%r15)
+    3bd7:	48 8d 3d a9 34 00 00 	lea    0x34a9(%rip),%rdi        # 7087 <_IO_stdin_used+0x87>
+    3bde:	e8 0d e7 ff ff       	call   22f0 <puts@plt>
 }
-    3c13:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
-    3c18:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    3c21:	75 47                	jne    3c6a <timer_thread+0x41a>
-    3c23:	48 83 c4 58          	add    $0x58,%rsp
-    3c27:	31 c0                	xor    %eax,%eax
-    3c29:	5b                   	pop    %rbx
-    3c2a:	5d                   	pop    %rbp
-    3c2b:	41 5c                	pop    %r12
-    3c2d:	41 5d                	pop    %r13
-    3c2f:	41 5e                	pop    %r14
-    3c31:	41 5f                	pop    %r15
-    3c33:	c3                   	ret
-    3c34:	48 89 ef             	mov    %rbp,%rdi
-    3c37:	e8 b4 e6 ff ff       	call   22f0 <puts@plt>
+    3be3:	48 8b 44 24 48       	mov    0x48(%rsp),%rax
+    3be8:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    3bf1:	75 47                	jne    3c3a <timer_thread+0x41a>
+    3bf3:	48 83 c4 58          	add    $0x58,%rsp
+    3bf7:	31 c0                	xor    %eax,%eax
+    3bf9:	5b                   	pop    %rbx
+    3bfa:	5d                   	pop    %rbp
+    3bfb:	41 5c                	pop    %r12
+    3bfd:	41 5d                	pop    %r13
+    3bff:	41 5e                	pop    %r14
+    3c01:	41 5f                	pop    %r15
+    3c03:	c3                   	ret
+    3c04:	48 89 ef             	mov    %rbp,%rdi
+    3c07:	e8 e4 e6 ff ff       	call   22f0 <puts@plt>
         eventfd_write(data->threads[x]->_eventfd, 1);
-    3c3c:	49 8b 47 10          	mov    0x10(%r15),%rax
-    3c40:	be 01 00 00 00       	mov    $0x1,%esi
-    3c45:	48 8b 04 d8          	mov    (%rax,%rbx,8),%rax
+    3c0c:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3c10:	be 01 00 00 00       	mov    $0x1,%esi
+    3c15:	48 8b 04 d8          	mov    (%rax,%rbx,8),%rax
     for (int x = 0 ; x < data->total_thread_count ; x++) {
-    3c49:	48 83 c3 01          	add    $0x1,%rbx
+    3c19:	48 83 c3 01          	add    $0x1,%rbx
         eventfd_write(data->threads[x]->_eventfd, 1);
-    3c4d:	8b 78 50             	mov    0x50(%rax),%edi
-    3c50:	e8 ab e7 ff ff       	call   2400 <eventfd_write@plt>
+    3c1d:	8b 78 50             	mov    0x50(%rax),%edi
+    3c20:	e8 db e7 ff ff       	call   2400 <eventfd_write@plt>
     for (int x = 0 ; x < data->total_thread_count ; x++) {
-    3c55:	41 8b 4f 1c          	mov    0x1c(%r15),%ecx
-    3c59:	39 d9                	cmp    %ebx,%ecx
-    3c5b:	0f 8e 0c ff ff ff    	jle    3b6d <timer_thread+0x31d>
-    3c61:	49 8b 47 10          	mov    0x10(%r15),%rax
-    3c65:	e9 e6 fe ff ff       	jmp    3b50 <timer_thread+0x300>
+    3c25:	41 8b 4f 1c          	mov    0x1c(%r15),%ecx
+    3c29:	39 d9                	cmp    %ebx,%ecx
+    3c2b:	0f 8e 0c ff ff ff    	jle    3b3d <timer_thread+0x31d>
+    3c31:	49 8b 47 10          	mov    0x10(%r15),%rax
+    3c35:	e9 e6 fe ff ff       	jmp    3b20 <timer_thread+0x300>
 }
-    3c6a:	e8 c1 e6 ff ff       	call   2330 <__stack_chk_fail@plt>
-    3c6f:	90                   	nop
+    3c3a:	e8 f1 e6 ff ff       	call   2330 <__stack_chk_fail@plt>
+    3c3f:	90                   	nop
 
-0000000000003c70 <strtolower>:
+0000000000003c40 <strtolower>:
 void strtolower(char *str) {
-    3c70:	f3 0f 1e fa          	endbr64
-    3c74:	55                   	push   %rbp
-    3c75:	53                   	push   %rbx
-    3c76:	48 83 ec 08          	sub    $0x8,%rsp
+    3c40:	f3 0f 1e fa          	endbr64
+    3c44:	55                   	push   %rbp
+    3c45:	53                   	push   %rbx
+    3c46:	48 83 ec 08          	sub    $0x8,%rsp
     for (; *str; ++str)
-    3c7a:	48 0f be 1f          	movsbq (%rdi),%rbx
-    3c7e:	84 db                	test   %bl,%bl
-    3c80:	74 24                	je     3ca6 <strtolower+0x36>
-    3c82:	48 89 fd             	mov    %rdi,%rbp
+    3c4a:	48 0f be 1f          	movsbq (%rdi),%rbx
+    3c4e:	84 db                	test   %bl,%bl
+    3c50:	74 24                	je     3c76 <strtolower+0x36>
+    3c52:	48 89 fd             	mov    %rdi,%rbp
         *str = (char)tolower(*str);
-    3c85:	e8 86 e8 ff ff       	call   2510 <__ctype_tolower_loc@plt>
-    3c8a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    3c90:	48 8b 10             	mov    (%rax),%rdx
+    3c55:	e8 b6 e8 ff ff       	call   2510 <__ctype_tolower_loc@plt>
+    3c5a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    3c60:	48 8b 10             	mov    (%rax),%rdx
     for (; *str; ++str)
-    3c93:	48 83 c5 01          	add    $0x1,%rbp
+    3c63:	48 83 c5 01          	add    $0x1,%rbp
         *str = (char)tolower(*str);
-    3c97:	8b 14 9a             	mov    (%rdx,%rbx,4),%edx
-    3c9a:	88 55 ff             	mov    %dl,-0x1(%rbp)
+    3c67:	8b 14 9a             	mov    (%rdx,%rbx,4),%edx
+    3c6a:	88 55 ff             	mov    %dl,-0x1(%rbp)
     for (; *str; ++str)
-    3c9d:	48 0f be 5d 00       	movsbq 0x0(%rbp),%rbx
-    3ca2:	84 db                	test   %bl,%bl
-    3ca4:	75 ea                	jne    3c90 <strtolower+0x20>
+    3c6d:	48 0f be 5d 00       	movsbq 0x0(%rbp),%rbx
+    3c72:	84 db                	test   %bl,%bl
+    3c74:	75 ea                	jne    3c60 <strtolower+0x20>
 }
-    3ca6:	48 83 c4 08          	add    $0x8,%rsp
-    3caa:	5b                   	pop    %rbx
-    3cab:	5d                   	pop    %rbp
-    3cac:	c3                   	ret
-    3cad:	0f 1f 00             	nopl   (%rax)
+    3c76:	48 83 c4 08          	add    $0x8,%rsp
+    3c7a:	5b                   	pop    %rbx
+    3c7b:	5d                   	pop    %rbp
+    3c7c:	c3                   	ret
+    3c7d:	0f 1f 00             	nopl   (%rax)
 
-0000000000003cb0 <zh_malloc>:
+0000000000003c80 <zh_malloc>:
 void *zh_malloc(size_t size) {
-    3cb0:	f3 0f 1e fa          	endbr64
-    3cb4:	48 83 ec 08          	sub    $0x8,%rsp
+    3c80:	f3 0f 1e fa          	endbr64
+    3c84:	48 83 ec 08          	sub    $0x8,%rsp
     void *buf = malloc(size);
-    3cb8:	e8 53 e7 ff ff       	call   2410 <malloc@plt>
+    3c88:	e8 83 e7 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3cbd:	48 85 c0             	test   %rax,%rax
-    3cc0:	74 05                	je     3cc7 <zh_malloc+0x17>
+    3c8d:	48 85 c0             	test   %rax,%rax
+    3c90:	74 05                	je     3c97 <zh_malloc+0x17>
 }
-    3cc2:	48 83 c4 08          	add    $0x8,%rsp
-    3cc6:	c3                   	ret
+    3c92:	48 83 c4 08          	add    $0x8,%rsp
+    3c96:	c3                   	ret
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    3cc7:	48 8b 0d 52 63 00 00 	mov    0x6352(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    3cce:	ba 28 00 00 00       	mov    $0x28,%edx
-    3cd3:	be 01 00 00 00       	mov    $0x1,%esi
-    3cd8:	48 8d 3d 29 37 00 00 	lea    0x3729(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    3cdf:	e8 dc e7 ff ff       	call   24c0 <fwrite@plt>
+    3c97:	48 8b 0d 82 63 00 00 	mov    0x6382(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    3c9e:	ba 28 00 00 00       	mov    $0x28,%edx
+    3ca3:	be 01 00 00 00       	mov    $0x1,%esi
+    3ca8:	48 8d 3d 59 37 00 00 	lea    0x3759(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    3caf:	e8 0c e8 ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    3ce4:	bf 01 00 00 00       	mov    $0x1,%edi
-    3ce9:	e8 b2 e7 ff ff       	call   24a0 <exit@plt>
-    3cee:	66 90                	xchg   %ax,%ax
+    3cb4:	bf 01 00 00 00       	mov    $0x1,%edi
+    3cb9:	e8 e2 e7 ff ff       	call   24a0 <exit@plt>
+    3cbe:	66 90                	xchg   %ax,%ax
 
-0000000000003cf0 <get_filename_ext>:
+0000000000003cc0 <get_filename_ext>:
 const char *get_filename_ext(const char *filename) {
-    3cf0:	f3 0f 1e fa          	endbr64
-    3cf4:	53                   	push   %rbx
+    3cc0:	f3 0f 1e fa          	endbr64
+    3cc4:	53                   	push   %rbx
     const char *dot = strrchr(filename, '.');
-    3cf5:	be 2e 00 00 00       	mov    $0x2e,%esi
+    3cc5:	be 2e 00 00 00       	mov    $0x2e,%esi
 const char *get_filename_ext(const char *filename) {
-    3cfa:	48 89 fb             	mov    %rdi,%rbx
+    3cca:	48 89 fb             	mov    %rdi,%rbx
     const char *dot = strrchr(filename, '.');
-    3cfd:	e8 5e e6 ff ff       	call   2360 <strrchr@plt>
+    3ccd:	e8 8e e6 ff ff       	call   2360 <strrchr@plt>
     if (!dot || dot == filename)
-    3d02:	48 85 c0             	test   %rax,%rax
-    3d05:	74 11                	je     3d18 <get_filename_ext+0x28>
-    3d07:	48 39 c3             	cmp    %rax,%rbx
-    3d0a:	74 0c                	je     3d18 <get_filename_ext+0x28>
+    3cd2:	48 85 c0             	test   %rax,%rax
+    3cd5:	74 11                	je     3ce8 <get_filename_ext+0x28>
+    3cd7:	48 39 c3             	cmp    %rax,%rbx
+    3cda:	74 0c                	je     3ce8 <get_filename_ext+0x28>
     return dot + 1;
-    3d0c:	48 83 c0 01          	add    $0x1,%rax
+    3cdc:	48 83 c0 01          	add    $0x1,%rax
 }
-    3d10:	5b                   	pop    %rbx
-    3d11:	c3                   	ret
-    3d12:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    3ce0:	5b                   	pop    %rbx
+    3ce1:	c3                   	ret
+    3ce2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
         return "";
-    3d18:	48 8d 05 b0 33 00 00 	lea    0x33b0(%rip),%rax        # 70cf <_IO_stdin_used+0xcf>
+    3ce8:	48 8d 05 e0 33 00 00 	lea    0x33e0(%rip),%rax        # 70cf <_IO_stdin_used+0xcf>
 }
-    3d1f:	5b                   	pop    %rbx
-    3d20:	c3                   	ret
-    3d21:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    3d2c:	0f 1f 40 00          	nopl   0x0(%rax)
+    3cef:	5b                   	pop    %rbx
+    3cf0:	c3                   	ret
+    3cf1:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    3cfc:	0f 1f 40 00          	nopl   0x0(%rax)
 
-0000000000003d30 <send_headers>:
+0000000000003d00 <send_headers>:
 void send_headers(const char *path, off_t len, struct iovec *iov) {
-    3d30:	f3 0f 1e fa          	endbr64
-    3d34:	41 55                	push   %r13
-    3d36:	49 89 f5             	mov    %rsi,%r13
+    3d00:	f3 0f 1e fa          	endbr64
+    3d04:	41 55                	push   %r13
+    3d06:	49 89 f5             	mov    %rsi,%r13
 #endif
 
 __fortify_function char *
 __NTH (strcpy (char *__restrict __dest, const char *__restrict __src))
 {
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    3d39:	48 89 fe             	mov    %rdi,%rsi
-    3d3c:	41 54                	push   %r12
-    3d3e:	55                   	push   %rbp
-    3d3f:	48 89 d5             	mov    %rdx,%rbp
-    3d42:	ba 00 04 00 00       	mov    $0x400,%edx
-    3d47:	53                   	push   %rbx
-    3d48:	48 81 ec 18 08 00 00 	sub    $0x818,%rsp
-    3d4f:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    3d58:	48 89 84 24 08 08 00 00 	mov    %rax,0x808(%rsp)
-    3d60:	31 c0                	xor    %eax,%eax
-    3d62:	49 89 e4             	mov    %rsp,%r12
-    3d65:	4c 89 e7             	mov    %r12,%rdi
-    3d68:	e8 c3 e6 ff ff       	call   2430 <__strcpy_chk@plt>
+    3d09:	48 89 fe             	mov    %rdi,%rsi
+    3d0c:	41 54                	push   %r12
+    3d0e:	55                   	push   %rbp
+    3d0f:	48 89 d5             	mov    %rdx,%rbp
+    3d12:	ba 00 04 00 00       	mov    $0x400,%edx
+    3d17:	53                   	push   %rbx
+    3d18:	48 81 ec 18 08 00 00 	sub    $0x818,%rsp
+    3d1f:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    3d28:	48 89 84 24 08 08 00 00 	mov    %rax,0x808(%rsp)
+    3d30:	31 c0                	xor    %eax,%eax
+    3d32:	49 89 e4             	mov    %rsp,%r12
+    3d35:	4c 89 e7             	mov    %r12,%rdi
+    3d38:	e8 f3 e6 ff ff       	call   2430 <__strcpy_chk@plt>
     for (; *str; ++str)
-    3d6d:	48 0f be 1c 24       	movsbq (%rsp),%rbx
-    3d72:	84 db                	test   %bl,%bl
-    3d74:	74 24                	je     3d9a <send_headers+0x6a>
+    3d3d:	48 0f be 1c 24       	movsbq (%rsp),%rbx
+    3d42:	84 db                	test   %bl,%bl
+    3d44:	74 24                	je     3d6a <send_headers+0x6a>
         *str = (char)tolower(*str);
-    3d76:	e8 95 e7 ff ff       	call   2510 <__ctype_tolower_loc@plt>
-    3d7b:	48 8b 08             	mov    (%rax),%rcx
-    3d7e:	4c 89 e0             	mov    %r12,%rax
-    3d81:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    3d88:	8b 14 99             	mov    (%rcx,%rbx,4),%edx
+    3d46:	e8 c5 e7 ff ff       	call   2510 <__ctype_tolower_loc@plt>
+    3d4b:	48 8b 08             	mov    (%rax),%rcx
+    3d4e:	4c 89 e0             	mov    %r12,%rax
+    3d51:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    3d58:	8b 14 99             	mov    (%rcx,%rbx,4),%edx
     for (; *str; ++str)
-    3d8b:	48 83 c0 01          	add    $0x1,%rax
+    3d5b:	48 83 c0 01          	add    $0x1,%rax
         *str = (char)tolower(*str);
-    3d8f:	88 50 ff             	mov    %dl,-0x1(%rax)
+    3d5f:	88 50 ff             	mov    %dl,-0x1(%rax)
     for (; *str; ++str)
-    3d92:	48 0f be 18          	movsbq (%rax),%rbx
-    3d96:	84 db                	test   %bl,%bl
-    3d98:	75 ee                	jne    3d88 <send_headers+0x58>
+    3d62:	48 0f be 18          	movsbq (%rax),%rbx
+    3d66:	84 db                	test   %bl,%bl
+    3d68:	75 ee                	jne    3d58 <send_headers+0x58>
     void *buf = malloc(size);
-    3d9a:	bf 11 00 00 00       	mov    $0x11,%edi
-    3d9f:	e8 6c e6 ff ff       	call   2410 <malloc@plt>
+    3d6a:	bf 11 00 00 00       	mov    $0x11,%edi
+    3d6f:	e8 9c e6 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3da4:	48 85 c0             	test   %rax,%rax
-    3da7:	0f 84 7e 04 00 00    	je     422b <send_headers+0x4fb>
+    3d74:	48 85 c0             	test   %rax,%rax
+    3d77:	0f 84 7e 04 00 00    	je     41fb <send_headers+0x4fb>
   return __builtin___memcpy_chk (__dest, __src, __len,
-    3dad:	66 0f 6f 05 eb 3b 00 00 	movdqa 0x3beb(%rip),%xmm0        # 79a0 <_IO_stdin_used+0x9a0>
+    3d7d:	66 0f 6f 05 1b 3c 00 00 	movdqa 0x3c1b(%rip),%xmm0        # 79a0 <_IO_stdin_used+0x9a0>
     iov[0].iov_base = zh_malloc(slen);
-    3db5:	48 89 45 00          	mov    %rax,0x0(%rbp)
+    3d85:	48 89 45 00          	mov    %rax,0x0(%rbp)
     void *buf = malloc(size);
-    3db9:	bf 17 00 00 00       	mov    $0x17,%edi
+    3d89:	bf 17 00 00 00       	mov    $0x17,%edi
     iov[0].iov_len = slen;
-    3dbe:	48 c7 45 08 11 00 00 00 	movq   $0x11,0x8(%rbp)
-    3dc6:	c6 40 10 0a          	movb   $0xa,0x10(%rax)
-    3dca:	0f 11 00             	movups %xmm0,(%rax)
+    3d8e:	48 c7 45 08 11 00 00 00 	movq   $0x11,0x8(%rbp)
+    3d96:	c6 40 10 0a          	movb   $0xa,0x10(%rax)
+    3d9a:	0f 11 00             	movups %xmm0,(%rax)
     void *buf = malloc(size);
-    3dcd:	e8 3e e6 ff ff       	call   2410 <malloc@plt>
+    3d9d:	e8 6e e6 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3dd2:	48 85 c0             	test   %rax,%rax
-    3dd5:	0f 84 50 04 00 00    	je     422b <send_headers+0x4fb>
-    3ddb:	66 0f 6f 05 cd 3b 00 00 	movdqa 0x3bcd(%rip),%xmm0        # 79b0 <_IO_stdin_used+0x9b0>
+    3da2:	48 85 c0             	test   %rax,%rax
+    3da5:	0f 84 50 04 00 00    	je     41fb <send_headers+0x4fb>
+    3dab:	66 0f 6f 05 fd 3b 00 00 	movdqa 0x3bfd(%rip),%xmm0        # 79b0 <_IO_stdin_used+0x9b0>
     iov[1].iov_base = zh_malloc(slen);
-    3de3:	48 89 45 10          	mov    %rax,0x10(%rbp)
+    3db3:	48 89 45 10          	mov    %rax,0x10(%rbp)
     const char *dot = strrchr(filename, '.');
-    3de7:	4c 89 e7             	mov    %r12,%rdi
-    3dea:	48 be 70 64 2f 30 2e 31 0d 0a 	movabs $0xa0d312e302f6470,%rsi
+    3db7:	4c 89 e7             	mov    %r12,%rdi
+    3dba:	48 be 70 64 2f 30 2e 31 0d 0a 	movabs $0xa0d312e302f6470,%rsi
     iov[1].iov_len = slen;
-    3df4:	48 c7 45 18 17 00 00 00 	movq   $0x17,0x18(%rbp)
-    3dfc:	0f 11 00             	movups %xmm0,(%rax)
-    3dff:	48 89 70 0f          	mov    %rsi,0xf(%rax)
+    3dc4:	48 c7 45 18 17 00 00 00 	movq   $0x17,0x18(%rbp)
+    3dcc:	0f 11 00             	movups %xmm0,(%rax)
+    3dcf:	48 89 70 0f          	mov    %rsi,0xf(%rax)
     const char *dot = strrchr(filename, '.');
-    3e03:	be 2e 00 00 00       	mov    $0x2e,%esi
-    3e08:	e8 53 e5 ff ff       	call   2360 <strrchr@plt>
+    3dd3:	be 2e 00 00 00       	mov    $0x2e,%esi
+    3dd8:	e8 83 e5 ff ff       	call   2360 <strrchr@plt>
     if (!dot || dot == filename)
-    3e0d:	48 85 c0             	test   %rax,%rax
-    3e10:	0f 84 ea 02 00 00    	je     4100 <send_headers+0x3d0>
-    3e16:	4c 39 e0             	cmp    %r12,%rax
-    3e19:	0f 84 e1 02 00 00    	je     4100 <send_headers+0x3d0>
+    3ddd:	48 85 c0             	test   %rax,%rax
+    3de0:	0f 84 ea 02 00 00    	je     40d0 <send_headers+0x3d0>
+    3de6:	4c 39 e0             	cmp    %r12,%rax
+    3de9:	0f 84 e1 02 00 00    	je     40d0 <send_headers+0x3d0>
     return dot + 1;
-    3e1f:	48 8d 58 01          	lea    0x1(%rax),%rbx
+    3def:	48 8d 58 01          	lea    0x1(%rax),%rbx
     if (strcmp("jpg", file_ext) == 0)
-    3e23:	48 8d 3d 73 32 00 00 	lea    0x3273(%rip),%rdi        # 709d <_IO_stdin_used+0x9d>
-    3e2a:	48 89 de             	mov    %rbx,%rsi
-    3e2d:	e8 7e e5 ff ff       	call   23b0 <strcmp@plt>
-    3e32:	85 c0                	test   %eax,%eax
-    3e34:	75 20                	jne    3e56 <send_headers+0x126>
+    3df3:	48 8d 3d a3 32 00 00 	lea    0x32a3(%rip),%rdi        # 709d <_IO_stdin_used+0x9d>
+    3dfa:	48 89 de             	mov    %rbx,%rsi
+    3dfd:	e8 ae e5 ff ff       	call   23b0 <strcmp@plt>
+    3e02:	85 c0                	test   %eax,%eax
+    3e04:	75 20                	jne    3e26 <send_headers+0x126>
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    3e36:	66 0f 6f 05 82 3b 00 00 	movdqa 0x3b82(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
-    3e3e:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    3e46:	66 0f 6f 05 82 3b 00 00 	movdqa 0x3b82(%rip),%xmm0        # 79d0 <_IO_stdin_used+0x9d0>
-    3e4e:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
+    3e06:	66 0f 6f 05 b2 3b 00 00 	movdqa 0x3bb2(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
+    3e0e:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    3e16:	66 0f 6f 05 b2 3b 00 00 	movdqa 0x3bb2(%rip),%xmm0        # 79d0 <_IO_stdin_used+0x9d0>
+    3e1e:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
     if (strcmp("jpeg", file_ext) == 0)
-    3e56:	48 89 de             	mov    %rbx,%rsi
-    3e59:	48 8d 3d 41 32 00 00 	lea    0x3241(%rip),%rdi        # 70a1 <_IO_stdin_used+0xa1>
-    3e60:	e8 4b e5 ff ff       	call   23b0 <strcmp@plt>
-    3e65:	85 c0                	test   %eax,%eax
-    3e67:	75 20                	jne    3e89 <send_headers+0x159>
-    3e69:	66 0f 6f 05 4f 3b 00 00 	movdqa 0x3b4f(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
-    3e71:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    3e79:	66 0f 6f 05 4f 3b 00 00 	movdqa 0x3b4f(%rip),%xmm0        # 79d0 <_IO_stdin_used+0x9d0>
-    3e81:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
+    3e26:	48 89 de             	mov    %rbx,%rsi
+    3e29:	48 8d 3d 71 32 00 00 	lea    0x3271(%rip),%rdi        # 70a1 <_IO_stdin_used+0xa1>
+    3e30:	e8 7b e5 ff ff       	call   23b0 <strcmp@plt>
+    3e35:	85 c0                	test   %eax,%eax
+    3e37:	75 20                	jne    3e59 <send_headers+0x159>
+    3e39:	66 0f 6f 05 7f 3b 00 00 	movdqa 0x3b7f(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
+    3e41:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    3e49:	66 0f 6f 05 7f 3b 00 00 	movdqa 0x3b7f(%rip),%xmm0        # 79d0 <_IO_stdin_used+0x9d0>
+    3e51:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
     if (strcmp("png", file_ext) == 0)
-    3e89:	48 89 de             	mov    %rbx,%rsi
-    3e8c:	48 8d 3d 13 32 00 00 	lea    0x3213(%rip),%rdi        # 70a6 <_IO_stdin_used+0xa6>
-    3e93:	e8 18 e5 ff ff       	call   23b0 <strcmp@plt>
-    3e98:	85 c0                	test   %eax,%eax
-    3e9a:	0f 84 10 02 00 00    	je     40b0 <send_headers+0x380>
+    3e59:	48 89 de             	mov    %rbx,%rsi
+    3e5c:	48 8d 3d 43 32 00 00 	lea    0x3243(%rip),%rdi        # 70a6 <_IO_stdin_used+0xa6>
+    3e63:	e8 48 e5 ff ff       	call   23b0 <strcmp@plt>
+    3e68:	85 c0                	test   %eax,%eax
+    3e6a:	0f 84 10 02 00 00    	je     4080 <send_headers+0x380>
     if (strcmp("gif", file_ext) == 0)
-    3ea0:	48 89 de             	mov    %rbx,%rsi
-    3ea3:	48 8d 3d 00 32 00 00 	lea    0x3200(%rip),%rdi        # 70aa <_IO_stdin_used+0xaa>
-    3eaa:	e8 01 e5 ff ff       	call   23b0 <strcmp@plt>
-    3eaf:	85 c0                	test   %eax,%eax
-    3eb1:	0f 84 a9 02 00 00    	je     4160 <send_headers+0x430>
+    3e70:	48 89 de             	mov    %rbx,%rsi
+    3e73:	48 8d 3d 30 32 00 00 	lea    0x3230(%rip),%rdi        # 70aa <_IO_stdin_used+0xaa>
+    3e7a:	e8 31 e5 ff ff       	call   23b0 <strcmp@plt>
+    3e7f:	85 c0                	test   %eax,%eax
+    3e81:	0f 84 a9 02 00 00    	je     4130 <send_headers+0x430>
     if (strcmp("htm", file_ext) == 0)
-    3eb7:	48 89 de             	mov    %rbx,%rsi
-    3eba:	48 8d 3d ed 31 00 00 	lea    0x31ed(%rip),%rdi        # 70ae <_IO_stdin_used+0xae>
-    3ec1:	e8 ea e4 ff ff       	call   23b0 <strcmp@plt>
-    3ec6:	85 c0                	test   %eax,%eax
-    3ec8:	0f 84 6a 02 00 00    	je     4138 <send_headers+0x408>
+    3e87:	48 89 de             	mov    %rbx,%rsi
+    3e8a:	48 8d 3d 1d 32 00 00 	lea    0x321d(%rip),%rdi        # 70ae <_IO_stdin_used+0xae>
+    3e91:	e8 1a e5 ff ff       	call   23b0 <strcmp@plt>
+    3e96:	85 c0                	test   %eax,%eax
+    3e98:	0f 84 6a 02 00 00    	je     4108 <send_headers+0x408>
     if (strcmp("html", file_ext) == 0)
-    3ece:	48 89 de             	mov    %rbx,%rsi
-    3ed1:	48 8d 3d 19 32 00 00 	lea    0x3219(%rip),%rdi        # 70f1 <_IO_stdin_used+0xf1>
-    3ed8:	e8 d3 e4 ff ff       	call   23b0 <strcmp@plt>
-    3edd:	85 c0                	test   %eax,%eax
-    3edf:	0f 84 2b 02 00 00    	je     4110 <send_headers+0x3e0>
+    3e9e:	48 89 de             	mov    %rbx,%rsi
+    3ea1:	48 8d 3d 49 32 00 00 	lea    0x3249(%rip),%rdi        # 70f1 <_IO_stdin_used+0xf1>
+    3ea8:	e8 03 e5 ff ff       	call   23b0 <strcmp@plt>
+    3ead:	85 c0                	test   %eax,%eax
+    3eaf:	0f 84 2b 02 00 00    	je     40e0 <send_headers+0x3e0>
     if (strcmp("js", file_ext) == 0)
-    3ee5:	80 3b 6a             	cmpb   $0x6a,(%rbx)
-    3ee8:	0f 84 52 01 00 00    	je     4040 <send_headers+0x310>
+    3eb5:	80 3b 6a             	cmpb   $0x6a,(%rbx)
+    3eb8:	0f 84 52 01 00 00    	je     4010 <send_headers+0x310>
     if (strcmp("css", file_ext) == 0)
-    3eee:	48 89 de             	mov    %rbx,%rsi
-    3ef1:	48 8d 3d ba 31 00 00 	lea    0x31ba(%rip),%rdi        # 70b2 <_IO_stdin_used+0xb2>
-    3ef8:	e8 b3 e4 ff ff       	call   23b0 <strcmp@plt>
-    3efd:	85 c0                	test   %eax,%eax
-    3eff:	0f 84 ab 02 00 00    	je     41b0 <send_headers+0x480>
+    3ebe:	48 89 de             	mov    %rbx,%rsi
+    3ec1:	48 8d 3d ea 31 00 00 	lea    0x31ea(%rip),%rdi        # 70b2 <_IO_stdin_used+0xb2>
+    3ec8:	e8 e3 e4 ff ff       	call   23b0 <strcmp@plt>
+    3ecd:	85 c0                	test   %eax,%eax
+    3ecf:	0f 84 ab 02 00 00    	je     4180 <send_headers+0x480>
     if (strcmp("txt", file_ext) == 0)
-    3f05:	48 89 de             	mov    %rbx,%rsi
-    3f08:	48 8d 3d a7 31 00 00 	lea    0x31a7(%rip),%rdi        # 70b6 <_IO_stdin_used+0xb6>
-    3f0f:	e8 9c e4 ff ff       	call   23b0 <strcmp@plt>
-    3f14:	85 c0                	test   %eax,%eax
-    3f16:	0f 84 6c 02 00 00    	je     4188 <send_headers+0x458>
+    3ed5:	48 89 de             	mov    %rbx,%rsi
+    3ed8:	48 8d 3d d7 31 00 00 	lea    0x31d7(%rip),%rdi        # 70b6 <_IO_stdin_used+0xb6>
+    3edf:	e8 cc e4 ff ff       	call   23b0 <strcmp@plt>
+    3ee4:	85 c0                	test   %eax,%eax
+    3ee6:	0f 84 6c 02 00 00    	je     4158 <send_headers+0x458>
     slen = strlen(send_buffer);
-    3f1c:	4c 8d a4 24 00 04 00 00 	lea    0x400(%rsp),%r12
-    3f24:	4c 89 e7             	mov    %r12,%rdi
-    3f27:	e8 f4 e3 ff ff       	call   2320 <strlen@plt>
+    3eec:	4c 8d a4 24 00 04 00 00 	lea    0x400(%rsp),%r12
+    3ef4:	4c 89 e7             	mov    %r12,%rdi
+    3ef7:	e8 24 e4 ff ff       	call   2320 <strlen@plt>
     void *buf = malloc(size);
-    3f2c:	48 89 c7             	mov    %rax,%rdi
+    3efc:	48 89 c7             	mov    %rax,%rdi
     slen = strlen(send_buffer);
-    3f2f:	48 89 c3             	mov    %rax,%rbx
+    3eff:	48 89 c3             	mov    %rax,%rbx
     void *buf = malloc(size);
-    3f32:	e8 d9 e4 ff ff       	call   2410 <malloc@plt>
+    3f02:	e8 09 e5 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3f37:	48 85 c0             	test   %rax,%rax
-    3f3a:	0f 84 eb 02 00 00    	je     422b <send_headers+0x4fb>
+    3f07:	48 85 c0             	test   %rax,%rax
+    3f0a:	0f 84 eb 02 00 00    	je     41fb <send_headers+0x4fb>
     iov[2].iov_base = zh_malloc(slen);
-    3f40:	48 89 45 20          	mov    %rax,0x20(%rbp)
+    3f10:	48 89 45 20          	mov    %rax,0x20(%rbp)
     iov[2].iov_len = slen;
-    3f44:	48 89 5d 28          	mov    %rbx,0x28(%rbp)
+    3f14:	48 89 5d 28          	mov    %rbx,0x28(%rbp)
   return __builtin___memcpy_chk (__dest, __src, __len,
-    3f48:	83 fb 08             	cmp    $0x8,%ebx
-    3f4b:	0f 83 3f 01 00 00    	jae    4090 <send_headers+0x360>
-    3f51:	f6 c3 04             	test   $0x4,%bl
-    3f54:	0f 85 7b 02 00 00    	jne    41d5 <send_headers+0x4a5>
-    3f5a:	85 db                	test   %ebx,%ebx
-    3f5c:	74 13                	je     3f71 <send_headers+0x241>
-    3f5e:	0f b6 94 24 00 04 00 00 	movzbl 0x400(%rsp),%edx
-    3f66:	88 10                	mov    %dl,(%rax)
-    3f68:	f6 c3 02             	test   $0x2,%bl
-    3f6b:	0f 85 96 02 00 00    	jne    4207 <send_headers+0x4d7>
+    3f18:	83 fb 08             	cmp    $0x8,%ebx
+    3f1b:	0f 83 3f 01 00 00    	jae    4060 <send_headers+0x360>
+    3f21:	f6 c3 04             	test   $0x4,%bl
+    3f24:	0f 85 7b 02 00 00    	jne    41a5 <send_headers+0x4a5>
+    3f2a:	85 db                	test   %ebx,%ebx
+    3f2c:	74 13                	je     3f41 <send_headers+0x241>
+    3f2e:	0f b6 94 24 00 04 00 00 	movzbl 0x400(%rsp),%edx
+    3f36:	88 10                	mov    %dl,(%rax)
+    3f38:	f6 c3 02             	test   $0x2,%bl
+    3f3b:	0f 85 96 02 00 00    	jne    41d7 <send_headers+0x4d7>
   return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
-    3f71:	4d 89 e8             	mov    %r13,%r8
-    3f74:	48 8d 0d 3f 31 00 00 	lea    0x313f(%rip),%rcx        # 70ba <_IO_stdin_used+0xba>
-    3f7b:	4c 89 e7             	mov    %r12,%rdi
-    3f7e:	31 c0                	xor    %eax,%eax
-    3f80:	ba 00 04 00 00       	mov    $0x400,%edx
-    3f85:	be 01 00 00 00       	mov    $0x1,%esi
-    3f8a:	e8 91 e5 ff ff       	call   2520 <__sprintf_chk@plt>
+    3f41:	4d 89 e8             	mov    %r13,%r8
+    3f44:	48 8d 0d 6f 31 00 00 	lea    0x316f(%rip),%rcx        # 70ba <_IO_stdin_used+0xba>
+    3f4b:	4c 89 e7             	mov    %r12,%rdi
+    3f4e:	31 c0                	xor    %eax,%eax
+    3f50:	ba 00 04 00 00       	mov    $0x400,%edx
+    3f55:	be 01 00 00 00       	mov    $0x1,%esi
+    3f5a:	e8 c1 e5 ff ff       	call   2520 <__sprintf_chk@plt>
     slen = strlen(send_buffer);
-    3f8f:	4c 89 e7             	mov    %r12,%rdi
-    3f92:	e8 89 e3 ff ff       	call   2320 <strlen@plt>
+    3f5f:	4c 89 e7             	mov    %r12,%rdi
+    3f62:	e8 b9 e3 ff ff       	call   2320 <strlen@plt>
     void *buf = malloc(size);
-    3f97:	48 89 c7             	mov    %rax,%rdi
+    3f67:	48 89 c7             	mov    %rax,%rdi
     slen = strlen(send_buffer);
-    3f9a:	48 89 c3             	mov    %rax,%rbx
+    3f6a:	48 89 c3             	mov    %rax,%rbx
     void *buf = malloc(size);
-    3f9d:	e8 6e e4 ff ff       	call   2410 <malloc@plt>
+    3f6d:	e8 9e e4 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3fa2:	48 85 c0             	test   %rax,%rax
-    3fa5:	0f 84 80 02 00 00    	je     422b <send_headers+0x4fb>
+    3f72:	48 85 c0             	test   %rax,%rax
+    3f75:	0f 84 80 02 00 00    	je     41fb <send_headers+0x4fb>
     iov[3].iov_base = zh_malloc(slen);
-    3fab:	48 89 45 30          	mov    %rax,0x30(%rbp)
+    3f7b:	48 89 45 30          	mov    %rax,0x30(%rbp)
     iov[3].iov_len = slen;
-    3faf:	48 89 5d 38          	mov    %rbx,0x38(%rbp)
-    3fb3:	83 fb 08             	cmp    $0x8,%ebx
-    3fb6:	0f 83 1c 01 00 00    	jae    40d8 <send_headers+0x3a8>
-    3fbc:	f6 c3 04             	test   $0x4,%bl
-    3fbf:	0f 85 29 02 00 00    	jne    41ee <send_headers+0x4be>
-    3fc5:	85 db                	test   %ebx,%ebx
-    3fc7:	74 13                	je     3fdc <send_headers+0x2ac>
-    3fc9:	0f b6 94 24 00 04 00 00 	movzbl 0x400(%rsp),%edx
-    3fd1:	88 10                	mov    %dl,(%rax)
-    3fd3:	f6 c3 02             	test   $0x2,%bl
-    3fd6:	0f 85 3d 02 00 00    	jne    4219 <send_headers+0x4e9>
+    3f7f:	48 89 5d 38          	mov    %rbx,0x38(%rbp)
+    3f83:	83 fb 08             	cmp    $0x8,%ebx
+    3f86:	0f 83 1c 01 00 00    	jae    40a8 <send_headers+0x3a8>
+    3f8c:	f6 c3 04             	test   $0x4,%bl
+    3f8f:	0f 85 29 02 00 00    	jne    41be <send_headers+0x4be>
+    3f95:	85 db                	test   %ebx,%ebx
+    3f97:	74 13                	je     3fac <send_headers+0x2ac>
+    3f99:	0f b6 94 24 00 04 00 00 	movzbl 0x400(%rsp),%edx
+    3fa1:	88 10                	mov    %dl,(%rax)
+    3fa3:	f6 c3 02             	test   $0x2,%bl
+    3fa6:	0f 85 3d 02 00 00    	jne    41e9 <send_headers+0x4e9>
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    3fdc:	b8 0d 0a 00 00       	mov    $0xa0d,%eax
+    3fac:	b8 0d 0a 00 00       	mov    $0xa0d,%eax
     void *buf = malloc(size);
-    3fe1:	bf 02 00 00 00       	mov    $0x2,%edi
-    3fe6:	c6 84 24 02 04 00 00 00 	movb   $0x0,0x402(%rsp)
-    3fee:	66 89 84 24 00 04 00 00 	mov    %ax,0x400(%rsp)
-    3ff6:	e8 15 e4 ff ff       	call   2410 <malloc@plt>
+    3fb1:	bf 02 00 00 00       	mov    $0x2,%edi
+    3fb6:	c6 84 24 02 04 00 00 00 	movb   $0x0,0x402(%rsp)
+    3fbe:	66 89 84 24 00 04 00 00 	mov    %ax,0x400(%rsp)
+    3fc6:	e8 45 e4 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    3ffb:	48 85 c0             	test   %rax,%rax
-    3ffe:	0f 84 27 02 00 00    	je     422b <send_headers+0x4fb>
+    3fcb:	48 85 c0             	test   %rax,%rax
+    3fce:	0f 84 27 02 00 00    	je     41fb <send_headers+0x4fb>
   return __builtin___memcpy_chk (__dest, __src, __len,
-    4004:	0f b7 94 24 00 04 00 00 	movzwl 0x400(%rsp),%edx
+    3fd4:	0f b7 94 24 00 04 00 00 	movzwl 0x400(%rsp),%edx
     iov[4].iov_base = zh_malloc(slen);
-    400c:	48 89 45 40          	mov    %rax,0x40(%rbp)
+    3fdc:	48 89 45 40          	mov    %rax,0x40(%rbp)
     iov[4].iov_len = slen;
-    4010:	48 c7 45 48 02 00 00 00 	movq   $0x2,0x48(%rbp)
-    4018:	66 89 10             	mov    %dx,(%rax)
+    3fe0:	48 c7 45 48 02 00 00 00 	movq   $0x2,0x48(%rbp)
+    3fe8:	66 89 10             	mov    %dx,(%rax)
 }
-    401b:	48 8b 84 24 08 08 00 00 	mov    0x808(%rsp),%rax
-    4023:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    402c:	0f 85 20 02 00 00    	jne    4252 <send_headers+0x522>
-    4032:	48 81 c4 18 08 00 00 	add    $0x818,%rsp
-    4039:	5b                   	pop    %rbx
-    403a:	5d                   	pop    %rbp
-    403b:	41 5c                	pop    %r12
-    403d:	41 5d                	pop    %r13
-    403f:	c3                   	ret
+    3feb:	48 8b 84 24 08 08 00 00 	mov    0x808(%rsp),%rax
+    3ff3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    3ffc:	0f 85 20 02 00 00    	jne    4222 <send_headers+0x522>
+    4002:	48 81 c4 18 08 00 00 	add    $0x818,%rsp
+    4009:	5b                   	pop    %rbx
+    400a:	5d                   	pop    %rbp
+    400b:	41 5c                	pop    %r12
+    400d:	41 5d                	pop    %r13
+    400f:	c3                   	ret
     if (strcmp("js", file_ext) == 0)
-    4040:	80 7b 01 73          	cmpb   $0x73,0x1(%rbx)
-    4044:	0f 85 a4 fe ff ff    	jne    3eee <send_headers+0x1be>
-    404a:	80 7b 02 00          	cmpb   $0x0,0x2(%rbx)
-    404e:	0f 85 9a fe ff ff    	jne    3eee <send_headers+0x1be>
+    4010:	80 7b 01 73          	cmpb   $0x73,0x1(%rbx)
+    4014:	0f 85 a4 fe ff ff    	jne    3ebe <send_headers+0x1be>
+    401a:	80 7b 02 00          	cmpb   $0x0,0x2(%rbx)
+    401e:	0f 85 9a fe ff ff    	jne    3ebe <send_headers+0x1be>
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4054:	66 0f 6f 05 c4 39 00 00 	movdqa 0x39c4(%rip),%xmm0        # 7a20 <_IO_stdin_used+0xa20>
-    405c:	48 b8 63 72 69 70 74 0d 0a 00 	movabs $0xa0d7470697263,%rax
-    4066:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    406e:	66 0f 6f 05 ba 39 00 00 	movdqa 0x39ba(%rip),%xmm0        # 7a30 <_IO_stdin_used+0xa30>
-    4076:	0f 29 84 24 10 04 00 00 	movaps %xmm0,0x410(%rsp)
-    407e:	48 89 84 24 1f 04 00 00 	mov    %rax,0x41f(%rsp)
-    4086:	e9 63 fe ff ff       	jmp    3eee <send_headers+0x1be>
-    408b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    4024:	66 0f 6f 05 f4 39 00 00 	movdqa 0x39f4(%rip),%xmm0        # 7a20 <_IO_stdin_used+0xa20>
+    402c:	48 b8 63 72 69 70 74 0d 0a 00 	movabs $0xa0d7470697263,%rax
+    4036:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    403e:	66 0f 6f 05 ea 39 00 00 	movdqa 0x39ea(%rip),%xmm0        # 7a30 <_IO_stdin_used+0xa30>
+    4046:	0f 29 84 24 10 04 00 00 	movaps %xmm0,0x410(%rsp)
+    404e:	48 89 84 24 1f 04 00 00 	mov    %rax,0x41f(%rsp)
+    4056:	e9 63 fe ff ff       	jmp    3ebe <send_headers+0x1be>
+    405b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
   return __builtin___memcpy_chk (__dest, __src, __len,
-    4090:	89 da                	mov    %ebx,%edx
-    4092:	48 89 c7             	mov    %rax,%rdi
-    4095:	4c 89 e6             	mov    %r12,%rsi
-    4098:	49 8b 4c 14 f8       	mov    -0x8(%r12,%rdx,1),%rcx
-    409d:	48 89 4c 10 f8       	mov    %rcx,-0x8(%rax,%rdx,1)
-    40a2:	8d 4b ff             	lea    -0x1(%rbx),%ecx
-    40a5:	c1 e9 03             	shr    $0x3,%ecx
-    40a8:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
-    40ab:	e9 c1 fe ff ff       	jmp    3f71 <send_headers+0x241>
+    4060:	89 da                	mov    %ebx,%edx
+    4062:	48 89 c7             	mov    %rax,%rdi
+    4065:	4c 89 e6             	mov    %r12,%rsi
+    4068:	49 8b 4c 14 f8       	mov    -0x8(%r12,%rdx,1),%rcx
+    406d:	48 89 4c 10 f8       	mov    %rcx,-0x8(%rax,%rdx,1)
+    4072:	8d 4b ff             	lea    -0x1(%rbx),%ecx
+    4075:	c1 e9 03             	shr    $0x3,%ecx
+    4078:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
+    407b:	e9 c1 fe ff ff       	jmp    3f41 <send_headers+0x241>
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    40b0:	66 0f 6f 05 08 39 00 00 	movdqa 0x3908(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
-    40b8:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    40c0:	66 0f 6f 05 18 39 00 00 	movdqa 0x3918(%rip),%xmm0        # 79e0 <_IO_stdin_used+0x9e0>
-    40c8:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
-    40d0:	e9 cb fd ff ff       	jmp    3ea0 <send_headers+0x170>
-    40d5:	0f 1f 00             	nopl   (%rax)
+    4080:	66 0f 6f 05 38 39 00 00 	movdqa 0x3938(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
+    4088:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    4090:	66 0f 6f 05 48 39 00 00 	movdqa 0x3948(%rip),%xmm0        # 79e0 <_IO_stdin_used+0x9e0>
+    4098:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
+    40a0:	e9 cb fd ff ff       	jmp    3e70 <send_headers+0x170>
+    40a5:	0f 1f 00             	nopl   (%rax)
   return __builtin___memcpy_chk (__dest, __src, __len,
-    40d8:	89 da                	mov    %ebx,%edx
-    40da:	48 89 c7             	mov    %rax,%rdi
-    40dd:	4c 89 e6             	mov    %r12,%rsi
-    40e0:	49 8b 4c 14 f8       	mov    -0x8(%r12,%rdx,1),%rcx
-    40e5:	48 89 4c 10 f8       	mov    %rcx,-0x8(%rax,%rdx,1)
-    40ea:	8d 4b ff             	lea    -0x1(%rbx),%ecx
-    40ed:	c1 e9 03             	shr    $0x3,%ecx
-    40f0:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
-    40f3:	e9 e4 fe ff ff       	jmp    3fdc <send_headers+0x2ac>
-    40f8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    40a8:	89 da                	mov    %ebx,%edx
+    40aa:	48 89 c7             	mov    %rax,%rdi
+    40ad:	4c 89 e6             	mov    %r12,%rsi
+    40b0:	49 8b 4c 14 f8       	mov    -0x8(%r12,%rdx,1),%rcx
+    40b5:	48 89 4c 10 f8       	mov    %rcx,-0x8(%rax,%rdx,1)
+    40ba:	8d 4b ff             	lea    -0x1(%rbx),%ecx
+    40bd:	c1 e9 03             	shr    $0x3,%ecx
+    40c0:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
+    40c3:	e9 e4 fe ff ff       	jmp    3fac <send_headers+0x2ac>
+    40c8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
         return "";
-    4100:	48 8d 1d c8 2f 00 00 	lea    0x2fc8(%rip),%rbx        # 70cf <_IO_stdin_used+0xcf>
-    4107:	e9 94 fd ff ff       	jmp    3ea0 <send_headers+0x170>
-    410c:	0f 1f 40 00          	nopl   0x0(%rax)
+    40d0:	48 8d 1d f8 2f 00 00 	lea    0x2ff8(%rip),%rbx        # 70cf <_IO_stdin_used+0xcf>
+    40d7:	e9 94 fd ff ff       	jmp    3e70 <send_headers+0x170>
+    40dc:	0f 1f 40 00          	nopl   0x0(%rax)
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4110:	66 0f 6f 05 e8 38 00 00 	movdqa 0x38e8(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
-    4118:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    4120:	66 0f 6f 05 e8 38 00 00 	movdqa 0x38e8(%rip),%xmm0        # 7a10 <_IO_stdin_used+0xa10>
-    4128:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
-    4130:	e9 b0 fd ff ff       	jmp    3ee5 <send_headers+0x1b5>
-    4135:	0f 1f 00             	nopl   (%rax)
-    4138:	66 0f 6f 05 c0 38 00 00 	movdqa 0x38c0(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
-    4140:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    4148:	66 0f 6f 05 c0 38 00 00 	movdqa 0x38c0(%rip),%xmm0        # 7a10 <_IO_stdin_used+0xa10>
-    4150:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
-    4158:	e9 71 fd ff ff       	jmp    3ece <send_headers+0x19e>
-    415d:	0f 1f 00             	nopl   (%rax)
-    4160:	66 0f 6f 05 58 38 00 00 	movdqa 0x3858(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
-    4168:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    4170:	66 0f 6f 05 78 38 00 00 	movdqa 0x3878(%rip),%xmm0        # 79f0 <_IO_stdin_used+0x9f0>
-    4178:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
-    4180:	e9 32 fd ff ff       	jmp    3eb7 <send_headers+0x187>
-    4185:	0f 1f 00             	nopl   (%rax)
-    4188:	66 0f 6f 05 70 38 00 00 	movdqa 0x3870(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
-    4190:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    4198:	66 0f 6f 05 b0 38 00 00 	movdqa 0x38b0(%rip),%xmm0        # 7a50 <_IO_stdin_used+0xa50>
-    41a0:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
-    41a8:	e9 6f fd ff ff       	jmp    3f1c <send_headers+0x1ec>
-    41ad:	0f 1f 00             	nopl   (%rax)
-    41b0:	66 0f 6f 05 48 38 00 00 	movdqa 0x3848(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
-    41b8:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
-    41c0:	66 0f 6f 05 78 38 00 00 	movdqa 0x3878(%rip),%xmm0        # 7a40 <_IO_stdin_used+0xa40>
-    41c8:	0f 11 84 24 09 04 00 00 	movups %xmm0,0x409(%rsp)
-    41d0:	e9 30 fd ff ff       	jmp    3f05 <send_headers+0x1d5>
+    40e0:	66 0f 6f 05 18 39 00 00 	movdqa 0x3918(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
+    40e8:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    40f0:	66 0f 6f 05 18 39 00 00 	movdqa 0x3918(%rip),%xmm0        # 7a10 <_IO_stdin_used+0xa10>
+    40f8:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
+    4100:	e9 b0 fd ff ff       	jmp    3eb5 <send_headers+0x1b5>
+    4105:	0f 1f 00             	nopl   (%rax)
+    4108:	66 0f 6f 05 f0 38 00 00 	movdqa 0x38f0(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
+    4110:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    4118:	66 0f 6f 05 f0 38 00 00 	movdqa 0x38f0(%rip),%xmm0        # 7a10 <_IO_stdin_used+0xa10>
+    4120:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
+    4128:	e9 71 fd ff ff       	jmp    3e9e <send_headers+0x19e>
+    412d:	0f 1f 00             	nopl   (%rax)
+    4130:	66 0f 6f 05 88 38 00 00 	movdqa 0x3888(%rip),%xmm0        # 79c0 <_IO_stdin_used+0x9c0>
+    4138:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    4140:	66 0f 6f 05 a8 38 00 00 	movdqa 0x38a8(%rip),%xmm0        # 79f0 <_IO_stdin_used+0x9f0>
+    4148:	0f 11 84 24 0a 04 00 00 	movups %xmm0,0x40a(%rsp)
+    4150:	e9 32 fd ff ff       	jmp    3e87 <send_headers+0x187>
+    4155:	0f 1f 00             	nopl   (%rax)
+    4158:	66 0f 6f 05 a0 38 00 00 	movdqa 0x38a0(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
+    4160:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    4168:	66 0f 6f 05 e0 38 00 00 	movdqa 0x38e0(%rip),%xmm0        # 7a50 <_IO_stdin_used+0xa50>
+    4170:	0f 11 84 24 0b 04 00 00 	movups %xmm0,0x40b(%rsp)
+    4178:	e9 6f fd ff ff       	jmp    3eec <send_headers+0x1ec>
+    417d:	0f 1f 00             	nopl   (%rax)
+    4180:	66 0f 6f 05 78 38 00 00 	movdqa 0x3878(%rip),%xmm0        # 7a00 <_IO_stdin_used+0xa00>
+    4188:	0f 29 84 24 00 04 00 00 	movaps %xmm0,0x400(%rsp)
+    4190:	66 0f 6f 05 a8 38 00 00 	movdqa 0x38a8(%rip),%xmm0        # 7a40 <_IO_stdin_used+0xa40>
+    4198:	0f 11 84 24 09 04 00 00 	movups %xmm0,0x409(%rsp)
+    41a0:	e9 30 fd ff ff       	jmp    3ed5 <send_headers+0x1d5>
   return __builtin___memcpy_chk (__dest, __src, __len,
-    41d5:	8b 94 24 00 04 00 00 	mov    0x400(%rsp),%edx
-    41dc:	89 db                	mov    %ebx,%ebx
-    41de:	89 10                	mov    %edx,(%rax)
-    41e0:	41 8b 54 1c fc       	mov    -0x4(%r12,%rbx,1),%edx
-    41e5:	89 54 18 fc          	mov    %edx,-0x4(%rax,%rbx,1)
-    41e9:	e9 83 fd ff ff       	jmp    3f71 <send_headers+0x241>
-    41ee:	8b 94 24 00 04 00 00 	mov    0x400(%rsp),%edx
-    41f5:	89 db                	mov    %ebx,%ebx
-    41f7:	89 10                	mov    %edx,(%rax)
-    41f9:	41 8b 54 1c fc       	mov    -0x4(%r12,%rbx,1),%edx
-    41fe:	89 54 18 fc          	mov    %edx,-0x4(%rax,%rbx,1)
-    4202:	e9 d5 fd ff ff       	jmp    3fdc <send_headers+0x2ac>
-    4207:	89 db                	mov    %ebx,%ebx
-    4209:	41 0f b7 54 1c fe    	movzwl -0x2(%r12,%rbx,1),%edx
-    420f:	66 89 54 18 fe       	mov    %dx,-0x2(%rax,%rbx,1)
-    4214:	e9 58 fd ff ff       	jmp    3f71 <send_headers+0x241>
-    4219:	89 db                	mov    %ebx,%ebx
-    421b:	41 0f b7 54 1c fe    	movzwl -0x2(%r12,%rbx,1),%edx
-    4221:	66 89 54 18 fe       	mov    %dx,-0x2(%rax,%rbx,1)
-    4226:	e9 b1 fd ff ff       	jmp    3fdc <send_headers+0x2ac>
+    41a5:	8b 94 24 00 04 00 00 	mov    0x400(%rsp),%edx
+    41ac:	89 db                	mov    %ebx,%ebx
+    41ae:	89 10                	mov    %edx,(%rax)
+    41b0:	41 8b 54 1c fc       	mov    -0x4(%r12,%rbx,1),%edx
+    41b5:	89 54 18 fc          	mov    %edx,-0x4(%rax,%rbx,1)
+    41b9:	e9 83 fd ff ff       	jmp    3f41 <send_headers+0x241>
+    41be:	8b 94 24 00 04 00 00 	mov    0x400(%rsp),%edx
+    41c5:	89 db                	mov    %ebx,%ebx
+    41c7:	89 10                	mov    %edx,(%rax)
+    41c9:	41 8b 54 1c fc       	mov    -0x4(%r12,%rbx,1),%edx
+    41ce:	89 54 18 fc          	mov    %edx,-0x4(%rax,%rbx,1)
+    41d2:	e9 d5 fd ff ff       	jmp    3fac <send_headers+0x2ac>
+    41d7:	89 db                	mov    %ebx,%ebx
+    41d9:	41 0f b7 54 1c fe    	movzwl -0x2(%r12,%rbx,1),%edx
+    41df:	66 89 54 18 fe       	mov    %dx,-0x2(%rax,%rbx,1)
+    41e4:	e9 58 fd ff ff       	jmp    3f41 <send_headers+0x241>
+    41e9:	89 db                	mov    %ebx,%ebx
+    41eb:	41 0f b7 54 1c fe    	movzwl -0x2(%r12,%rbx,1),%edx
+    41f1:	66 89 54 18 fe       	mov    %dx,-0x2(%rax,%rbx,1)
+    41f6:	e9 b1 fd ff ff       	jmp    3fac <send_headers+0x2ac>
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    422b:	48 8b 0d ee 5d 00 00 	mov    0x5dee(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    4232:	ba 28 00 00 00       	mov    $0x28,%edx
-    4237:	be 01 00 00 00       	mov    $0x1,%esi
-    423c:	48 8d 3d c5 31 00 00 	lea    0x31c5(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    4243:	e8 78 e2 ff ff       	call   24c0 <fwrite@plt>
+    41fb:	48 8b 0d 1e 5e 00 00 	mov    0x5e1e(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    4202:	ba 28 00 00 00       	mov    $0x28,%edx
+    4207:	be 01 00 00 00       	mov    $0x1,%esi
+    420c:	48 8d 3d f5 31 00 00 	lea    0x31f5(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    4213:	e8 a8 e2 ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    4248:	bf 01 00 00 00       	mov    $0x1,%edi
-    424d:	e8 4e e2 ff ff       	call   24a0 <exit@plt>
+    4218:	bf 01 00 00 00       	mov    $0x1,%edi
+    421d:	e8 7e e2 ff ff       	call   24a0 <exit@plt>
 }
-    4252:	e8 d9 e0 ff ff       	call   2330 <__stack_chk_fail@plt>
-    4257:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    4222:	e8 09 e1 ff ff       	call   2330 <__stack_chk_fail@plt>
+    4227:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
-0000000000004260 <copy_file_contents>:
+0000000000004230 <copy_file_contents>:
 void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
-    4260:	f3 0f 1e fa          	endbr64
-    4264:	41 55                	push   %r13
-    4266:	49 89 d5             	mov    %rdx,%r13
-    4269:	41 54                	push   %r12
-    426b:	49 89 fc             	mov    %rdi,%r12
+    4230:	f3 0f 1e fa          	endbr64
+    4234:	41 55                	push   %r13
+    4236:	49 89 d5             	mov    %rdx,%r13
+    4239:	41 54                	push   %r12
+    423b:	49 89 fc             	mov    %rdi,%r12
     void *buf = malloc(size);
-    426e:	48 89 f7             	mov    %rsi,%rdi
+    423e:	48 89 f7             	mov    %rsi,%rdi
 void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
-    4271:	55                   	push   %rbp
-    4272:	53                   	push   %rbx
-    4273:	48 89 f3             	mov    %rsi,%rbx
-    4276:	48 83 ec 08          	sub    $0x8,%rsp
+    4241:	55                   	push   %rbp
+    4242:	53                   	push   %rbx
+    4243:	48 89 f3             	mov    %rsi,%rbx
+    4246:	48 83 ec 08          	sub    $0x8,%rsp
     void *buf = malloc(size);
-    427a:	e8 91 e1 ff ff       	call   2410 <malloc@plt>
+    424a:	e8 c1 e1 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    427f:	48 85 c0             	test   %rax,%rax
-    4282:	74 6b                	je     42ef <copy_file_contents+0x8f>
+    424f:	48 85 c0             	test   %rax,%rax
+    4252:	74 6b                	je     42bf <copy_file_contents+0x8f>
       if (__OPEN_NEEDS_MODE (__oflag) && __va_arg_pack_len () < 1)
 	{
 	  __open_missing_mode ();
 	  return __open_2 (__path, __oflag);
 	}
       return __open_alias (__path, __oflag, __va_arg_pack ());
-    4284:	4c 89 e7             	mov    %r12,%rdi
-    4287:	48 89 c5             	mov    %rax,%rbp
-    428a:	31 f6                	xor    %esi,%esi
-    428c:	31 c0                	xor    %eax,%eax
-    428e:	e8 ed e1 ff ff       	call   2480 <open@plt>
-    4293:	41 89 c4             	mov    %eax,%r12d
+    4254:	4c 89 e7             	mov    %r12,%rdi
+    4257:	48 89 c5             	mov    %rax,%rbp
+    425a:	31 f6                	xor    %esi,%esi
+    425c:	31 c0                	xor    %eax,%eax
+    425e:	e8 1d e2 ff ff       	call   2480 <open@plt>
+    4263:	41 89 c4             	mov    %eax,%r12d
     if (fd < 0)
-    4296:	85 c0                	test   %eax,%eax
-    4298:	0f 88 b8 e2 ff ff    	js     2556 <copy_file_contents.cold>
+    4266:	85 c0                	test   %eax,%eax
+    4268:	0f 88 e8 e2 ff ff    	js     2556 <copy_file_contents.cold>
 # include <bits/unistd-decl.h>
 
 __fortify_function __wur ssize_t
 read (int __fd, void *__buf, size_t __nbytes)
 {
   return __glibc_fortify (read, __nbytes, sizeof (char),
-    429e:	48 89 da             	mov    %rbx,%rdx
-    42a1:	48 89 ee             	mov    %rbp,%rsi
-    42a4:	89 c7                	mov    %eax,%edi
-    42a6:	e8 e5 e0 ff ff       	call   2390 <read@plt>
+    426e:	48 89 da             	mov    %rbx,%rdx
+    4271:	48 89 ee             	mov    %rbp,%rsi
+    4274:	89 c7                	mov    %eax,%edi
+    4276:	e8 15 e1 ff ff       	call   2390 <read@plt>
     if (ret < file_size) {
-    42ab:	48 98                	cltq
-    42ad:	48 39 d8             	cmp    %rbx,%rax
-    42b0:	7c 1e                	jl     42d0 <copy_file_contents+0x70>
+    427b:	48 98                	cltq
+    427d:	48 39 d8             	cmp    %rbx,%rax
+    4280:	7c 1e                	jl     42a0 <copy_file_contents+0x70>
     close(fd);
-    42b2:	44 89 e7             	mov    %r12d,%edi
-    42b5:	e8 b6 e0 ff ff       	call   2370 <close@plt>
+    4282:	44 89 e7             	mov    %r12d,%edi
+    4285:	e8 e6 e0 ff ff       	call   2370 <close@plt>
     iov->iov_base = buf;
-    42ba:	49 89 6d 00          	mov    %rbp,0x0(%r13)
+    428a:	49 89 6d 00          	mov    %rbp,0x0(%r13)
     iov->iov_len = file_size;
-    42be:	49 89 5d 08          	mov    %rbx,0x8(%r13)
+    428e:	49 89 5d 08          	mov    %rbx,0x8(%r13)
 }
-    42c2:	48 83 c4 08          	add    $0x8,%rsp
-    42c6:	5b                   	pop    %rbx
-    42c7:	5d                   	pop    %rbp
-    42c8:	41 5c                	pop    %r12
-    42ca:	41 5d                	pop    %r13
-    42cc:	c3                   	ret
-    42cd:	0f 1f 00             	nopl   (%rax)
-    42d0:	48 8b 0d 49 5d 00 00 	mov    0x5d49(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    42d7:	ba 1a 00 00 00       	mov    $0x1a,%edx
-    42dc:	be 01 00 00 00       	mov    $0x1,%esi
-    42e1:	48 8d 3d e8 2d 00 00 	lea    0x2de8(%rip),%rdi        # 70d0 <_IO_stdin_used+0xd0>
-    42e8:	e8 d3 e1 ff ff       	call   24c0 <fwrite@plt>
-    42ed:	eb c3                	jmp    42b2 <copy_file_contents+0x52>
-    42ef:	48 8b 0d 2a 5d 00 00 	mov    0x5d2a(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    42f6:	ba 28 00 00 00       	mov    $0x28,%edx
-    42fb:	be 01 00 00 00       	mov    $0x1,%esi
-    4300:	48 8d 3d 01 31 00 00 	lea    0x3101(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    4307:	e8 b4 e1 ff ff       	call   24c0 <fwrite@plt>
+    4292:	48 83 c4 08          	add    $0x8,%rsp
+    4296:	5b                   	pop    %rbx
+    4297:	5d                   	pop    %rbp
+    4298:	41 5c                	pop    %r12
+    429a:	41 5d                	pop    %r13
+    429c:	c3                   	ret
+    429d:	0f 1f 00             	nopl   (%rax)
+    42a0:	48 8b 0d 79 5d 00 00 	mov    0x5d79(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    42a7:	ba 1a 00 00 00       	mov    $0x1a,%edx
+    42ac:	be 01 00 00 00       	mov    $0x1,%esi
+    42b1:	48 8d 3d 18 2e 00 00 	lea    0x2e18(%rip),%rdi        # 70d0 <_IO_stdin_used+0xd0>
+    42b8:	e8 03 e2 ff ff       	call   24c0 <fwrite@plt>
+    42bd:	eb c3                	jmp    4282 <copy_file_contents+0x52>
+    42bf:	48 8b 0d 5a 5d 00 00 	mov    0x5d5a(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    42c6:	ba 28 00 00 00       	mov    $0x28,%edx
+    42cb:	be 01 00 00 00       	mov    $0x1,%esi
+    42d0:	48 8d 3d 31 31 00 00 	lea    0x3131(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    42d7:	e8 e4 e1 ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    430c:	bf 01 00 00 00       	mov    $0x1,%edi
-    4311:	e8 8a e1 ff ff       	call   24a0 <exit@plt>
-    4316:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    42dc:	bf 01 00 00 00       	mov    $0x1,%edi
+    42e1:	e8 ba e1 ff ff       	call   24a0 <exit@plt>
+    42e6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000004320 <add_write_request>:
+00000000000042f0 <add_write_request>:
 int add_write_request(struct Request *req, struct io_uring *ring) {
-    4320:	f3 0f 1e fa          	endbr64
+    42f0:	f3 0f 1e fa          	endbr64
  * Returns a vacant sqe, or NULL if we're full.
  */
 IOURINGINLINE struct io_uring_sqe *_io_uring_get_sqe(struct io_uring *ring)
 {
 	struct io_uring_sq *sq = &ring->sq;
 	unsigned int head, next = sq->sqe_tail + 1;
-    4324:	8b 46 44             	mov    0x44(%rsi),%eax
-    4327:	48 89 fa             	mov    %rdi,%rdx
-    432a:	48 89 f7             	mov    %rsi,%rdi
+    42f4:	8b 46 44             	mov    0x44(%rsi),%eax
+    42f7:	48 89 fa             	mov    %rdi,%rdx
+    42fa:	48 89 f7             	mov    %rsi,%rdi
 	int shift = 0;
 
 	if (ring->flags & IORING_SETUP_SQE128)
-    432d:	8b 8f c0 00 00 00    	mov    0xc0(%rdi),%ecx
+    42fd:	8b 8f c0 00 00 00    	mov    0xc0(%rdi),%ecx
 	unsigned int head, next = sq->sqe_tail + 1;
-    4333:	8d 70 01             	lea    0x1(%rax),%esi
+    4303:	8d 70 01             	lea    0x1(%rax),%esi
 		shift = 1;
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4336:	48 8b 07             	mov    (%rdi),%rax
-    4339:	44 8b 00             	mov    (%rax),%r8d
+    4306:	48 8b 07             	mov    (%rdi),%rax
+    4309:	44 8b 00             	mov    (%rax),%r8d
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    433c:	f6 c1 02             	test   $0x2,%cl
-    433f:	74 00                	je     4341 <add_write_request+0x21>
+    430c:	f6 c1 02             	test   $0x2,%cl
+    430f:	74 00                	je     4311 <add_write_request+0x21>
 	else
 		head = io_uring_smp_load_acquire(sq->khead);
 
 	if (next - head <= sq->ring_entries) {
-    4341:	89 f0                	mov    %esi,%eax
-    4343:	44 29 c0             	sub    %r8d,%eax
-    4346:	39 47 5c             	cmp    %eax,0x5c(%rdi)
-    4349:	0f 82 13 e2 ff ff    	jb     2562 <add_write_request.cold>
+    4311:	89 f0                	mov    %esi,%eax
+    4313:	44 29 c0             	sub    %r8d,%eax
+    4316:	39 47 5c             	cmp    %eax,0x5c(%rdi)
+    4319:	0f 82 43 e2 ff ff    	jb     2562 <add_write_request.cold>
 	if (ring->flags & IORING_SETUP_SQE128)
-    434f:	c1 e9 0a             	shr    $0xa,%ecx
-    4352:	48 83 ec 08          	sub    $0x8,%rsp
+    431f:	c1 e9 0a             	shr    $0xa,%ecx
+    4322:	48 83 ec 08          	sub    $0x8,%rsp
 		struct io_uring_sqe *sqe;
 
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4356:	8b 47 44             	mov    0x44(%rdi),%eax
-    4359:	23 47 58             	and    0x58(%rdi),%eax
+    4326:	8b 47 44             	mov    0x44(%rdi),%eax
+    4329:	23 47 58             	and    0x58(%rdi),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    435c:	83 e1 01             	and    $0x1,%ecx
+    432c:	83 e1 01             	and    $0x1,%ecx
 		sq->sqe_tail = next;
-    435f:	89 77 44             	mov    %esi,0x44(%rdi)
+    432f:	89 77 44             	mov    %esi,0x44(%rdi)
     io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-    4362:	8b 72 08             	mov    0x8(%rdx),%esi
+    4332:	8b 72 08             	mov    0x8(%rdx),%esi
 	sqe->addr3 = 0;
-    4365:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4335:	66 0f ef c0          	pxor   %xmm0,%xmm0
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4369:	d3 e0                	shl    %cl,%eax
-    436b:	8b 4a 04             	mov    0x4(%rdx),%ecx
-    436e:	48 c1 e0 06          	shl    $0x6,%rax
-    4372:	48 03 47 38          	add    0x38(%rdi),%rax
+    4339:	d3 e0                	shl    %cl,%eax
+    433b:	8b 4a 04             	mov    0x4(%rdx),%ecx
+    433e:	48 c1 e0 06          	shl    $0x6,%rax
+    4342:	48 03 47 38          	add    0x38(%rdi),%rax
     req->event_type = EVENT_TYPE_WRITE;
-    4376:	c7 02 02 00 00 00    	movl   $0x2,(%rdx)
+    4346:	c7 02 02 00 00 00    	movl   $0x2,(%rdx)
 	sqe->fd = fd;
-    437c:	89 70 04             	mov    %esi,0x4(%rax)
+    434c:	89 70 04             	mov    %esi,0x4(%rax)
     io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-    437f:	48 8d 72 10          	lea    0x10(%rdx),%rsi
+    434f:	48 8d 72 10          	lea    0x10(%rdx),%rsi
 	sqe->opcode = (__u8) op;
-    4383:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
+    4353:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
 	sqe->off = offset;
-    4389:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
-    4391:	48 89 70 10          	mov    %rsi,0x10(%rax)
+    4359:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
+    4361:	48 89 70 10          	mov    %rsi,0x10(%rax)
 	sqe->len = len;
-    4395:	89 48 18             	mov    %ecx,0x18(%rax)
+    4365:	89 48 18             	mov    %ecx,0x18(%rax)
 	sqe->rw_flags = 0;
-    4398:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
+    4368:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
 	sqe->buf_index = 0;
-    439f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
+    436f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
 	sqe->user_data = (unsigned long) data;
-    43a7:	48 89 50 20          	mov    %rdx,0x20(%rax)
+    4377:	48 89 50 20          	mov    %rdx,0x20(%rax)
 	sqe->addr3 = 0;
-    43ab:	0f 11 40 30          	movups %xmm0,0x30(%rax)
+    437b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
     io_uring_submit(ring);
-    43af:	e8 8c df ff ff       	call   2340 <io_uring_submit@plt>
+    437f:	e8 bc df ff ff       	call   2340 <io_uring_submit@plt>
 }
-    43b4:	31 c0                	xor    %eax,%eax
-    43b6:	48 83 c4 08          	add    $0x8,%rsp
-    43ba:	c3                   	ret
-    43bb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    4384:	31 c0                	xor    %eax,%eax
+    4386:	48 83 c4 08          	add    $0x8,%rsp
+    438a:	c3                   	ret
+    438b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-00000000000043c0 <add_read_request>:
+0000000000004390 <add_read_request>:
 int add_read_request(int client_socket, struct io_uring *ring) {
-    43c0:	f3 0f 1e fa          	endbr64
-    43c4:	41 55                	push   %r13
-    43c6:	41 89 fd             	mov    %edi,%r13d
-    43c9:	41 54                	push   %r12
-    43cb:	55                   	push   %rbp
-    43cc:	53                   	push   %rbx
-    43cd:	48 89 f3             	mov    %rsi,%rbx
-    43d0:	48 83 ec 08          	sub    $0x8,%rsp
+    4390:	f3 0f 1e fa          	endbr64
+    4394:	41 55                	push   %r13
+    4396:	41 89 fd             	mov    %edi,%r13d
+    4399:	41 54                	push   %r12
+    439b:	55                   	push   %rbp
+    439c:	53                   	push   %rbx
+    439d:	48 89 f3             	mov    %rsi,%rbx
+    43a0:	48 83 ec 08          	sub    $0x8,%rsp
 	unsigned int head, next = sq->sqe_tail + 1;
-    43d4:	8b 46 44             	mov    0x44(%rsi),%eax
+    43a4:	8b 46 44             	mov    0x44(%rsi),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    43d7:	8b 8e c0 00 00 00    	mov    0xc0(%rsi),%ecx
+    43a7:	8b 8e c0 00 00 00    	mov    0xc0(%rsi),%ecx
 		head = IO_URING_READ_ONCE(*sq->khead);
-    43dd:	48 8b 16             	mov    (%rsi),%rdx
+    43ad:	48 8b 16             	mov    (%rsi),%rdx
 	unsigned int head, next = sq->sqe_tail + 1;
-    43e0:	83 c0 01             	add    $0x1,%eax
+    43b0:	83 c0 01             	add    $0x1,%eax
 		head = IO_URING_READ_ONCE(*sq->khead);
-    43e3:	8b 32                	mov    (%rdx),%esi
+    43b3:	8b 32                	mov    (%rdx),%esi
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    43e5:	f6 c1 02             	test   $0x2,%cl
-    43e8:	74 00                	je     43ea <add_read_request+0x2a>
+    43b5:	f6 c1 02             	test   $0x2,%cl
+    43b8:	74 00                	je     43ba <add_read_request+0x2a>
 	if (next - head <= sq->ring_entries) {
-    43ea:	89 c2                	mov    %eax,%edx
-    43ec:	29 f2                	sub    %esi,%edx
-    43ee:	39 53 5c             	cmp    %edx,0x5c(%rbx)
-    43f1:	0f 82 7b e1 ff ff    	jb     2572 <add_read_request.cold>
+    43ba:	89 c2                	mov    %eax,%edx
+    43bc:	29 f2                	sub    %esi,%edx
+    43be:	39 53 5c             	cmp    %edx,0x5c(%rbx)
+    43c1:	0f 82 ab e1 ff ff    	jb     2572 <add_read_request.cold>
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    43f7:	8b 6b 44             	mov    0x44(%rbx),%ebp
+    43c7:	8b 6b 44             	mov    0x44(%rbx),%ebp
 	if (ring->flags & IORING_SETUP_SQE128)
-    43fa:	c1 e9 0a             	shr    $0xa,%ecx
+    43ca:	c1 e9 0a             	shr    $0xa,%ecx
 		sq->sqe_tail = next;
-    43fd:	89 43 44             	mov    %eax,0x44(%rbx)
+    43cd:	89 43 44             	mov    %eax,0x44(%rbx)
     struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
-    4400:	bf 20 00 00 00       	mov    $0x20,%edi
+    43d0:	bf 20 00 00 00       	mov    $0x20,%edi
 	if (ring->flags & IORING_SETUP_SQE128)
-    4405:	83 e1 01             	and    $0x1,%ecx
+    43d5:	83 e1 01             	and    $0x1,%ecx
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4408:	23 6b 58             	and    0x58(%rbx),%ebp
-    440b:	d3 e5                	shl    %cl,%ebp
-    440d:	48 c1 e5 06          	shl    $0x6,%rbp
-    4411:	48 03 6b 38          	add    0x38(%rbx),%rbp
-    4415:	e8 f6 df ff ff       	call   2410 <malloc@plt>
+    43d8:	23 6b 58             	and    0x58(%rbx),%ebp
+    43db:	d3 e5                	shl    %cl,%ebp
+    43dd:	48 c1 e5 06          	shl    $0x6,%rbp
+    43e1:	48 03 6b 38          	add    0x38(%rbx),%rbp
+    43e5:	e8 26 e0 ff ff       	call   2410 <malloc@plt>
     req->iov[0].iov_base = malloc(READ_SZ);
-    441a:	be 01 00 00 00       	mov    $0x1,%esi
-    441f:	bf 00 20 00 00       	mov    $0x2000,%edi
+    43ea:	be 01 00 00 00       	mov    $0x1,%esi
+    43ef:	bf 00 20 00 00       	mov    $0x2000,%edi
     struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
-    4424:	49 89 c4             	mov    %rax,%r12
+    43f4:	49 89 c4             	mov    %rax,%r12
     req->iov[0].iov_base = malloc(READ_SZ);
-    4427:	e8 74 df ff ff       	call   23a0 <calloc@plt>
+    43f7:	e8 a4 df ff ff       	call   23a0 <calloc@plt>
     req->client_socket = client_socket;
-    442c:	45 89 6c 24 08       	mov    %r13d,0x8(%r12)
+    43fc:	45 89 6c 24 08       	mov    %r13d,0x8(%r12)
 	sqe->addr3 = 0;
-    4431:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4401:	66 0f ef c0          	pxor   %xmm0,%xmm0
     io_uring_submit(ring);
-    4435:	48 89 df             	mov    %rbx,%rdi
+    4405:	48 89 df             	mov    %rbx,%rdi
     req->iov[0].iov_base = malloc(READ_SZ);
-    4438:	49 89 44 24 10       	mov    %rax,0x10(%r12)
+    4408:	49 89 44 24 10       	mov    %rax,0x10(%r12)
     io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
-    443d:	49 8d 44 24 10       	lea    0x10(%r12),%rax
+    440d:	49 8d 44 24 10       	lea    0x10(%r12),%rax
     req->iov[0].iov_len = READ_SZ;
-    4442:	49 c7 44 24 18 00 20 00 00 	movq   $0x2000,0x18(%r12)
+    4412:	49 c7 44 24 18 00 20 00 00 	movq   $0x2000,0x18(%r12)
     req->event_type = EVENT_TYPE_READ;
-    444b:	41 c7 04 24 01 00 00 00 	movl   $0x1,(%r12)
+    441b:	41 c7 04 24 01 00 00 00 	movl   $0x1,(%r12)
 	sqe->fd = fd;
-    4453:	44 89 6d 04          	mov    %r13d,0x4(%rbp)
+    4423:	44 89 6d 04          	mov    %r13d,0x4(%rbp)
 	sqe->user_data = (unsigned long) data;
-    4457:	4c 89 65 20          	mov    %r12,0x20(%rbp)
+    4427:	4c 89 65 20          	mov    %r12,0x20(%rbp)
 	sqe->opcode = (__u8) op;
-    445b:	c7 45 00 01 00 00 00 	movl   $0x1,0x0(%rbp)
+    442b:	c7 45 00 01 00 00 00 	movl   $0x1,0x0(%rbp)
 	sqe->off = offset;
-    4462:	48 c7 45 08 00 00 00 00 	movq   $0x0,0x8(%rbp)
+    4432:	48 c7 45 08 00 00 00 00 	movq   $0x0,0x8(%rbp)
     io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
-    446a:	48 89 45 10          	mov    %rax,0x10(%rbp)
+    443a:	48 89 45 10          	mov    %rax,0x10(%rbp)
 	sqe->len = len;
-    446e:	48 c7 45 18 01 00 00 00 	movq   $0x1,0x18(%rbp)
+    443e:	48 c7 45 18 01 00 00 00 	movq   $0x1,0x18(%rbp)
 	sqe->buf_index = 0;
-    4476:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
+    4446:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
 	sqe->addr3 = 0;
-    447e:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
+    444e:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
     io_uring_submit(ring);
-    4482:	e8 b9 de ff ff       	call   2340 <io_uring_submit@plt>
+    4452:	e8 e9 de ff ff       	call   2340 <io_uring_submit@plt>
 }
-    4487:	48 83 c4 08          	add    $0x8,%rsp
-    448b:	31 c0                	xor    %eax,%eax
-    448d:	5b                   	pop    %rbx
-    448e:	5d                   	pop    %rbp
-    448f:	41 5c                	pop    %r12
-    4491:	41 5d                	pop    %r13
-    4493:	c3                   	ret
-    4494:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    449f:	90                   	nop
+    4457:	48 83 c4 08          	add    $0x8,%rsp
+    445b:	31 c0                	xor    %eax,%eax
+    445d:	5b                   	pop    %rbx
+    445e:	5d                   	pop    %rbp
+    445f:	41 5c                	pop    %r12
+    4461:	41 5d                	pop    %r13
+    4463:	c3                   	ret
+    4464:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    446f:	90                   	nop
 
-00000000000044a0 <_send_static_string_content>:
+0000000000004470 <_send_static_string_content>:
 void _send_static_string_content(const char *str, int client_socket, struct io_uring *ring) {
-    44a0:	f3 0f 1e fa          	endbr64
-    44a4:	41 56                	push   %r14
-    44a6:	41 89 f6             	mov    %esi,%r14d
-    44a9:	41 55                	push   %r13
-    44ab:	49 89 fd             	mov    %rdi,%r13
+    4470:	f3 0f 1e fa          	endbr64
+    4474:	41 56                	push   %r14
+    4476:	41 89 f6             	mov    %esi,%r14d
+    4479:	41 55                	push   %r13
+    447b:	49 89 fd             	mov    %rdi,%r13
     void *buf = malloc(size);
-    44ae:	bf 20 00 00 00       	mov    $0x20,%edi
+    447e:	bf 20 00 00 00       	mov    $0x20,%edi
 void _send_static_string_content(const char *str, int client_socket, struct io_uring *ring) {
-    44b3:	41 54                	push   %r12
-    44b5:	55                   	push   %rbp
-    44b6:	48 89 d5             	mov    %rdx,%rbp
-    44b9:	53                   	push   %rbx
+    4483:	41 54                	push   %r12
+    4485:	55                   	push   %rbp
+    4486:	48 89 d5             	mov    %rdx,%rbp
+    4489:	53                   	push   %rbx
     void *buf = malloc(size);
-    44ba:	e8 51 df ff ff       	call   2410 <malloc@plt>
+    448a:	e8 81 df ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    44bf:	48 85 c0             	test   %rax,%rax
-    44c2:	0f 84 dd 00 00 00    	je     45a5 <_send_static_string_content+0x105>
-    44c8:	48 89 c3             	mov    %rax,%rbx
+    448f:	48 85 c0             	test   %rax,%rax
+    4492:	0f 84 dd 00 00 00    	je     4575 <_send_static_string_content+0x105>
+    4498:	48 89 c3             	mov    %rax,%rbx
     unsigned long slen = strlen(str);
-    44cb:	4c 89 ef             	mov    %r13,%rdi
-    44ce:	e8 4d de ff ff       	call   2320 <strlen@plt>
+    449b:	4c 89 ef             	mov    %r13,%rdi
+    449e:	e8 7d de ff ff       	call   2320 <strlen@plt>
     req->iovec_count = 1;
-    44d3:	c7 43 04 01 00 00 00 	movl   $0x1,0x4(%rbx)
+    44a3:	c7 43 04 01 00 00 00 	movl   $0x1,0x4(%rbx)
     req->client_socket = client_socket;
-    44da:	44 89 73 08          	mov    %r14d,0x8(%rbx)
+    44aa:	44 89 73 08          	mov    %r14d,0x8(%rbx)
     void *buf = malloc(size);
-    44de:	48 89 c7             	mov    %rax,%rdi
+    44ae:	48 89 c7             	mov    %rax,%rdi
     unsigned long slen = strlen(str);
-    44e1:	49 89 c4             	mov    %rax,%r12
+    44b1:	49 89 c4             	mov    %rax,%r12
     void *buf = malloc(size);
-    44e4:	e8 27 df ff ff       	call   2410 <malloc@plt>
-    44e9:	48 89 c7             	mov    %rax,%rdi
+    44b4:	e8 57 df ff ff       	call   2410 <malloc@plt>
+    44b9:	48 89 c7             	mov    %rax,%rdi
     if (!buf) {
-    44ec:	48 85 c0             	test   %rax,%rax
-    44ef:	0f 84 b0 00 00 00    	je     45a5 <_send_static_string_content+0x105>
+    44bc:	48 85 c0             	test   %rax,%rax
+    44bf:	0f 84 b0 00 00 00    	je     4575 <_send_static_string_content+0x105>
     req->iov[0].iov_base = zh_malloc(slen);
-    44f5:	48 89 43 10          	mov    %rax,0x10(%rbx)
-    44f9:	4c 89 e2             	mov    %r12,%rdx
-    44fc:	4c 89 ee             	mov    %r13,%rsi
+    44c5:	48 89 43 10          	mov    %rax,0x10(%rbx)
+    44c9:	4c 89 e2             	mov    %r12,%rdx
+    44cc:	4c 89 ee             	mov    %r13,%rsi
     req->iov[0].iov_len = slen;
-    44ff:	4c 89 63 18          	mov    %r12,0x18(%rbx)
-    4503:	e8 d8 de ff ff       	call   23e0 <memcpy@plt>
+    44cf:	4c 89 63 18          	mov    %r12,0x18(%rbx)
+    44d3:	e8 08 df ff ff       	call   23e0 <memcpy@plt>
 	unsigned int head, next = sq->sqe_tail + 1;
-    4508:	8b 45 44             	mov    0x44(%rbp),%eax
+    44d8:	8b 45 44             	mov    0x44(%rbp),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    450b:	8b 8d c0 00 00 00    	mov    0xc0(%rbp),%ecx
+    44db:	8b 8d c0 00 00 00    	mov    0xc0(%rbp),%ecx
 	unsigned int head, next = sq->sqe_tail + 1;
-    4511:	8d 50 01             	lea    0x1(%rax),%edx
+    44e1:	8d 50 01             	lea    0x1(%rax),%edx
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4514:	48 8b 45 00          	mov    0x0(%rbp),%rax
-    4518:	8b 30                	mov    (%rax),%esi
+    44e4:	48 8b 45 00          	mov    0x0(%rbp),%rax
+    44e8:	8b 30                	mov    (%rax),%esi
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    451a:	f6 c1 02             	test   $0x2,%cl
-    451d:	0f 85 7d 00 00 00    	jne    45a0 <_send_static_string_content+0x100>
+    44ea:	f6 c1 02             	test   $0x2,%cl
+    44ed:	0f 85 7d 00 00 00    	jne    4570 <_send_static_string_content+0x100>
 	if (next - head <= sq->ring_entries) {
-    4523:	89 d0                	mov    %edx,%eax
-    4525:	29 f0                	sub    %esi,%eax
-    4527:	39 45 5c             	cmp    %eax,0x5c(%rbp)
-    452a:	0f 82 4c e0 ff ff    	jb     257c <_send_static_string_content.cold>
+    44f3:	89 d0                	mov    %edx,%eax
+    44f5:	29 f0                	sub    %esi,%eax
+    44f7:	39 45 5c             	cmp    %eax,0x5c(%rbp)
+    44fa:	0f 82 7c e0 ff ff    	jb     257c <_send_static_string_content.cold>
 	if (ring->flags & IORING_SETUP_SQE128)
-    4530:	c1 e9 0a             	shr    $0xa,%ecx
+    4500:	c1 e9 0a             	shr    $0xa,%ecx
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4533:	8b 45 44             	mov    0x44(%rbp),%eax
-    4536:	23 45 58             	and    0x58(%rbp),%eax
+    4503:	8b 45 44             	mov    0x44(%rbp),%eax
+    4506:	23 45 58             	and    0x58(%rbp),%eax
 		sq->sqe_tail = next;
-    4539:	89 55 44             	mov    %edx,0x44(%rbp)
+    4509:	89 55 44             	mov    %edx,0x44(%rbp)
 	if (ring->flags & IORING_SETUP_SQE128)
-    453c:	83 e1 01             	and    $0x1,%ecx
+    450c:	83 e1 01             	and    $0x1,%ecx
     io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-    453f:	8b 53 04             	mov    0x4(%rbx),%edx
+    450f:	8b 53 04             	mov    0x4(%rbx),%edx
     req->event_type = EVENT_TYPE_WRITE;
-    4542:	c7 03 02 00 00 00    	movl   $0x2,(%rbx)
+    4512:	c7 03 02 00 00 00    	movl   $0x2,(%rbx)
 	sqe->addr3 = 0;
-    4548:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4518:	66 0f ef c0          	pxor   %xmm0,%xmm0
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    454c:	d3 e0                	shl    %cl,%eax
+    451c:	d3 e0                	shl    %cl,%eax
     io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-    454e:	8b 4b 08             	mov    0x8(%rbx),%ecx
+    451e:	8b 4b 08             	mov    0x8(%rbx),%ecx
     io_uring_submit(ring);
-    4551:	48 89 ef             	mov    %rbp,%rdi
-    4554:	48 c1 e0 06          	shl    $0x6,%rax
-    4558:	48 03 45 38          	add    0x38(%rbp),%rax
+    4521:	48 89 ef             	mov    %rbp,%rdi
+    4524:	48 c1 e0 06          	shl    $0x6,%rax
+    4528:	48 03 45 38          	add    0x38(%rbp),%rax
 	sqe->fd = fd;
-    455c:	89 48 04             	mov    %ecx,0x4(%rax)
+    452c:	89 48 04             	mov    %ecx,0x4(%rax)
     io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-    455f:	48 8d 4b 10          	lea    0x10(%rbx),%rcx
+    452f:	48 8d 4b 10          	lea    0x10(%rbx),%rcx
 	sqe->opcode = (__u8) op;
-    4563:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
+    4533:	c7 00 02 00 00 00    	movl   $0x2,(%rax)
 	sqe->off = offset;
-    4569:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
-    4571:	48 89 48 10          	mov    %rcx,0x10(%rax)
+    4539:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
+    4541:	48 89 48 10          	mov    %rcx,0x10(%rax)
 	sqe->len = len;
-    4575:	89 50 18             	mov    %edx,0x18(%rax)
+    4545:	89 50 18             	mov    %edx,0x18(%rax)
 	sqe->rw_flags = 0;
-    4578:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
+    4548:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%rax)
 	sqe->buf_index = 0;
-    457f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
+    454f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
 	sqe->user_data = (unsigned long) data;
-    4587:	48 89 58 20          	mov    %rbx,0x20(%rax)
+    4557:	48 89 58 20          	mov    %rbx,0x20(%rax)
 	sqe->addr3 = 0;
-    458b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
+    455b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
 }
-    458f:	5b                   	pop    %rbx
-    4590:	5d                   	pop    %rbp
-    4591:	41 5c                	pop    %r12
-    4593:	41 5d                	pop    %r13
-    4595:	41 5e                	pop    %r14
+    455f:	5b                   	pop    %rbx
+    4560:	5d                   	pop    %rbp
+    4561:	41 5c                	pop    %r12
+    4563:	41 5d                	pop    %r13
+    4565:	41 5e                	pop    %r14
     io_uring_submit(ring);
-    4597:	e9 a4 dd ff ff       	jmp    2340 <io_uring_submit@plt>
-    459c:	0f 1f 40 00          	nopl   0x0(%rax)
+    4567:	e9 d4 dd ff ff       	jmp    2340 <io_uring_submit@plt>
+    456c:	0f 1f 40 00          	nopl   0x0(%rax)
 		head = io_uring_smp_load_acquire(sq->khead);
-    45a0:	e9 7e ff ff ff       	jmp    4523 <_send_static_string_content+0x83>
-    45a5:	48 8b 0d 74 5a 00 00 	mov    0x5a74(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    45ac:	ba 28 00 00 00       	mov    $0x28,%edx
-    45b1:	be 01 00 00 00       	mov    $0x1,%esi
-    45b6:	48 8d 3d 4b 2e 00 00 	lea    0x2e4b(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    45bd:	e8 fe de ff ff       	call   24c0 <fwrite@plt>
+    4570:	e9 7e ff ff ff       	jmp    44f3 <_send_static_string_content+0x83>
+    4575:	48 8b 0d a4 5a 00 00 	mov    0x5aa4(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    457c:	ba 28 00 00 00       	mov    $0x28,%edx
+    4581:	be 01 00 00 00       	mov    $0x1,%esi
+    4586:	48 8d 3d 7b 2e 00 00 	lea    0x2e7b(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    458d:	e8 2e df ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    45c2:	bf 01 00 00 00       	mov    $0x1,%edi
-    45c7:	e8 d4 de ff ff       	call   24a0 <exit@plt>
-    45cc:	0f 1f 40 00          	nopl   0x0(%rax)
+    4592:	bf 01 00 00 00       	mov    $0x1,%edi
+    4597:	e8 04 df ff ff       	call   24a0 <exit@plt>
+    459c:	0f 1f 40 00          	nopl   0x0(%rax)
 
-00000000000045d0 <handle_unimplemented_method>:
+00000000000045a0 <handle_unimplemented_method>:
 void handle_unimplemented_method(int client_socket, struct io_uring *ring) {
-    45d0:	f3 0f 1e fa          	endbr64
-    45d4:	48 89 f2             	mov    %rsi,%rdx
+    45a0:	f3 0f 1e fa          	endbr64
+    45a4:	48 89 f2             	mov    %rsi,%rdx
     _send_static_string_content(unimplemented_content, client_socket, ring);
-    45d7:	89 fe                	mov    %edi,%esi
-    45d9:	48 8b 3d 38 5a 00 00 	mov    0x5a38(%rip),%rdi        # a018 <unimplemented_content>
-    45e0:	e9 bb fe ff ff       	jmp    44a0 <_send_static_string_content>
-    45e5:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    45a7:	89 fe                	mov    %edi,%esi
+    45a9:	48 8b 3d 68 5a 00 00 	mov    0x5a68(%rip),%rdi        # a018 <unimplemented_content>
+    45b0:	e9 bb fe ff ff       	jmp    4470 <_send_static_string_content>
+    45b5:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
 
-00000000000045f0 <handle_http_404>:
+00000000000045c0 <handle_http_404>:
 void handle_http_404(int client_socket, struct io_uring *ring) {
-    45f0:	f3 0f 1e fa          	endbr64
-    45f4:	48 89 f2             	mov    %rsi,%rdx
+    45c0:	f3 0f 1e fa          	endbr64
+    45c4:	48 89 f2             	mov    %rsi,%rdx
     _send_static_string_content(http_404_content, client_socket, ring);
-    45f7:	89 fe                	mov    %edi,%esi
-    45f9:	48 8b 3d 10 5a 00 00 	mov    0x5a10(%rip),%rdi        # a010 <http_404_content>
-    4600:	e9 9b fe ff ff       	jmp    44a0 <_send_static_string_content>
-    4605:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    45c7:	89 fe                	mov    %edi,%esi
+    45c9:	48 8b 3d 40 5a 00 00 	mov    0x5a40(%rip),%rdi        # a010 <http_404_content>
+    45d0:	e9 9b fe ff ff       	jmp    4470 <_send_static_string_content>
+    45d5:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
 
-0000000000004610 <handle_get_method>:
+00000000000045e0 <handle_get_method>:
 void handle_get_method(char *path, int client_socket, struct io_uring *ring) {
-    4610:	f3 0f 1e fa          	endbr64
-    4614:	41 56                	push   %r14
-    4616:	41 55                	push   %r13
-    4618:	49 89 d5             	mov    %rdx,%r13
-    461b:	41 54                	push   %r12
-    461d:	41 89 f4             	mov    %esi,%r12d
-    4620:	55                   	push   %rbp
-    4621:	48 89 fd             	mov    %rdi,%rbp
-    4624:	53                   	push   %rbx
-    4625:	48 81 ec a0 04 00 00 	sub    $0x4a0,%rsp
-    462c:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    4635:	48 89 84 24 98 04 00 00 	mov    %rax,0x498(%rsp)
-    463d:	31 c0                	xor    %eax,%eax
+    45e0:	f3 0f 1e fa          	endbr64
+    45e4:	41 56                	push   %r14
+    45e6:	41 55                	push   %r13
+    45e8:	49 89 d5             	mov    %rdx,%r13
+    45eb:	41 54                	push   %r12
+    45ed:	41 89 f4             	mov    %esi,%r12d
+    45f0:	55                   	push   %rbp
+    45f1:	48 89 fd             	mov    %rdi,%rbp
+    45f4:	53                   	push   %rbx
+    45f5:	48 81 ec a0 04 00 00 	sub    $0x4a0,%rsp
+    45fc:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    4605:	48 89 84 24 98 04 00 00 	mov    %rax,0x498(%rsp)
+    460d:	31 c0                	xor    %eax,%eax
     if (path[strlen(path) - 1] == '/') {
-    463f:	e8 dc dc ff ff       	call   2320 <strlen@plt>
-    4644:	80 7c 05 ff 2f       	cmpb   $0x2f,-0x1(%rbp,%rax,1)
-    4649:	48 89 c3             	mov    %rax,%rbx
-    464c:	0f 84 b6 00 00 00    	je     4708 <handle_get_method+0xf8>
+    460f:	e8 0c dd ff ff       	call   2320 <strlen@plt>
+    4614:	80 7c 05 ff 2f       	cmpb   $0x2f,-0x1(%rbp,%rax,1)
+    4619:	48 89 c3             	mov    %rax,%rbx
+    461c:	0f 84 b6 00 00 00    	je     46d8 <handle_get_method+0xf8>
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4652:	b8 69 63 00 00       	mov    $0x6369,%eax
+    4622:	b8 69 63 00 00       	mov    $0x6369,%eax
 
 
 __fortify_function char *
 __NTH (strcat (char *__restrict __dest, const char *__restrict __src))
 {
   return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
-    4657:	48 89 ee             	mov    %rbp,%rsi
-    465a:	48 8d 53 01          	lea    0x1(%rbx),%rdx
-    465e:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
-    4663:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
-    466b:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
+    4627:	48 89 ee             	mov    %rbp,%rsi
+    462a:	48 8d 53 01          	lea    0x1(%rbx),%rdx
+    462e:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
+    4633:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
+    463b:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4673:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
-    467e:	66 89 84 24 94 00 00 00 	mov    %ax,0x94(%rsp)
+    4643:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
+    464e:	66 89 84 24 94 00 00 00 	mov    %ax,0x94(%rsp)
   return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
-    4686:	e8 35 dd ff ff       	call   23c0 <__memcpy_chk@plt>
+    4656:	e8 65 dd ff ff       	call   23c0 <__memcpy_chk@plt>
     if (stat(final_path, &path_stat) == -1) {
-    468b:	48 89 e6             	mov    %rsp,%rsi
-    468e:	4c 89 f7             	mov    %r14,%rdi
-    4691:	e8 3a dd ff ff       	call   23d0 <stat@plt>
-    4696:	83 f8 ff             	cmp    $0xffffffff,%eax
-    4699:	0f 84 d3 00 00 00    	je     4772 <handle_get_method+0x162>
+    465b:	48 89 e6             	mov    %rsp,%rsi
+    465e:	4c 89 f7             	mov    %r14,%rdi
+    4661:	e8 6a dd ff ff       	call   23d0 <stat@plt>
+    4666:	83 f8 ff             	cmp    $0xffffffff,%eax
+    4669:	0f 84 d3 00 00 00    	je     4742 <handle_get_method+0x162>
         if (S_ISREG(path_stat.st_mode)) {
-    469f:	8b 44 24 18          	mov    0x18(%rsp),%eax
-    46a3:	25 00 f0 00 00       	and    $0xf000,%eax
-    46a8:	3d 00 80 00 00       	cmp    $0x8000,%eax
-    46ad:	0f 84 f5 00 00 00    	je     47a8 <handle_get_method+0x198>
+    466f:	8b 44 24 18          	mov    0x18(%rsp),%eax
+    4673:	25 00 f0 00 00       	and    $0xf000,%eax
+    4678:	3d 00 80 00 00       	cmp    $0x8000,%eax
+    467d:	0f 84 f5 00 00 00    	je     4778 <handle_get_method+0x198>
     _send_static_string_content(http_404_content, client_socket, ring);
-    46b3:	48 8b 3d 56 59 00 00 	mov    0x5956(%rip),%rdi        # a010 <http_404_content>
-    46ba:	4c 89 ea             	mov    %r13,%rdx
-    46bd:	44 89 e6             	mov    %r12d,%esi
-    46c0:	e8 db fd ff ff       	call   44a0 <_send_static_string_content>
+    4683:	48 8b 3d 86 59 00 00 	mov    0x5986(%rip),%rdi        # a010 <http_404_content>
+    468a:	4c 89 ea             	mov    %r13,%rdx
+    468d:	44 89 e6             	mov    %r12d,%esi
+    4690:	e8 db fd ff ff       	call   4470 <_send_static_string_content>
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    46c5:	4c 89 f2             	mov    %r14,%rdx
-    46c8:	bf 01 00 00 00       	mov    $0x1,%edi
-    46cd:	31 c0                	xor    %eax,%eax
-    46cf:	48 8d 35 4a 2a 00 00 	lea    0x2a4a(%rip),%rsi        # 7120 <_IO_stdin_used+0x120>
-    46d6:	e8 75 dd ff ff       	call   2450 <__printf_chk@plt>
+    4695:	4c 89 f2             	mov    %r14,%rdx
+    4698:	bf 01 00 00 00       	mov    $0x1,%edi
+    469d:	31 c0                	xor    %eax,%eax
+    469f:	48 8d 35 7a 2a 00 00 	lea    0x2a7a(%rip),%rsi        # 7120 <_IO_stdin_used+0x120>
+    46a6:	e8 a5 dd ff ff       	call   2450 <__printf_chk@plt>
 }
-    46db:	48 8b 84 24 98 04 00 00 	mov    0x498(%rsp),%rax
-    46e3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    46ec:	0f 85 20 01 00 00    	jne    4812 <handle_get_method+0x202>
-    46f2:	48 81 c4 a0 04 00 00 	add    $0x4a0,%rsp
-    46f9:	5b                   	pop    %rbx
-    46fa:	5d                   	pop    %rbp
-    46fb:	41 5c                	pop    %r12
-    46fd:	41 5d                	pop    %r13
-    46ff:	41 5e                	pop    %r14
-    4701:	c3                   	ret
-    4702:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    46ab:	48 8b 84 24 98 04 00 00 	mov    0x498(%rsp),%rax
+    46b3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    46bc:	0f 85 20 01 00 00    	jne    47e2 <handle_get_method+0x202>
+    46c2:	48 81 c4 a0 04 00 00 	add    $0x4a0,%rsp
+    46c9:	5b                   	pop    %rbx
+    46ca:	5d                   	pop    %rbp
+    46cb:	41 5c                	pop    %r12
+    46cd:	41 5d                	pop    %r13
+    46cf:	41 5e                	pop    %r14
+    46d1:	c3                   	ret
+    46d2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4708:	ba 69 63 00 00       	mov    $0x6369,%edx
+    46d8:	ba 69 63 00 00       	mov    $0x6369,%edx
   return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
-    470d:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
-    4715:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
-    471a:	48 89 ee             	mov    %rbp,%rsi
+    46dd:	48 8d bc 24 96 00 00 00 	lea    0x96(%rsp),%rdi
+    46e5:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
+    46ea:	48 89 ee             	mov    %rbp,%rsi
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    471d:	66 89 94 24 94 00 00 00 	mov    %dx,0x94(%rsp)
+    46ed:	66 89 94 24 94 00 00 00 	mov    %dx,0x94(%rsp)
   return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
-    4725:	48 89 c2             	mov    %rax,%rdx
+    46f5:	48 89 c2             	mov    %rax,%rdx
   return __builtin___strcpy_chk (__dest, __src, __glibc_objsize (__dest));
-    4728:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
-    4730:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
+    46f8:	4c 8d b4 24 90 00 00 00 	lea    0x90(%rsp),%r14
+    4700:	c7 84 24 90 00 00 00 70 75 62 6c 	movl   $0x6c627570,0x90(%rsp)
   return __builtin___strcat_chk (__dest, __src, __glibc_objsize (__dest));
-    473b:	e8 80 dc ff ff       	call   23c0 <__memcpy_chk@plt>
-    4740:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
-    4745:	49 8d 7c 1e 06       	lea    0x6(%r14,%rbx,1),%rdi
-    474a:	48 8d 35 9a 29 00 00 	lea    0x299a(%rip),%rsi        # 70eb <_IO_stdin_used+0xeb>
-    4751:	48 29 d9             	sub    %rbx,%rcx
-    4754:	ba 0b 00 00 00       	mov    $0xb,%edx
-    4759:	e8 62 dc ff ff       	call   23c0 <__memcpy_chk@plt>
+    470b:	e8 b0 dc ff ff       	call   23c0 <__memcpy_chk@plt>
+    4710:	b9 fa 03 00 00       	mov    $0x3fa,%ecx
+    4715:	49 8d 7c 1e 06       	lea    0x6(%r14,%rbx,1),%rdi
+    471a:	48 8d 35 ca 29 00 00 	lea    0x29ca(%rip),%rsi        # 70eb <_IO_stdin_used+0xeb>
+    4721:	48 29 d9             	sub    %rbx,%rcx
+    4724:	ba 0b 00 00 00       	mov    $0xb,%edx
+    4729:	e8 92 dc ff ff       	call   23c0 <__memcpy_chk@plt>
     if (stat(final_path, &path_stat) == -1) {
-    475e:	48 89 e6             	mov    %rsp,%rsi
-    4761:	4c 89 f7             	mov    %r14,%rdi
-    4764:	e8 67 dc ff ff       	call   23d0 <stat@plt>
-    4769:	83 f8 ff             	cmp    $0xffffffff,%eax
-    476c:	0f 85 2d ff ff ff    	jne    469f <handle_get_method+0x8f>
-    4772:	4c 89 f2             	mov    %r14,%rdx
-    4775:	48 89 e9             	mov    %rbp,%rcx
-    4778:	48 8d 35 77 29 00 00 	lea    0x2977(%rip),%rsi        # 70f6 <_IO_stdin_used+0xf6>
-    477f:	31 c0                	xor    %eax,%eax
-    4781:	bf 01 00 00 00       	mov    $0x1,%edi
-    4786:	e8 c5 dc ff ff       	call   2450 <__printf_chk@plt>
+    472e:	48 89 e6             	mov    %rsp,%rsi
+    4731:	4c 89 f7             	mov    %r14,%rdi
+    4734:	e8 97 dc ff ff       	call   23d0 <stat@plt>
+    4739:	83 f8 ff             	cmp    $0xffffffff,%eax
+    473c:	0f 85 2d ff ff ff    	jne    466f <handle_get_method+0x8f>
+    4742:	4c 89 f2             	mov    %r14,%rdx
+    4745:	48 89 e9             	mov    %rbp,%rcx
+    4748:	48 8d 35 a7 29 00 00 	lea    0x29a7(%rip),%rsi        # 70f6 <_IO_stdin_used+0xf6>
+    474f:	31 c0                	xor    %eax,%eax
+    4751:	bf 01 00 00 00       	mov    $0x1,%edi
+    4756:	e8 f5 dc ff ff       	call   2450 <__printf_chk@plt>
     _send_static_string_content(http_404_content, client_socket, ring);
-    478b:	48 8b 3d 7e 58 00 00 	mov    0x587e(%rip),%rdi        # a010 <http_404_content>
-    4792:	4c 89 ea             	mov    %r13,%rdx
-    4795:	44 89 e6             	mov    %r12d,%esi
-    4798:	e8 03 fd ff ff       	call   44a0 <_send_static_string_content>
+    475b:	48 8b 3d ae 58 00 00 	mov    0x58ae(%rip),%rdi        # a010 <http_404_content>
+    4762:	4c 89 ea             	mov    %r13,%rdx
+    4765:	44 89 e6             	mov    %r12d,%esi
+    4768:	e8 03 fd ff ff       	call   4470 <_send_static_string_content>
 }
-    479d:	e9 39 ff ff ff       	jmp    46db <handle_get_method+0xcb>
-    47a2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    476d:	e9 39 ff ff ff       	jmp    46ab <handle_get_method+0xcb>
+    4772:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
     void *buf = malloc(size);
-    47a8:	bf 70 00 00 00       	mov    $0x70,%edi
-    47ad:	e8 5e dc ff ff       	call   2410 <malloc@plt>
-    47b2:	48 89 c3             	mov    %rax,%rbx
+    4778:	bf 70 00 00 00       	mov    $0x70,%edi
+    477d:	e8 8e dc ff ff       	call   2410 <malloc@plt>
+    4782:	48 89 c3             	mov    %rax,%rbx
     if (!buf) {
-    47b5:	48 85 c0             	test   %rax,%rax
-    47b8:	74 5d                	je     4817 <handle_get_method+0x207>
+    4785:	48 85 c0             	test   %rax,%rax
+    4788:	74 5d                	je     47e7 <handle_get_method+0x207>
             req->client_socket = client_socket;
-    47ba:	44 89 60 08          	mov    %r12d,0x8(%rax)
+    478a:	44 89 60 08          	mov    %r12d,0x8(%rax)
             send_headers(final_path, path_stat.st_size, req->iov);
-    47be:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
-    47c3:	48 8d 50 10          	lea    0x10(%rax),%rdx
-    47c7:	4c 89 f7             	mov    %r14,%rdi
+    478e:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
+    4793:	48 8d 50 10          	lea    0x10(%rax),%rdx
+    4797:	4c 89 f7             	mov    %r14,%rdi
             req->iovec_count = 6;
-    47ca:	c7 40 04 06 00 00 00 	movl   $0x6,0x4(%rax)
+    479a:	c7 40 04 06 00 00 00 	movl   $0x6,0x4(%rax)
             send_headers(final_path, path_stat.st_size, req->iov);
-    47d1:	e8 5a f5 ff ff       	call   3d30 <send_headers>
+    47a1:	e8 5a f5 ff ff       	call   3d00 <send_headers>
             copy_file_contents(final_path, path_stat.st_size, &req->iov[5]);
-    47d6:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
-    47db:	48 8d 53 60          	lea    0x60(%rbx),%rdx
-    47df:	4c 89 f7             	mov    %r14,%rdi
-    47e2:	e8 79 fa ff ff       	call   4260 <copy_file_contents>
-    47e7:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
-    47ec:	4c 89 f2             	mov    %r14,%rdx
-    47ef:	31 c0                	xor    %eax,%eax
-    47f1:	48 8d 35 16 29 00 00 	lea    0x2916(%rip),%rsi        # 710e <_IO_stdin_used+0x10e>
-    47f8:	bf 01 00 00 00       	mov    $0x1,%edi
-    47fd:	e8 4e dc ff ff       	call   2450 <__printf_chk@plt>
+    47a6:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
+    47ab:	48 8d 53 60          	lea    0x60(%rbx),%rdx
+    47af:	4c 89 f7             	mov    %r14,%rdi
+    47b2:	e8 79 fa ff ff       	call   4230 <copy_file_contents>
+    47b7:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+    47bc:	4c 89 f2             	mov    %r14,%rdx
+    47bf:	31 c0                	xor    %eax,%eax
+    47c1:	48 8d 35 46 29 00 00 	lea    0x2946(%rip),%rsi        # 710e <_IO_stdin_used+0x10e>
+    47c8:	bf 01 00 00 00       	mov    $0x1,%edi
+    47cd:	e8 7e dc ff ff       	call   2450 <__printf_chk@plt>
             add_write_request(req, ring);
-    4802:	4c 89 ee             	mov    %r13,%rsi
-    4805:	48 89 df             	mov    %rbx,%rdi
-    4808:	e8 13 fb ff ff       	call   4320 <add_write_request>
-    480d:	e9 c9 fe ff ff       	jmp    46db <handle_get_method+0xcb>
+    47d2:	4c 89 ee             	mov    %r13,%rsi
+    47d5:	48 89 df             	mov    %rbx,%rdi
+    47d8:	e8 13 fb ff ff       	call   42f0 <add_write_request>
+    47dd:	e9 c9 fe ff ff       	jmp    46ab <handle_get_method+0xcb>
 }
-    4812:	e8 19 db ff ff       	call   2330 <__stack_chk_fail@plt>
+    47e2:	e8 49 db ff ff       	call   2330 <__stack_chk_fail@plt>
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    4817:	48 8b 0d 02 58 00 00 	mov    0x5802(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    481e:	ba 28 00 00 00       	mov    $0x28,%edx
-    4823:	be 01 00 00 00       	mov    $0x1,%esi
-    4828:	48 8d 3d d9 2b 00 00 	lea    0x2bd9(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    482f:	e8 8c dc ff ff       	call   24c0 <fwrite@plt>
+    47e7:	48 8b 0d 32 58 00 00 	mov    0x5832(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    47ee:	ba 28 00 00 00       	mov    $0x28,%edx
+    47f3:	be 01 00 00 00       	mov    $0x1,%esi
+    47f8:	48 8d 3d 09 2c 00 00 	lea    0x2c09(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    47ff:	e8 bc dc ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    4834:	bf 01 00 00 00       	mov    $0x1,%edi
-    4839:	e8 62 dc ff ff       	call   24a0 <exit@plt>
-    483e:	66 90                	xchg   %ax,%ax
+    4804:	bf 01 00 00 00       	mov    $0x1,%edi
+    4809:	e8 92 dc ff ff       	call   24a0 <exit@plt>
+    480e:	66 90                	xchg   %ax,%ax
 
-0000000000004840 <handle_http_method>:
+0000000000004810 <handle_http_method>:
 void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
-    4840:	f3 0f 1e fa          	endbr64
-    4844:	41 57                	push   %r15
-    4846:	41 56                	push   %r14
+    4810:	f3 0f 1e fa          	endbr64
+    4814:	41 57                	push   %r15
+    4816:	41 56                	push   %r14
     method = strtok_r(method_buffer, " ", &saveptr);
-    4848:	4c 8d 35 36 28 00 00 	lea    0x2836(%rip),%r14        # 7085 <_IO_stdin_used+0x85>
+    4818:	4c 8d 35 66 28 00 00 	lea    0x2866(%rip),%r14        # 7085 <_IO_stdin_used+0x85>
 void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
-    484f:	41 55                	push   %r13
-    4851:	49 89 d5             	mov    %rdx,%r13
-    4854:	41 54                	push   %r12
-    4856:	41 89 f4             	mov    %esi,%r12d
+    481f:	41 55                	push   %r13
+    4821:	49 89 d5             	mov    %rdx,%r13
+    4824:	41 54                	push   %r12
+    4826:	41 89 f4             	mov    %esi,%r12d
     method = strtok_r(method_buffer, " ", &saveptr);
-    4859:	4c 89 f6             	mov    %r14,%rsi
+    4829:	4c 89 f6             	mov    %r14,%rsi
 void handle_http_method(char *method_buffer, int client_socket, struct io_uring *ring) {
-    485c:	55                   	push   %rbp
-    485d:	53                   	push   %rbx
-    485e:	48 83 ec 18          	sub    $0x18,%rsp
-    4862:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    486b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-    4870:	31 c0                	xor    %eax,%eax
+    482c:	55                   	push   %rbp
+    482d:	53                   	push   %rbx
+    482e:	48 83 ec 18          	sub    $0x18,%rsp
+    4832:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    483b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+    4840:	31 c0                	xor    %eax,%eax
     method = strtok_r(method_buffer, " ", &saveptr);
-    4872:	49 89 e7             	mov    %rsp,%r15
+    4842:	49 89 e7             	mov    %rsp,%r15
+    4845:	4c 89 fa             	mov    %r15,%rdx
+    4848:	e8 33 db ff ff       	call   2380 <strtok_r@plt>
+    for (; *str; ++str)
+    484d:	48 0f be 18          	movsbq (%rax),%rbx
+    method = strtok_r(method_buffer, " ", &saveptr);
+    4851:	48 89 c5             	mov    %rax,%rbp
+    for (; *str; ++str)
+    4854:	84 db                	test   %bl,%bl
+    4856:	74 1d                	je     4875 <handle_http_method+0x65>
+        *str = (char)tolower(*str);
+    4858:	e8 b3 dc ff ff       	call   2510 <__ctype_tolower_loc@plt>
+    485d:	48 89 ea             	mov    %rbp,%rdx
+    4860:	48 8b 08             	mov    (%rax),%rcx
+    for (; *str; ++str)
+    4863:	48 83 c2 01          	add    $0x1,%rdx
+        *str = (char)tolower(*str);
+    4867:	8b 0c 99             	mov    (%rcx,%rbx,4),%ecx
+    486a:	88 4a ff             	mov    %cl,-0x1(%rdx)
+    for (; *str; ++str)
+    486d:	48 0f be 1a          	movsbq (%rdx),%rbx
+    4871:	84 db                	test   %bl,%bl
+    4873:	75 eb                	jne    4860 <handle_http_method+0x50>
+    path = strtok_r(NULL, " ", &saveptr);
     4875:	4c 89 fa             	mov    %r15,%rdx
-    4878:	e8 03 db ff ff       	call   2380 <strtok_r@plt>
-    for (; *str; ++str)
-    487d:	48 0f be 18          	movsbq (%rax),%rbx
-    method = strtok_r(method_buffer, " ", &saveptr);
-    4881:	48 89 c5             	mov    %rax,%rbp
-    for (; *str; ++str)
-    4884:	84 db                	test   %bl,%bl
-    4886:	74 1d                	je     48a5 <handle_http_method+0x65>
-        *str = (char)tolower(*str);
-    4888:	e8 83 dc ff ff       	call   2510 <__ctype_tolower_loc@plt>
-    488d:	48 89 ea             	mov    %rbp,%rdx
-    4890:	48 8b 08             	mov    (%rax),%rcx
-    for (; *str; ++str)
-    4893:	48 83 c2 01          	add    $0x1,%rdx
-        *str = (char)tolower(*str);
-    4897:	8b 0c 99             	mov    (%rcx,%rbx,4),%ecx
-    489a:	88 4a ff             	mov    %cl,-0x1(%rdx)
-    for (; *str; ++str)
-    489d:	48 0f be 1a          	movsbq (%rdx),%rbx
-    48a1:	84 db                	test   %bl,%bl
-    48a3:	75 eb                	jne    4890 <handle_http_method+0x50>
+    4878:	4c 89 f6             	mov    %r14,%rsi
+    487b:	31 ff                	xor    %edi,%edi
+    487d:	e8 fe da ff ff       	call   2380 <strtok_r@plt>
+    if (strcmp(method, "get") == 0) {
+    4882:	48 8d 35 aa 28 00 00 	lea    0x28aa(%rip),%rsi        # 7133 <_IO_stdin_used+0x133>
+    4889:	48 89 ef             	mov    %rbp,%rdi
     path = strtok_r(NULL, " ", &saveptr);
-    48a5:	4c 89 fa             	mov    %r15,%rdx
-    48a8:	4c 89 f6             	mov    %r14,%rsi
-    48ab:	31 ff                	xor    %edi,%edi
-    48ad:	e8 ce da ff ff       	call   2380 <strtok_r@plt>
+    488c:	48 89 c3             	mov    %rax,%rbx
     if (strcmp(method, "get") == 0) {
-    48b2:	48 8d 35 7a 28 00 00 	lea    0x287a(%rip),%rsi        # 7133 <_IO_stdin_used+0x133>
-    48b9:	48 89 ef             	mov    %rbp,%rdi
-    path = strtok_r(NULL, " ", &saveptr);
-    48bc:	48 89 c3             	mov    %rax,%rbx
-    if (strcmp(method, "get") == 0) {
-    48bf:	e8 ec da ff ff       	call   23b0 <strcmp@plt>
+    488f:	e8 1c db ff ff       	call   23b0 <strcmp@plt>
         handle_get_method(path, client_socket, ring);
-    48c4:	4c 89 ea             	mov    %r13,%rdx
-    48c7:	44 89 e6             	mov    %r12d,%esi
+    4894:	4c 89 ea             	mov    %r13,%rdx
+    4897:	44 89 e6             	mov    %r12d,%esi
     if (strcmp(method, "get") == 0) {
-    48ca:	85 c0                	test   %eax,%eax
-    48cc:	75 2a                	jne    48f8 <handle_http_method+0xb8>
+    489a:	85 c0                	test   %eax,%eax
+    489c:	75 2a                	jne    48c8 <handle_http_method+0xb8>
         handle_get_method(path, client_socket, ring);
-    48ce:	48 89 df             	mov    %rbx,%rdi
-    48d1:	e8 3a fd ff ff       	call   4610 <handle_get_method>
+    489e:	48 89 df             	mov    %rbx,%rdi
+    48a1:	e8 3a fd ff ff       	call   45e0 <handle_get_method>
 }
-    48d6:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-    48db:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    48e4:	75 20                	jne    4906 <handle_http_method+0xc6>
-    48e6:	48 83 c4 18          	add    $0x18,%rsp
-    48ea:	5b                   	pop    %rbx
-    48eb:	5d                   	pop    %rbp
-    48ec:	41 5c                	pop    %r12
-    48ee:	41 5d                	pop    %r13
-    48f0:	41 5e                	pop    %r14
-    48f2:	41 5f                	pop    %r15
-    48f4:	c3                   	ret
-    48f5:	0f 1f 00             	nopl   (%rax)
+    48a6:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+    48ab:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    48b4:	75 20                	jne    48d6 <handle_http_method+0xc6>
+    48b6:	48 83 c4 18          	add    $0x18,%rsp
+    48ba:	5b                   	pop    %rbx
+    48bb:	5d                   	pop    %rbp
+    48bc:	41 5c                	pop    %r12
+    48be:	41 5d                	pop    %r13
+    48c0:	41 5e                	pop    %r14
+    48c2:	41 5f                	pop    %r15
+    48c4:	c3                   	ret
+    48c5:	0f 1f 00             	nopl   (%rax)
     _send_static_string_content(unimplemented_content, client_socket, ring);
-    48f8:	48 8b 3d 19 57 00 00 	mov    0x5719(%rip),%rdi        # a018 <unimplemented_content>
-    48ff:	e8 9c fb ff ff       	call   44a0 <_send_static_string_content>
+    48c8:	48 8b 3d 49 57 00 00 	mov    0x5749(%rip),%rdi        # a018 <unimplemented_content>
+    48cf:	e8 9c fb ff ff       	call   4470 <_send_static_string_content>
 }
-    4904:	eb d0                	jmp    48d6 <handle_http_method+0x96>
-    4906:	e8 25 da ff ff       	call   2330 <__stack_chk_fail@plt>
-    490b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    48d4:	eb d0                	jmp    48a6 <handle_http_method+0x96>
+    48d6:	e8 55 da ff ff       	call   2330 <__stack_chk_fail@plt>
+    48db:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-0000000000004910 <get_line>:
+00000000000048e0 <get_line>:
 int get_line(const char *src, char *dest, int dest_sz) {
-    4910:	f3 0f 1e fa          	endbr64
+    48e0:	f3 0f 1e fa          	endbr64
     for (int i = 0; i < dest_sz; i++) {
-    4914:	85 d2                	test   %edx,%edx
-    4916:	7e 38                	jle    4950 <get_line+0x40>
-    4918:	48 63 d2             	movslq %edx,%rdx
-    491b:	48 83 c7 01          	add    $0x1,%rdi
-    491f:	48 01 f2             	add    %rsi,%rdx
-    4922:	eb 11                	jmp    4935 <get_line+0x25>
-    4924:	0f 1f 40 00          	nopl   0x0(%rax)
-    4928:	48 83 c6 01          	add    $0x1,%rsi
-    492c:	48 83 c7 01          	add    $0x1,%rdi
-    4930:	48 39 d6             	cmp    %rdx,%rsi
-    4933:	74 1b                	je     4950 <get_line+0x40>
+    48e4:	85 d2                	test   %edx,%edx
+    48e6:	7e 38                	jle    4920 <get_line+0x40>
+    48e8:	48 63 d2             	movslq %edx,%rdx
+    48eb:	48 83 c7 01          	add    $0x1,%rdi
+    48ef:	48 01 f2             	add    %rsi,%rdx
+    48f2:	eb 11                	jmp    4905 <get_line+0x25>
+    48f4:	0f 1f 40 00          	nopl   0x0(%rax)
+    48f8:	48 83 c6 01          	add    $0x1,%rsi
+    48fc:	48 83 c7 01          	add    $0x1,%rdi
+    4900:	48 39 d6             	cmp    %rdx,%rsi
+    4903:	74 1b                	je     4920 <get_line+0x40>
         dest[i] = src[i];
-    4935:	0f b6 47 ff          	movzbl -0x1(%rdi),%eax
-    4939:	88 06                	mov    %al,(%rsi)
+    4905:	0f b6 47 ff          	movzbl -0x1(%rdi),%eax
+    4909:	88 06                	mov    %al,(%rsi)
         if (src[i] == '\r' && src[i+1] == '\n') {
-    493b:	3c 0d                	cmp    $0xd,%al
-    493d:	75 e9                	jne    4928 <get_line+0x18>
-    493f:	80 3f 0a             	cmpb   $0xa,(%rdi)
-    4942:	75 e4                	jne    4928 <get_line+0x18>
+    490b:	3c 0d                	cmp    $0xd,%al
+    490d:	75 e9                	jne    48f8 <get_line+0x18>
+    490f:	80 3f 0a             	cmpb   $0xa,(%rdi)
+    4912:	75 e4                	jne    48f8 <get_line+0x18>
             dest[i] = '\0';
-    4944:	c6 06 00             	movb   $0x0,(%rsi)
+    4914:	c6 06 00             	movb   $0x0,(%rsi)
             return 0;
-    4947:	31 c0                	xor    %eax,%eax
-    4949:	c3                   	ret
-    494a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    4917:	31 c0                	xor    %eax,%eax
+    4919:	c3                   	ret
+    491a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
     return 1;
-    4950:	b8 01 00 00 00       	mov    $0x1,%eax
+    4920:	b8 01 00 00 00       	mov    $0x1,%eax
 }
-    4955:	c3                   	ret
-    4956:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    4925:	c3                   	ret
+    4926:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000004960 <handle_client_request>:
+0000000000004930 <handle_client_request>:
 int handle_client_request(struct Request *req, struct io_uring *ring) {
-    4960:	f3 0f 1e fa          	endbr64
-    4964:	48 81 ec 18 04 00 00 	sub    $0x418,%rsp
-    496b:	48 8b 4f 10          	mov    0x10(%rdi),%rcx
-    496f:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    4978:	48 89 84 24 08 04 00 00 	mov    %rax,0x408(%rsp)
-    4980:	31 c0                	xor    %eax,%eax
+    4930:	f3 0f 1e fa          	endbr64
+    4934:	48 81 ec 18 04 00 00 	sub    $0x418,%rsp
+    493b:	48 8b 4f 10          	mov    0x10(%rdi),%rcx
+    493f:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    4948:	48 89 84 24 08 04 00 00 	mov    %rax,0x408(%rsp)
+    4950:	31 c0                	xor    %eax,%eax
     for (int i = 0; i < dest_sz; i++) {
-    4982:	49 89 e2             	mov    %rsp,%r10
-    4985:	4c 8d 8c 24 00 04 00 00 	lea    0x400(%rsp),%r9
-    498d:	4c 89 d0             	mov    %r10,%rax
-    4990:	eb 13                	jmp    49a5 <handle_client_request+0x45>
-    4992:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    4998:	48 83 c0 01          	add    $0x1,%rax
-    499c:	48 83 c1 01          	add    $0x1,%rcx
-    49a0:	4c 39 c8             	cmp    %r9,%rax
-    49a3:	74 4b                	je     49f0 <handle_client_request+0x90>
+    4952:	49 89 e2             	mov    %rsp,%r10
+    4955:	4c 8d 8c 24 00 04 00 00 	lea    0x400(%rsp),%r9
+    495d:	4c 89 d0             	mov    %r10,%rax
+    4960:	eb 13                	jmp    4975 <handle_client_request+0x45>
+    4962:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    4968:	48 83 c0 01          	add    $0x1,%rax
+    496c:	48 83 c1 01          	add    $0x1,%rcx
+    4970:	4c 39 c8             	cmp    %r9,%rax
+    4973:	74 4b                	je     49c0 <handle_client_request+0x90>
         dest[i] = src[i];
-    49a5:	44 0f b6 01          	movzbl (%rcx),%r8d
-    49a9:	44 88 00             	mov    %r8b,(%rax)
+    4975:	44 0f b6 01          	movzbl (%rcx),%r8d
+    4979:	44 88 00             	mov    %r8b,(%rax)
         if (src[i] == '\r' && src[i+1] == '\n') {
-    49ac:	41 80 f8 0d          	cmp    $0xd,%r8b
-    49b0:	75 e6                	jne    4998 <handle_client_request+0x38>
-    49b2:	80 79 01 0a          	cmpb   $0xa,0x1(%rcx)
-    49b6:	75 e0                	jne    4998 <handle_client_request+0x38>
+    497c:	41 80 f8 0d          	cmp    $0xd,%r8b
+    4980:	75 e6                	jne    4968 <handle_client_request+0x38>
+    4982:	80 79 01 0a          	cmpb   $0xa,0x1(%rcx)
+    4986:	75 e0                	jne    4968 <handle_client_request+0x38>
             dest[i] = '\0';
-    49b8:	c6 00 00             	movb   $0x0,(%rax)
+    4988:	c6 00 00             	movb   $0x0,(%rax)
     handle_http_method(http_request, req->client_socket, ring);
-    49bb:	8b 47 08             	mov    0x8(%rdi),%eax
-    49be:	48 89 f2             	mov    %rsi,%rdx
-    49c1:	4c 89 d7             	mov    %r10,%rdi
-    49c4:	89 c6                	mov    %eax,%esi
-    49c6:	e8 75 fe ff ff       	call   4840 <handle_http_method>
+    498b:	8b 47 08             	mov    0x8(%rdi),%eax
+    498e:	48 89 f2             	mov    %rsi,%rdx
+    4991:	4c 89 d7             	mov    %r10,%rdi
+    4994:	89 c6                	mov    %eax,%esi
+    4996:	e8 75 fe ff ff       	call   4810 <handle_http_method>
 }
-    49cb:	48 8b 84 24 08 04 00 00 	mov    0x408(%rsp),%rax
-    49d3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    49dc:	75 39                	jne    4a17 <handle_client_request+0xb7>
-    49de:	31 c0                	xor    %eax,%eax
-    49e0:	48 81 c4 18 04 00 00 	add    $0x418,%rsp
-    49e7:	c3                   	ret
-    49e8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-    49f0:	48 8b 0d 29 56 00 00 	mov    0x5629(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    49f7:	ba 12 00 00 00       	mov    $0x12,%edx
-    49fc:	be 01 00 00 00       	mov    $0x1,%esi
-    4a01:	48 8d 3d 2f 27 00 00 	lea    0x272f(%rip),%rdi        # 7137 <_IO_stdin_used+0x137>
-    4a08:	e8 b3 da ff ff       	call   24c0 <fwrite@plt>
+    499b:	48 8b 84 24 08 04 00 00 	mov    0x408(%rsp),%rax
+    49a3:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    49ac:	75 39                	jne    49e7 <handle_client_request+0xb7>
+    49ae:	31 c0                	xor    %eax,%eax
+    49b0:	48 81 c4 18 04 00 00 	add    $0x418,%rsp
+    49b7:	c3                   	ret
+    49b8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    49c0:	48 8b 0d 59 56 00 00 	mov    0x5659(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    49c7:	ba 12 00 00 00       	mov    $0x12,%edx
+    49cc:	be 01 00 00 00       	mov    $0x1,%esi
+    49d1:	48 8d 3d 5f 27 00 00 	lea    0x275f(%rip),%rdi        # 7137 <_IO_stdin_used+0x137>
+    49d8:	e8 e3 da ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    4a0d:	bf 01 00 00 00       	mov    $0x1,%edi
-    4a12:	e8 89 da ff ff       	call   24a0 <exit@plt>
+    49dd:	bf 01 00 00 00       	mov    $0x1,%edi
+    49e2:	e8 b9 da ff ff       	call   24a0 <exit@plt>
 }
-    4a17:	e8 14 d9 ff ff       	call   2330 <__stack_chk_fail@plt>
-    4a1c:	0f 1f 40 00          	nopl   0x0(%rax)
+    49e7:	e8 44 d9 ff ff       	call   2330 <__stack_chk_fail@plt>
+    49ec:	0f 1f 40 00          	nopl   0x0(%rax)
 
-0000000000004a20 <add_accept_request>:
+00000000000049f0 <add_accept_request>:
                        socklen_t *client_addr_len, struct io_uring *ring) {
-    4a20:	f3 0f 1e fa          	endbr64
-    4a24:	55                   	push   %rbp
-    4a25:	53                   	push   %rbx
-    4a26:	48 89 cb             	mov    %rcx,%rbx
-    4a29:	48 83 ec 08          	sub    $0x8,%rsp
+    49f0:	f3 0f 1e fa          	endbr64
+    49f4:	55                   	push   %rbp
+    49f5:	53                   	push   %rbx
+    49f6:	48 89 cb             	mov    %rcx,%rbx
+    49f9:	48 83 ec 08          	sub    $0x8,%rsp
 	unsigned int head, next = sq->sqe_tail + 1;
-    4a2d:	8b 41 44             	mov    0x44(%rcx),%eax
+    49fd:	8b 41 44             	mov    0x44(%rcx),%eax
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4a30:	4c 8b 03             	mov    (%rbx),%r8
+    4a00:	4c 8b 03             	mov    (%rbx),%r8
 	if (ring->flags & IORING_SETUP_SQE128)
-    4a33:	8b 89 c0 00 00 00    	mov    0xc0(%rcx),%ecx
+    4a03:	8b 89 c0 00 00 00    	mov    0xc0(%rcx),%ecx
 	unsigned int head, next = sq->sqe_tail + 1;
-    4a39:	83 c0 01             	add    $0x1,%eax
+    4a09:	83 c0 01             	add    $0x1,%eax
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4a3c:	45 8b 08             	mov    (%r8),%r9d
+    4a0c:	45 8b 08             	mov    (%r8),%r9d
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    4a3f:	f6 c1 02             	test   $0x2,%cl
-    4a42:	74 00                	je     4a44 <add_accept_request+0x24>
+    4a0f:	f6 c1 02             	test   $0x2,%cl
+    4a12:	74 00                	je     4a14 <add_accept_request+0x24>
 	if (next - head <= sq->ring_entries) {
-    4a44:	41 89 c0             	mov    %eax,%r8d
-    4a47:	45 29 c8             	sub    %r9d,%r8d
-    4a4a:	44 39 43 5c          	cmp    %r8d,0x5c(%rbx)
-    4a4e:	0f 82 38 db ff ff    	jb     258c <add_accept_request.cold>
+    4a14:	41 89 c0             	mov    %eax,%r8d
+    4a17:	45 29 c8             	sub    %r9d,%r8d
+    4a1a:	44 39 43 5c          	cmp    %r8d,0x5c(%rbx)
+    4a1e:	0f 82 68 db ff ff    	jb     258c <add_accept_request.cold>
 	if (ring->flags & IORING_SETUP_SQE128)
-    4a54:	c1 e9 0a             	shr    $0xa,%ecx
+    4a24:	c1 e9 0a             	shr    $0xa,%ecx
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4a57:	8b 6b 44             	mov    0x44(%rbx),%ebp
-    4a5a:	23 6b 58             	and    0x58(%rbx),%ebp
+    4a27:	8b 6b 44             	mov    0x44(%rbx),%ebp
+    4a2a:	23 6b 58             	and    0x58(%rbx),%ebp
 		sq->sqe_tail = next;
-    4a5d:	89 43 44             	mov    %eax,0x44(%rbx)
+    4a2d:	89 43 44             	mov    %eax,0x44(%rbx)
 	if (ring->flags & IORING_SETUP_SQE128)
-    4a60:	83 e1 01             	and    $0x1,%ecx
+    4a30:	83 e1 01             	and    $0x1,%ecx
 	sqe->addr3 = 0;
-    4a63:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4a33:	66 0f ef c0          	pxor   %xmm0,%xmm0
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4a67:	d3 e5                	shl    %cl,%ebp
-    4a69:	48 c1 e5 06          	shl    $0x6,%rbp
-    4a6d:	48 03 6b 38          	add    0x38(%rbx),%rbp
+    4a37:	d3 e5                	shl    %cl,%ebp
+    4a39:	48 c1 e5 06          	shl    $0x6,%rbp
+    4a3d:	48 03 6b 38          	add    0x38(%rbx),%rbp
 	sqe->fd = fd;
-    4a71:	89 7d 04             	mov    %edi,0x4(%rbp)
+    4a41:	89 7d 04             	mov    %edi,0x4(%rbp)
   struct Request *req = malloc(sizeof(*req));
-    4a74:	bf 10 00 00 00       	mov    $0x10,%edi
+    4a44:	bf 10 00 00 00       	mov    $0x10,%edi
 	sqe->opcode = (__u8) op;
-    4a79:	c7 45 00 0d 00 00 00 	movl   $0xd,0x0(%rbp)
+    4a49:	c7 45 00 0d 00 00 00 	movl   $0xd,0x0(%rbp)
 	sqe->off = offset;
-    4a80:	48 89 55 08          	mov    %rdx,0x8(%rbp)
+    4a50:	48 89 55 08          	mov    %rdx,0x8(%rbp)
 	sqe->addr = (unsigned long) addr;
-    4a84:	48 89 75 10          	mov    %rsi,0x10(%rbp)
+    4a54:	48 89 75 10          	mov    %rsi,0x10(%rbp)
 	sqe->buf_index = 0;
-    4a88:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
+    4a58:	48 c7 45 28 00 00 00 00 	movq   $0x0,0x28(%rbp)
 	sqe->len = len;
-    4a90:	48 c7 45 18 00 00 00 00 	movq   $0x0,0x18(%rbp)
+    4a60:	48 c7 45 18 00 00 00 00 	movq   $0x0,0x18(%rbp)
 	sqe->addr3 = 0;
-    4a98:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
-    4a9c:	e8 6f d9 ff ff       	call   2410 <malloc@plt>
+    4a68:	0f 11 45 30          	movups %xmm0,0x30(%rbp)
+    4a6c:	e8 9f d9 ff ff       	call   2410 <malloc@plt>
   io_uring_submit(ring);
-    4aa1:	48 89 df             	mov    %rbx,%rdi
+    4a71:	48 89 df             	mov    %rbx,%rdi
   req->event_type = EVENT_TYPE_ACCEPT;
-    4aa4:	c7 00 00 00 00 00    	movl   $0x0,(%rax)
+    4a74:	c7 00 00 00 00 00    	movl   $0x0,(%rax)
 	sqe->user_data = (unsigned long) data;
-    4aaa:	48 89 45 20          	mov    %rax,0x20(%rbp)
+    4a7a:	48 89 45 20          	mov    %rax,0x20(%rbp)
 }
-    4aae:	48 83 c4 08          	add    $0x8,%rsp
-    4ab2:	5b                   	pop    %rbx
-    4ab3:	5d                   	pop    %rbp
+    4a7e:	48 83 c4 08          	add    $0x8,%rsp
+    4a82:	5b                   	pop    %rbx
+    4a83:	5d                   	pop    %rbp
   io_uring_submit(ring);
-    4ab4:	e9 87 d8 ff ff       	jmp    2340 <io_uring_submit@plt>
-    4ab9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    4a84:	e9 b7 d8 ff ff       	jmp    2340 <io_uring_submit@plt>
+    4a89:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000004ac0 <io_thread>:
+0000000000004a90 <io_thread>:
 void* io_thread(void *arg) {
-    4ac0:	f3 0f 1e fa          	endbr64
-    4ac4:	41 57                	push   %r15
+    4a90:	f3 0f 1e fa          	endbr64
+    4a94:	41 57                	push   %r15
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-    4ac6:	31 d2                	xor    %edx,%edx
+    4a96:	31 d2                	xor    %edx,%edx
 void* io_thread(void *arg) {
-    4ac8:	41 56                	push   %r14
-    4aca:	41 55                	push   %r13
-    4acc:	41 54                	push   %r12
-    4ace:	55                   	push   %rbp
-    4acf:	48 89 fd             	mov    %rdi,%rbp
-    4ad2:	53                   	push   %rbx
-    4ad3:	48 81 ec 58 05 00 00 	sub    $0x558,%rsp
+    4a98:	41 56                	push   %r14
+    4a9a:	41 55                	push   %r13
+    4a9c:	41 54                	push   %r12
+    4a9e:	55                   	push   %rbp
+    4a9f:	48 89 fd             	mov    %rdi,%rbp
+    4aa2:	53                   	push   %rbx
+    4aa3:	48 81 ec 58 05 00 00 	sub    $0x558,%rsp
   struct io_uring ring = *data->ring;
-    4ada:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-    4ae3:	48 89 84 24 48 05 00 00 	mov    %rax,0x548(%rsp)
-    4aeb:	48 8b 47 48          	mov    0x48(%rdi),%rax
+    4aaa:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+    4ab3:	48 89 84 24 48 05 00 00 	mov    %rax,0x548(%rsp)
+    4abb:	48 8b 47 48          	mov    0x48(%rdi),%rax
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-    4aef:	48 8d 5c 24 60       	lea    0x60(%rsp),%rbx
-    4af4:	bf 00 01 00 00       	mov    $0x100,%edi
-    4af9:	48 89 de             	mov    %rbx,%rsi
+    4abf:	48 8d 5c 24 60       	lea    0x60(%rsp),%rbx
+    4ac4:	bf 00 01 00 00       	mov    $0x100,%edi
+    4ac9:	48 89 de             	mov    %rbx,%rsi
   struct io_uring ring = *data->ring;
-    4afc:	f3 0f 6f 08          	movdqu (%rax),%xmm1
-    4b00:	0f 29 4c 24 60       	movaps %xmm1,0x60(%rsp)
-    4b05:	f3 0f 6f 50 10       	movdqu 0x10(%rax),%xmm2
-    4b0a:	0f 29 54 24 70       	movaps %xmm2,0x70(%rsp)
-    4b0f:	f3 0f 6f 58 20       	movdqu 0x20(%rax),%xmm3
-    4b14:	0f 29 9c 24 80 00 00 00 	movaps %xmm3,0x80(%rsp)
-    4b1c:	f3 0f 6f 60 30       	movdqu 0x30(%rax),%xmm4
-    4b21:	0f 29 a4 24 90 00 00 00 	movaps %xmm4,0x90(%rsp)
-    4b29:	f3 0f 6f 68 40       	movdqu 0x40(%rax),%xmm5
-    4b2e:	0f 29 ac 24 a0 00 00 00 	movaps %xmm5,0xa0(%rsp)
-    4b36:	f3 0f 6f 70 50       	movdqu 0x50(%rax),%xmm6
-    4b3b:	0f 29 b4 24 b0 00 00 00 	movaps %xmm6,0xb0(%rsp)
-    4b43:	f3 0f 6f 78 60       	movdqu 0x60(%rax),%xmm7
-    4b48:	0f 29 bc 24 c0 00 00 00 	movaps %xmm7,0xc0(%rsp)
-    4b50:	f3 0f 6f 48 70       	movdqu 0x70(%rax),%xmm1
-    4b55:	0f 29 8c 24 d0 00 00 00 	movaps %xmm1,0xd0(%rsp)
-    4b5d:	f3 0f 6f 90 80 00 00 00 	movdqu 0x80(%rax),%xmm2
-    4b65:	0f 29 94 24 e0 00 00 00 	movaps %xmm2,0xe0(%rsp)
-    4b6d:	f3 0f 6f 98 90 00 00 00 	movdqu 0x90(%rax),%xmm3
-    4b75:	0f 29 9c 24 f0 00 00 00 	movaps %xmm3,0xf0(%rsp)
-    4b7d:	f3 0f 6f a0 a0 00 00 00 	movdqu 0xa0(%rax),%xmm4
-    4b85:	0f 29 a4 24 00 01 00 00 	movaps %xmm4,0x100(%rsp)
-    4b8d:	f3 0f 6f a8 b0 00 00 00 	movdqu 0xb0(%rax),%xmm5
-    4b95:	0f 29 ac 24 10 01 00 00 	movaps %xmm5,0x110(%rsp)
-    4b9d:	f3 0f 6f b0 c0 00 00 00 	movdqu 0xc0(%rax),%xmm6
-    4ba5:	0f 29 b4 24 20 01 00 00 	movaps %xmm6,0x120(%rsp)
-    4bad:	48 8b 80 d0 00 00 00 	mov    0xd0(%rax),%rax
-    4bb4:	48 89 84 24 30 01 00 00 	mov    %rax,0x130(%rsp)
+    4acc:	f3 0f 6f 08          	movdqu (%rax),%xmm1
+    4ad0:	0f 29 4c 24 60       	movaps %xmm1,0x60(%rsp)
+    4ad5:	f3 0f 6f 50 10       	movdqu 0x10(%rax),%xmm2
+    4ada:	0f 29 54 24 70       	movaps %xmm2,0x70(%rsp)
+    4adf:	f3 0f 6f 58 20       	movdqu 0x20(%rax),%xmm3
+    4ae4:	0f 29 9c 24 80 00 00 00 	movaps %xmm3,0x80(%rsp)
+    4aec:	f3 0f 6f 60 30       	movdqu 0x30(%rax),%xmm4
+    4af1:	0f 29 a4 24 90 00 00 00 	movaps %xmm4,0x90(%rsp)
+    4af9:	f3 0f 6f 68 40       	movdqu 0x40(%rax),%xmm5
+    4afe:	0f 29 ac 24 a0 00 00 00 	movaps %xmm5,0xa0(%rsp)
+    4b06:	f3 0f 6f 70 50       	movdqu 0x50(%rax),%xmm6
+    4b0b:	0f 29 b4 24 b0 00 00 00 	movaps %xmm6,0xb0(%rsp)
+    4b13:	f3 0f 6f 78 60       	movdqu 0x60(%rax),%xmm7
+    4b18:	0f 29 bc 24 c0 00 00 00 	movaps %xmm7,0xc0(%rsp)
+    4b20:	f3 0f 6f 48 70       	movdqu 0x70(%rax),%xmm1
+    4b25:	0f 29 8c 24 d0 00 00 00 	movaps %xmm1,0xd0(%rsp)
+    4b2d:	f3 0f 6f 90 80 00 00 00 	movdqu 0x80(%rax),%xmm2
+    4b35:	0f 29 94 24 e0 00 00 00 	movaps %xmm2,0xe0(%rsp)
+    4b3d:	f3 0f 6f 98 90 00 00 00 	movdqu 0x90(%rax),%xmm3
+    4b45:	0f 29 9c 24 f0 00 00 00 	movaps %xmm3,0xf0(%rsp)
+    4b4d:	f3 0f 6f a0 a0 00 00 00 	movdqu 0xa0(%rax),%xmm4
+    4b55:	0f 29 a4 24 00 01 00 00 	movaps %xmm4,0x100(%rsp)
+    4b5d:	f3 0f 6f a8 b0 00 00 00 	movdqu 0xb0(%rax),%xmm5
+    4b65:	0f 29 ac 24 10 01 00 00 	movaps %xmm5,0x110(%rsp)
+    4b6d:	f3 0f 6f b0 c0 00 00 00 	movdqu 0xc0(%rax),%xmm6
+    4b75:	0f 29 b4 24 20 01 00 00 	movaps %xmm6,0x120(%rsp)
+    4b7d:	48 8b 80 d0 00 00 00 	mov    0xd0(%rax),%rax
+    4b84:	48 89 84 24 30 01 00 00 	mov    %rax,0x130(%rsp)
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-    4bbc:	e8 2f d8 ff ff       	call   23f0 <io_uring_queue_init@plt>
+    4b8c:	e8 5f d8 ff ff       	call   23f0 <io_uring_queue_init@plt>
   io_uring_register_eventfd(data->ring, 0);
-    4bc1:	48 8b 7d 48          	mov    0x48(%rbp),%rdi
-    4bc5:	31 f6                	xor    %esi,%esi
-    4bc7:	e8 14 d9 ff ff       	call   24e0 <io_uring_register_eventfd@plt>
+    4b91:	48 8b 7d 48          	mov    0x48(%rbp),%rdi
+    4b95:	31 f6                	xor    %esi,%esi
+    4b97:	e8 44 d9 ff ff       	call   24e0 <io_uring_register_eventfd@plt>
   sock = socket(PF_INET, SOCK_STREAM, 0);
-    4bcc:	31 d2                	xor    %edx,%edx
-    4bce:	be 01 00 00 00       	mov    $0x1,%esi
-    4bd3:	bf 02 00 00 00       	mov    $0x2,%edi
-    4bd8:	e8 53 d9 ff ff       	call   2530 <socket@plt>
+    4b9c:	31 d2                	xor    %edx,%edx
+    4b9e:	be 01 00 00 00       	mov    $0x1,%esi
+    4ba3:	bf 02 00 00 00       	mov    $0x2,%edi
+    4ba8:	e8 83 d9 ff ff       	call   2530 <socket@plt>
   if (sock == -1)
-    4bdd:	83 f8 ff             	cmp    $0xffffffff,%eax
-    4be0:	0f 84 e8 d9 ff ff    	je     25ce <io_thread.cold+0x38>
+    4bad:	83 f8 ff             	cmp    $0xffffffff,%eax
+    4bb0:	0f 84 18 da ff ff    	je     25ce <io_thread.cold+0x38>
   if (setsockopt(sock,
-    4be6:	48 8d 4c 24 30       	lea    0x30(%rsp),%rcx
-    4beb:	41 b8 04 00 00 00    	mov    $0x4,%r8d
-    4bf1:	89 c7                	mov    %eax,%edi
-    4bf3:	41 89 c4             	mov    %eax,%r12d
-    4bf6:	ba 02 00 00 00       	mov    $0x2,%edx
-    4bfb:	be 01 00 00 00       	mov    $0x1,%esi
+    4bb6:	48 8d 4c 24 30       	lea    0x30(%rsp),%rcx
+    4bbb:	41 b8 04 00 00 00    	mov    $0x4,%r8d
+    4bc1:	89 c7                	mov    %eax,%edi
+    4bc3:	41 89 c4             	mov    %eax,%r12d
+    4bc6:	ba 02 00 00 00       	mov    $0x2,%edx
+    4bcb:	be 01 00 00 00       	mov    $0x1,%esi
   int enable = 1;
-    4c00:	c7 44 24 30 01 00 00 00 	movl   $0x1,0x30(%rsp)
+    4bd0:	c7 44 24 30 01 00 00 00 	movl   $0x1,0x30(%rsp)
   if (setsockopt(sock,
-    4c08:	e8 f3 d6 ff ff       	call   2300 <setsockopt@plt>
-    4c0d:	85 c0                	test   %eax,%eax
-    4c0f:	0f 88 8d d9 ff ff    	js     25a2 <io_thread.cold+0xc>
+    4bd8:	e8 23 d7 ff ff       	call   2300 <setsockopt@plt>
+    4bdd:	85 c0                	test   %eax,%eax
+    4bdf:	0f 88 bd d9 ff ff    	js     25a2 <io_thread.cold+0xc>
   return __builtin___memset_chk (__dest, __ch, __len,
-    4c15:	48 8d 74 24 40       	lea    0x40(%rsp),%rsi
+    4be5:	48 8d 74 24 40       	lea    0x40(%rsp),%rsi
   if (bind(sock,
-    4c1a:	ba 10 00 00 00       	mov    $0x10,%edx
-    4c1f:	44 89 e7             	mov    %r12d,%edi
-    4c22:	48 c7 44 24 44 00 00 00 00 	movq   $0x0,0x44(%rsp)
-    4c2b:	c7 44 24 4c 00 00 00 00 	movl   $0x0,0x4c(%rsp)
+    4bea:	ba 10 00 00 00       	mov    $0x10,%edx
+    4bef:	44 89 e7             	mov    %r12d,%edi
+    4bf2:	48 c7 44 24 44 00 00 00 00 	movq   $0x0,0x44(%rsp)
+    4bfb:	c7 44 24 4c 00 00 00 00 	movl   $0x0,0x4c(%rsp)
   srv_addr.sin_family = AF_INET;
-    4c33:	c7 44 24 40 02 00 18 db 	movl   $0xdb180002,0x40(%rsp)
+    4c03:	c7 44 24 40 02 00 18 db 	movl   $0xdb180002,0x40(%rsp)
   if (bind(sock,
-    4c3b:	e8 20 d8 ff ff       	call   2460 <bind@plt>
-    4c40:	85 c0                	test   %eax,%eax
-    4c42:	0f 88 92 d9 ff ff    	js     25da <io_thread.cold+0x44>
+    4c0b:	e8 50 d8 ff ff       	call   2460 <bind@plt>
+    4c10:	85 c0                	test   %eax,%eax
+    4c12:	0f 88 c2 d9 ff ff    	js     25da <io_thread.cold+0x44>
   if (listen(sock, 10) < 0) {
-    4c48:	be 0a 00 00 00       	mov    $0xa,%esi
+    4c18:	be 0a 00 00 00       	mov    $0xa,%esi
+    4c1d:	44 89 e7             	mov    %r12d,%edi
+    4c20:	e8 fb d7 ff ff       	call   2420 <listen@plt>
+    4c25:	85 c0                	test   %eax,%eax
+    4c27:	0f 88 81 d9 ff ff    	js     25ae <io_thread.cold+0x18>
+  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
+    4c2d:	ba db 18 00 00       	mov    $0x18db,%edx
+    4c32:	48 8d 35 43 25 00 00 	lea    0x2543(%rip),%rsi        # 717c <_IO_stdin_used+0x17c>
+    4c39:	bf 01 00 00 00       	mov    $0x1,%edi
+    4c3e:	31 c0                	xor    %eax,%eax
+    4c40:	e8 0b d8 ff ff       	call   2450 <__printf_chk@plt>
+  add_accept_request(sock, &client_addr, &client_addr_len, &ring);
+    4c45:	48 8d 44 24 50       	lea    0x50(%rsp),%rax
+    4c4a:	48 89 d9             	mov    %rbx,%rcx
     4c4d:	44 89 e7             	mov    %r12d,%edi
-    4c50:	e8 cb d7 ff ff       	call   2420 <listen@plt>
-    4c55:	85 c0                	test   %eax,%eax
-    4c57:	0f 88 51 d9 ff ff    	js     25ae <io_thread.cold+0x18>
-  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    4c5d:	ba db 18 00 00       	mov    $0x18db,%edx
-    4c62:	48 8d 35 13 25 00 00 	lea    0x2513(%rip),%rsi        # 717c <_IO_stdin_used+0x17c>
-    4c69:	bf 01 00 00 00       	mov    $0x1,%edi
-    4c6e:	31 c0                	xor    %eax,%eax
-    4c70:	e8 db d7 ff ff       	call   2450 <__printf_chk@plt>
-  add_accept_request(sock, &client_addr, &client_addr_len, &ring);
-    4c75:	48 8d 44 24 50       	lea    0x50(%rsp),%rax
-    4c7a:	48 89 d9             	mov    %rbx,%rcx
-    4c7d:	44 89 e7             	mov    %r12d,%edi
-    4c80:	48 8d 54 24 34       	lea    0x34(%rsp),%rdx
-    4c85:	48 89 c6             	mov    %rax,%rsi
-    4c88:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
-    4c8d:	48 89 54 24 18       	mov    %rdx,0x18(%rsp)
+    4c50:	48 8d 54 24 34       	lea    0x34(%rsp),%rdx
+    4c55:	48 89 c6             	mov    %rax,%rsi
+    4c58:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+    4c5d:	48 89 54 24 18       	mov    %rdx,0x18(%rsp)
   socklen_t client_addr_len = sizeof(client_addr);
-    4c92:	c7 44 24 34 10 00 00 00 	movl   $0x10,0x34(%rsp)
+    4c62:	c7 44 24 34 10 00 00 00 	movl   $0x10,0x34(%rsp)
   add_accept_request(sock, &client_addr, &client_addr_len, &ring);
-    4c9a:	e8 81 fd ff ff       	call   4a20 <add_accept_request>
+    4c6a:	e8 81 fd ff ff       	call   49f0 <add_accept_request>
   struct iovec *iov = calloc(1, sizeof(struct iovec));
-    4c9f:	bf 01 00 00 00       	mov    $0x1,%edi
-    4ca4:	be 10 00 00 00       	mov    $0x10,%esi
-    4ca9:	e8 f2 d6 ff ff       	call   23a0 <calloc@plt>
+    4c6f:	bf 01 00 00 00       	mov    $0x1,%edi
+    4c74:	be 10 00 00 00       	mov    $0x10,%esi
+    4c79:	e8 22 d7 ff ff       	call   23a0 <calloc@plt>
     void *buf = malloc(size);
-    4cae:	bf 0a 00 00 00       	mov    $0xa,%edi
+    4c7e:	bf 0a 00 00 00       	mov    $0xa,%edi
   struct iovec *iov = calloc(1, sizeof(struct iovec));
-    4cb3:	49 89 c5             	mov    %rax,%r13
+    4c83:	49 89 c5             	mov    %rax,%r13
     void *buf = malloc(size);
-    4cb6:	e8 55 d7 ff ff       	call   2410 <malloc@plt>
+    4c86:	e8 85 d7 ff ff       	call   2410 <malloc@plt>
     if (!buf) {
-    4cbb:	48 85 c0             	test   %rax,%rax
-    4cbe:	0f 84 ae 04 00 00    	je     5172 <io_thread+0x6b2>
+    4c8b:	48 85 c0             	test   %rax,%rax
+    4c8e:	0f 84 ae 04 00 00    	je     5142 <io_thread+0x6b2>
   iov->iov_base = zh_malloc(10);
-    4cc4:	49 89 45 00          	mov    %rax,0x0(%r13)
+    4c94:	49 89 45 00          	mov    %rax,0x0(%r13)
 	unsigned int head, next = sq->sqe_tail + 1;
-    4cc8:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
+    4c98:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    4ccf:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
+    4c9f:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
   iov->iov_len = 10;
-    4cd6:	49 c7 45 08 0a 00 00 00 	movq   $0xa,0x8(%r13)
+    4ca6:	49 c7 45 08 0a 00 00 00 	movq   $0xa,0x8(%r13)
 	unsigned int head, next = sq->sqe_tail + 1;
-    4cde:	8d 50 01             	lea    0x1(%rax),%edx
+    4cae:	8d 50 01             	lea    0x1(%rax),%edx
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4ce1:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
-    4ce6:	8b 30                	mov    (%rax),%esi
+    4cb1:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
+    4cb6:	8b 30                	mov    (%rax),%esi
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    4ce8:	f6 c1 02             	test   $0x2,%cl
-    4ceb:	0f 85 0f 04 00 00    	jne    5100 <io_thread+0x640>
+    4cb8:	f6 c1 02             	test   $0x2,%cl
+    4cbb:	0f 85 0f 04 00 00    	jne    50d0 <io_thread+0x640>
 	if (next - head <= sq->ring_entries) {
-    4cf1:	89 d0                	mov    %edx,%eax
-    4cf3:	29 f0                	sub    %esi,%eax
-    4cf5:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
-    4cfc:	0f 82 c2 d8 ff ff    	jb     25c4 <io_thread.cold+0x2e>
+    4cc1:	89 d0                	mov    %edx,%eax
+    4cc3:	29 f0                	sub    %esi,%eax
+    4cc5:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
+    4ccc:	0f 82 f2 d8 ff ff    	jb     25c4 <io_thread.cold+0x2e>
 	if (ring->flags & IORING_SETUP_SQE128)
-    4d02:	c1 e9 0a             	shr    $0xa,%ecx
+    4cd2:	c1 e9 0a             	shr    $0xa,%ecx
         io_uring_sqe_set_data(sqe, &data->_eventfd); 
-    4d05:	48 8d 75 50          	lea    0x50(%rbp),%rsi
+    4cd5:	48 8d 75 50          	lea    0x50(%rbp),%rsi
 	sqe->addr3 = 0;
-    4d09:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4cd9:	66 0f ef c0          	pxor   %xmm0,%xmm0
   io_uring_submit(&ring);
-    4d0d:	48 89 df             	mov    %rbx,%rdi
+    4cdd:	48 89 df             	mov    %rbx,%rdi
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4d10:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
+    4ce0:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    4d17:	83 e1 01             	and    $0x1,%ecx
+    4ce7:	83 e1 01             	and    $0x1,%ecx
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4d1a:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
+    4cea:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
 		sq->sqe_tail = next;
-    4d21:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
+    4cf1:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4d28:	d3 e0                	shl    %cl,%eax
+    4cf8:	d3 e0                	shl    %cl,%eax
         io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
-    4d2a:	8b 55 50             	mov    0x50(%rbp),%edx
+    4cfa:	8b 55 50             	mov    0x50(%rbp),%edx
         io_uring_sqe_set_data(sqe, &data->_eventfd); 
-    4d2d:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
-    4d32:	48 c1 e0 06          	shl    $0x6,%rax
-    4d36:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
+    4cfd:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
+    4d02:	48 c1 e0 06          	shl    $0x6,%rax
+    4d06:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
 	sqe->opcode = (__u8) op;
-    4d3e:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
+    4d0e:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
 	sqe->fd = fd;
-    4d44:	89 50 04             	mov    %edx,0x4(%rax)
+    4d14:	89 50 04             	mov    %edx,0x4(%rax)
 	sqe->off = offset;
-    4d47:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
+    4d17:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
 	sqe->addr = (unsigned long) addr;
-    4d4f:	4c 89 68 10          	mov    %r13,0x10(%rax)
+    4d1f:	4c 89 68 10          	mov    %r13,0x10(%rax)
 	sqe->len = len;
-    4d53:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
+    4d23:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
 	sqe->buf_index = 0;
-    4d5b:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
+    4d2b:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
 	sqe->user_data = (unsigned long) data;
-    4d63:	48 89 70 20          	mov    %rsi,0x20(%rax)
+    4d33:	48 89 70 20          	mov    %rsi,0x20(%rax)
 	sqe->addr3 = 0;
-    4d67:	0f 11 40 30          	movups %xmm0,0x30(%rax)
+    4d37:	0f 11 40 30          	movups %xmm0,0x30(%rax)
   io_uring_submit(&ring);
-    4d6b:	e8 d0 d5 ff ff       	call   2340 <io_uring_submit@plt>
+    4d3b:	e8 00 d6 ff ff       	call   2340 <io_uring_submit@plt>
   while (data->running == 1) {
-    4d70:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
+    4d40:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
 	return __io_uring_get_cqe(ring, cqe_ptr, 0, wait_nr, NULL);
-    4d74:	4c 8d 4c 24 38       	lea    0x38(%rsp),%r9
-    4d79:	4c 8d 94 24 40 01 00 00 	lea    0x140(%rsp),%r10
-    4d81:	0f 85 d7 01 00 00    	jne    4f5e <io_thread+0x49e>
-    4d87:	44 89 64 24 24       	mov    %r12d,0x24(%rsp)
-    4d8c:	4d 89 ce             	mov    %r9,%r14
-    4d8f:	4c 89 54 24 28       	mov    %r10,0x28(%rsp)
-    4d94:	0f 1f 40 00          	nopl   0x0(%rax)
-    4d98:	48 8d 3d f3 23 00 00 	lea    0x23f3(%rip),%rdi        # 7192 <_IO_stdin_used+0x192>
-    4d9f:	e8 4c d5 ff ff       	call   22f0 <puts@plt>
+    4d44:	4c 8d 4c 24 38       	lea    0x38(%rsp),%r9
+    4d49:	4c 8d 94 24 40 01 00 00 	lea    0x140(%rsp),%r10
+    4d51:	0f 85 d7 01 00 00    	jne    4f2e <io_thread+0x49e>
+    4d57:	44 89 64 24 24       	mov    %r12d,0x24(%rsp)
+    4d5c:	4d 89 ce             	mov    %r9,%r14
+    4d5f:	4c 89 54 24 28       	mov    %r10,0x28(%rsp)
+    4d64:	0f 1f 40 00          	nopl   0x0(%rax)
+    4d68:	48 8d 3d 23 24 00 00 	lea    0x2423(%rip),%rdi        # 7192 <_IO_stdin_used+0x192>
+    4d6f:	e8 7c d5 ff ff       	call   22f0 <puts@plt>
 	if (ring->flags & IORING_SETUP_CQE32)
-    4da4:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
+    4d74:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
 	unsigned mask = ring->cq.ring_mask;
-    4dab:	8b bc 24 10 01 00 00 	mov    0x110(%rsp),%edi
+    4d7b:	8b bc 24 10 01 00 00 	mov    0x110(%rsp),%edi
 	if (ring->flags & IORING_SETUP_CQE32)
-    4db2:	c1 e9 0b             	shr    $0xb,%ecx
-    4db5:	83 e1 01             	and    $0x1,%ecx
+    4d82:	c1 e9 0b             	shr    $0xb,%ecx
+    4d85:	83 e1 01             	and    $0x1,%ecx
 		unsigned tail = io_uring_smp_load_acquire(ring->cq.ktail);
-    4db8:	48 8b 84 24 d0 00 00 00 	mov    0xd0(%rsp),%rax
-    4dc0:	8b 00                	mov    (%rax),%eax
+    4d88:	48 8b 84 24 d0 00 00 00 	mov    0xd0(%rsp),%rax
+    4d90:	8b 00                	mov    (%rax),%eax
 		unsigned head = *ring->cq.khead;
-    4dc2:	48 8b b4 24 c8 00 00 00 	mov    0xc8(%rsp),%rsi
-    4dca:	8b 16                	mov    (%rsi),%edx
+    4d92:	48 8b b4 24 c8 00 00 00 	mov    0xc8(%rsp),%rsi
+    4d9a:	8b 16                	mov    (%rsi),%edx
 		if (!available)
-    4dcc:	39 d0                	cmp    %edx,%eax
-    4dce:	74 36                	je     4e06 <io_thread+0x346>
+    4d9c:	39 d0                	cmp    %edx,%eax
+    4d9e:	74 36                	je     4dd6 <io_thread+0x346>
 		cqe = &ring->cq.cqes[(head & mask) << shift];
-    4dd0:	89 f8                	mov    %edi,%eax
-    4dd2:	21 d0                	and    %edx,%eax
-    4dd4:	d3 e0                	shl    %cl,%eax
-    4dd6:	48 c1 e0 04          	shl    $0x4,%rax
-    4dda:	48 03 84 24 f8 00 00 00 	add    0xf8(%rsp),%rax
+    4da0:	89 f8                	mov    %edi,%eax
+    4da2:	21 d0                	and    %edx,%eax
+    4da4:	d3 e0                	shl    %cl,%eax
+    4da6:	48 c1 e0 04          	shl    $0x4,%rax
+    4daa:	48 03 84 24 f8 00 00 00 	add    0xf8(%rsp),%rax
 		if (!(ring->features & IORING_FEAT_EXT_ARG) &&
-    4de2:	f6 84 24 29 01 00 00 01 	testb  $0x1,0x129(%rsp)
-    4dea:	0f 85 a8 01 00 00    	jne    4f98 <io_thread+0x4d8>
-    4df0:	48 83 38 ff          	cmpq   $0xffffffffffffffff,(%rax)
-    4df4:	0f 85 0e 03 00 00    	jne    5108 <io_thread+0x648>
+    4db2:	f6 84 24 29 01 00 00 01 	testb  $0x1,0x129(%rsp)
+    4dba:	0f 85 a8 01 00 00    	jne    4f68 <io_thread+0x4d8>
+    4dc0:	48 83 38 ff          	cmpq   $0xffffffffffffffff,(%rax)
+    4dc4:	0f 85 0e 03 00 00    	jne    50d8 <io_thread+0x648>
 			if (cqe->res < 0)
-    4dfa:	8b 40 08             	mov    0x8(%rax),%eax
+    4dca:	8b 40 08             	mov    0x8(%rax),%eax
 		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
-    4dfd:	83 c2 01             	add    $0x1,%edx
-    4e00:	89 16                	mov    %edx,(%rsi)
+    4dcd:	83 c2 01             	add    $0x1,%edx
+    4dd0:	89 16                	mov    %edx,(%rsi)
 			if (!err)
-    4e02:	85 c0                	test   %eax,%eax
-    4e04:	79 b2                	jns    4db8 <io_thread+0x2f8>
+    4dd2:	85 c0                	test   %eax,%eax
+    4dd4:	79 b2                	jns    4d88 <io_thread+0x2f8>
 	*cqe_ptr = cqe;
-    4e06:	48 c7 44 24 38 00 00 00 00 	movq   $0x0,0x38(%rsp)
+    4dd6:	48 c7 44 24 38 00 00 00 00 	movq   $0x0,0x38(%rsp)
 	return err;
-    4e0f:	90                   	nop
+    4ddf:	90                   	nop
 	return __io_uring_get_cqe(ring, cqe_ptr, 0, wait_nr, NULL);
-    4e10:	45 31 c0             	xor    %r8d,%r8d
-    4e13:	31 d2                	xor    %edx,%edx
-    4e15:	b9 01 00 00 00       	mov    $0x1,%ecx
-    4e1a:	4c 89 f6             	mov    %r14,%rsi
-    4e1d:	48 89 df             	mov    %rbx,%rdi
-    4e20:	e8 1b d6 ff ff       	call   2440 <__io_uring_get_cqe@plt>
-    4e25:	41 89 c7             	mov    %eax,%r15d
+    4de0:	45 31 c0             	xor    %r8d,%r8d
+    4de3:	31 d2                	xor    %edx,%edx
+    4de5:	b9 01 00 00 00       	mov    $0x1,%ecx
+    4dea:	4c 89 f6             	mov    %r14,%rsi
+    4ded:	48 89 df             	mov    %rbx,%rdi
+    4df0:	e8 4b d6 ff ff       	call   2440 <__io_uring_get_cqe@plt>
+    4df5:	41 89 c7             	mov    %eax,%r15d
       if (cqe->user_data == 1) {
-    4e28:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-    4e2d:	48 83 38 01          	cmpq   $0x1,(%rax)
-    4e31:	0f 84 e1 02 00 00    	je     5118 <io_thread+0x658>
-    4e37:	48 8d 3d 7a 23 00 00 	lea    0x237a(%rip),%rdi        # 71b8 <_IO_stdin_used+0x1b8>
-    4e3e:	e8 ad d4 ff ff       	call   22f0 <puts@plt>
+    4df8:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    4dfd:	48 83 38 01          	cmpq   $0x1,(%rax)
+    4e01:	0f 84 e1 02 00 00    	je     50e8 <io_thread+0x658>
+    4e07:	48 8d 3d aa 23 00 00 	lea    0x23aa(%rip),%rdi        # 71b8 <_IO_stdin_used+0x1b8>
+    4e0e:	e8 dd d4 ff ff       	call   22f0 <puts@plt>
       struct Request *req = (struct Request *) cqe->user_data;
-    4e43:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
-    4e48:	4c 8b 22             	mov    (%rdx),%r12
+    4e13:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
+    4e18:	4c 8b 22             	mov    (%rdx),%r12
       if (ret < 0)
-    4e4b:	45 85 ff             	test   %r15d,%r15d
-    4e4e:	0f 88 42 d7 ff ff    	js     2596 <io_thread.cold>
+    4e1b:	45 85 ff             	test   %r15d,%r15d
+    4e1e:	0f 88 72 d7 ff ff    	js     2596 <io_thread.cold>
       if (cqe->res < 0) {
-    4e54:	8b 42 08             	mov    0x8(%rdx),%eax
+    4e24:	8b 42 08             	mov    0x8(%rdx),%eax
           fprintf(stderr, "Async request failed: %s for event: %d\n",
-    4e57:	45 8b 04 24          	mov    (%r12),%r8d
+    4e27:	45 8b 04 24          	mov    (%r12),%r8d
       if (cqe->res < 0) {
-    4e5b:	85 c0                	test   %eax,%eax
-    4e5d:	0f 88 d5 02 00 00    	js     5138 <io_thread+0x678>
+    4e2b:	85 c0                	test   %eax,%eax
+    4e2d:	0f 88 d5 02 00 00    	js     5108 <io_thread+0x678>
       switch (req->event_type) {
-    4e63:	41 83 f8 01          	cmp    $0x1,%r8d
-    4e67:	0f 84 7b 01 00 00    	je     4fe8 <io_thread+0x528>
-    4e6d:	41 83 f8 02          	cmp    $0x2,%r8d
-    4e71:	0f 84 a1 01 00 00    	je     5018 <io_thread+0x558>
-    4e77:	45 85 c0             	test   %r8d,%r8d
-    4e7a:	0f 85 50 01 00 00    	jne    4fd0 <io_thread+0x510>
+    4e33:	41 83 f8 01          	cmp    $0x1,%r8d
+    4e37:	0f 84 7b 01 00 00    	je     4fb8 <io_thread+0x528>
+    4e3d:	41 83 f8 02          	cmp    $0x2,%r8d
+    4e41:	0f 84 a1 01 00 00    	je     4fe8 <io_thread+0x558>
+    4e47:	45 85 c0             	test   %r8d,%r8d
+    4e4a:	0f 85 50 01 00 00    	jne    4fa0 <io_thread+0x510>
               add_accept_request(sock, &client_addr, &client_addr_len, &ring);
-    4e80:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
-    4e85:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
-    4e8a:	48 89 d9             	mov    %rbx,%rcx
-    4e8d:	8b 7c 24 24          	mov    0x24(%rsp),%edi
-    4e91:	e8 8a fb ff ff       	call   4a20 <add_accept_request>
+    4e50:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
+    4e55:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
+    4e5a:	48 89 d9             	mov    %rbx,%rcx
+    4e5d:	8b 7c 24 24          	mov    0x24(%rsp),%edi
+    4e61:	e8 8a fb ff ff       	call   49f0 <add_accept_request>
               add_read_request(cqe->res, &ring);
-    4e96:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-    4e9b:	48 89 de             	mov    %rbx,%rsi
-    4e9e:	8b 78 08             	mov    0x8(%rax),%edi
-    4ea1:	e8 1a f5 ff ff       	call   43c0 <add_read_request>
+    4e66:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    4e6b:	48 89 de             	mov    %rbx,%rsi
+    4e6e:	8b 78 08             	mov    0x8(%rax),%edi
+    4e71:	e8 1a f5 ff ff       	call   4390 <add_read_request>
               free(req);
-    4ea6:	4c 89 e7             	mov    %r12,%rdi
-    4ea9:	e8 12 d4 ff ff       	call   22c0 <free@plt>
+    4e76:	4c 89 e7             	mov    %r12,%rdi
+    4e79:	e8 42 d4 ff ff       	call   22c0 <free@plt>
       io_uring_cqe_seen(&ring, cqe);
-    4eae:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    4e7e:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
 	if (cqe)
-    4eb3:	48 85 c0             	test   %rax,%rax
-    4eb6:	0f 85 14 01 00 00    	jne    4fd0 <io_thread+0x510>
+    4e83:	48 85 c0             	test   %rax,%rax
+    4e86:	0f 85 14 01 00 00    	jne    4fa0 <io_thread+0x510>
 	unsigned int head, next = sq->sqe_tail + 1;
-    4ebc:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
+    4e8c:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    4ec3:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
+    4e93:	8b 8c 24 20 01 00 00 	mov    0x120(%rsp),%ecx
 	unsigned int head, next = sq->sqe_tail + 1;
-    4eca:	8d 50 01             	lea    0x1(%rax),%edx
+    4e9a:	8d 50 01             	lea    0x1(%rax),%edx
 		head = IO_URING_READ_ONCE(*sq->khead);
-    4ecd:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
-    4ed2:	8b 30                	mov    (%rax),%esi
+    4e9d:	48 8b 44 24 60       	mov    0x60(%rsp),%rax
+    4ea2:	8b 30                	mov    (%rax),%esi
 	if (!(ring->flags & IORING_SETUP_SQPOLL))
-    4ed4:	f6 c1 02             	test   $0x2,%cl
-    4ed7:	74 00                	je     4ed9 <io_thread+0x419>
+    4ea4:	f6 c1 02             	test   $0x2,%cl
+    4ea7:	74 00                	je     4ea9 <io_thread+0x419>
 	if (next - head <= sq->ring_entries) {
-    4ed9:	89 d0                	mov    %edx,%eax
-    4edb:	29 f0                	sub    %esi,%eax
-    4edd:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
-    4ee4:	0f 82 d0 d6 ff ff    	jb     25ba <io_thread.cold+0x24>
+    4ea9:	89 d0                	mov    %edx,%eax
+    4eab:	29 f0                	sub    %esi,%eax
+    4ead:	39 84 24 bc 00 00 00 	cmp    %eax,0xbc(%rsp)
+    4eb4:	0f 82 00 d7 ff ff    	jb     25ba <io_thread.cold+0x24>
 	if (ring->flags & IORING_SETUP_SQE128)
-    4eea:	c1 e9 0a             	shr    $0xa,%ecx
+    4eba:	c1 e9 0a             	shr    $0xa,%ecx
 	sqe->user_data = (unsigned long) data;
-    4eed:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
+    4ebd:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
 	sqe->addr3 = 0;
-    4ef2:	66 0f ef c0          	pxor   %xmm0,%xmm0
+    4ec2:	66 0f ef c0          	pxor   %xmm0,%xmm0
       io_uring_submit(&ring);
-    4ef6:	48 89 df             	mov    %rbx,%rdi
+    4ec6:	48 89 df             	mov    %rbx,%rdi
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4ef9:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
+    4ec9:	8b 84 24 a4 00 00 00 	mov    0xa4(%rsp),%eax
 	if (ring->flags & IORING_SETUP_SQE128)
-    4f00:	83 e1 01             	and    $0x1,%ecx
+    4ed0:	83 e1 01             	and    $0x1,%ecx
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4f03:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
+    4ed3:	23 84 24 b8 00 00 00 	and    0xb8(%rsp),%eax
 		sq->sqe_tail = next;
-    4f0a:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
+    4eda:	89 94 24 a4 00 00 00 	mov    %edx,0xa4(%rsp)
 		sqe = &sq->sqes[(sq->sqe_tail & sq->ring_mask) << shift];
-    4f11:	d3 e0                	shl    %cl,%eax
+    4ee1:	d3 e0                	shl    %cl,%eax
         io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
-    4f13:	8b 55 50             	mov    0x50(%rbp),%edx
-    4f16:	48 c1 e0 06          	shl    $0x6,%rax
-    4f1a:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
+    4ee3:	8b 55 50             	mov    0x50(%rbp),%edx
+    4ee6:	48 c1 e0 06          	shl    $0x6,%rax
+    4eea:	48 03 84 24 98 00 00 00 	add    0x98(%rsp),%rax
 	sqe->opcode = (__u8) op;
-    4f22:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
+    4ef2:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
 	sqe->fd = fd;
-    4f28:	89 50 04             	mov    %edx,0x4(%rax)
+    4ef8:	89 50 04             	mov    %edx,0x4(%rax)
 	sqe->off = offset;
-    4f2b:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
+    4efb:	48 c7 40 08 00 00 00 00 	movq   $0x0,0x8(%rax)
 	sqe->addr = (unsigned long) addr;
-    4f33:	4c 89 68 10          	mov    %r13,0x10(%rax)
+    4f03:	4c 89 68 10          	mov    %r13,0x10(%rax)
 	sqe->len = len;
-    4f37:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
+    4f07:	48 c7 40 18 01 00 00 00 	movq   $0x1,0x18(%rax)
 	sqe->buf_index = 0;
-    4f3f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
+    4f0f:	48 c7 40 28 00 00 00 00 	movq   $0x0,0x28(%rax)
 	sqe->user_data = (unsigned long) data;
-    4f47:	48 89 70 20          	mov    %rsi,0x20(%rax)
+    4f17:	48 89 70 20          	mov    %rsi,0x20(%rax)
 	sqe->addr3 = 0;
-    4f4b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
+    4f1b:	0f 11 40 30          	movups %xmm0,0x30(%rax)
       io_uring_submit(&ring);
-    4f4f:	e8 ec d3 ff ff       	call   2340 <io_uring_submit@plt>
+    4f1f:	e8 1c d4 ff ff       	call   2340 <io_uring_submit@plt>
   while (data->running == 1) {
-    4f54:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
-    4f58:	0f 84 3a fe ff ff    	je     4d98 <io_thread+0x2d8>
-    4f5e:	48 8d 3d 8c 22 00 00 	lea    0x228c(%rip),%rdi        # 71f1 <_IO_stdin_used+0x1f1>
-    4f65:	e8 86 d3 ff ff       	call   22f0 <puts@plt>
+    4f24:	83 7d 34 01          	cmpl   $0x1,0x34(%rbp)
+    4f28:	0f 84 3a fe ff ff    	je     4d68 <io_thread+0x2d8>
+    4f2e:	48 8d 3d bc 22 00 00 	lea    0x22bc(%rip),%rdi        # 71f1 <_IO_stdin_used+0x1f1>
+    4f35:	e8 b6 d3 ff ff       	call   22f0 <puts@plt>
 }
-    4f6a:	48 8b 84 24 48 05 00 00 	mov    0x548(%rsp),%rax
-    4f72:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-    4f7b:	0f 85 18 02 00 00    	jne    5199 <io_thread+0x6d9>
-    4f81:	48 81 c4 58 05 00 00 	add    $0x558,%rsp
-    4f88:	31 c0                	xor    %eax,%eax
-    4f8a:	5b                   	pop    %rbx
-    4f8b:	5d                   	pop    %rbp
-    4f8c:	41 5c                	pop    %r12
-    4f8e:	41 5d                	pop    %r13
-    4f90:	41 5e                	pop    %r14
-    4f92:	41 5f                	pop    %r15
-    4f94:	c3                   	ret
-    4f95:	0f 1f 00             	nopl   (%rax)
+    4f3a:	48 8b 84 24 48 05 00 00 	mov    0x548(%rsp),%rax
+    4f42:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+    4f4b:	0f 85 18 02 00 00    	jne    5169 <io_thread+0x6d9>
+    4f51:	48 81 c4 58 05 00 00 	add    $0x558,%rsp
+    4f58:	31 c0                	xor    %eax,%eax
+    4f5a:	5b                   	pop    %rbx
+    4f5b:	5d                   	pop    %rbp
+    4f5c:	41 5c                	pop    %r12
+    4f5e:	41 5d                	pop    %r13
+    4f60:	41 5e                	pop    %r14
+    4f62:	41 5f                	pop    %r15
+    4f64:	c3                   	ret
+    4f65:	0f 1f 00             	nopl   (%rax)
 	*cqe_ptr = cqe;
-    4f98:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
+    4f68:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
 	if (!__io_uring_peek_cqe(ring, cqe_ptr, NULL) && *cqe_ptr)
-    4f9d:	48 85 c0             	test   %rax,%rax
-    4fa0:	0f 84 6a fe ff ff    	je     4e10 <io_thread+0x350>
+    4f6d:	48 85 c0             	test   %rax,%rax
+    4f70:	0f 84 6a fe ff ff    	je     4de0 <io_thread+0x350>
       if (cqe->user_data == 1) {
-    4fa6:	48 83 38 01          	cmpq   $0x1,(%rax)
-    4faa:	0f 84 68 01 00 00    	je     5118 <io_thread+0x658>
-    4fb0:	48 8d 3d 01 22 00 00 	lea    0x2201(%rip),%rdi        # 71b8 <_IO_stdin_used+0x1b8>
-    4fb7:	e8 34 d3 ff ff       	call   22f0 <puts@plt>
+    4f76:	48 83 38 01          	cmpq   $0x1,(%rax)
+    4f7a:	0f 84 68 01 00 00    	je     50e8 <io_thread+0x658>
+    4f80:	48 8d 3d 31 22 00 00 	lea    0x2231(%rip),%rdi        # 71b8 <_IO_stdin_used+0x1b8>
+    4f87:	e8 64 d3 ff ff       	call   22f0 <puts@plt>
       struct Request *req = (struct Request *) cqe->user_data;
-    4fbc:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
-    4fc1:	4c 8b 22             	mov    (%rdx),%r12
+    4f8c:	48 8b 54 24 38       	mov    0x38(%rsp),%rdx
+    4f91:	4c 8b 22             	mov    (%rdx),%r12
       if (ret < 0)
-    4fc4:	e9 8b fe ff ff       	jmp    4e54 <io_thread+0x394>
-    4fc9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    4f94:	e9 8b fe ff ff       	jmp    4e24 <io_thread+0x394>
+    4f99:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
-    4fd0:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
-    4fd8:	8b 02                	mov    (%rdx),%eax
-    4fda:	83 c0 01             	add    $0x1,%eax
-    4fdd:	89 02                	mov    %eax,(%rdx)
+    4fa0:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
+    4fa8:	8b 02                	mov    (%rdx),%eax
+    4faa:	83 c0 01             	add    $0x1,%eax
+    4fad:	89 02                	mov    %eax,(%rdx)
 }
-    4fdf:	e9 d8 fe ff ff       	jmp    4ebc <io_thread+0x3fc>
-    4fe4:	0f 1f 40 00          	nopl   0x0(%rax)
+    4faf:	e9 d8 fe ff ff       	jmp    4e8c <io_thread+0x3fc>
+    4fb4:	0f 1f 40 00          	nopl   0x0(%rax)
               if (!cqe->res) {
-    4fe8:	85 c0                	test   %eax,%eax
-    4fea:	75 74                	jne    5060 <io_thread+0x5a0>
+    4fb8:	85 c0                	test   %eax,%eax
+    4fba:	75 74                	jne    5030 <io_thread+0x5a0>
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    4fec:	48 8b 0d 2d 50 00 00 	mov    0x502d(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    4ff3:	ba 0f 00 00 00       	mov    $0xf,%edx
-    4ff8:	be 01 00 00 00       	mov    $0x1,%esi
-    4ffd:	48 8d 3d dd 21 00 00 	lea    0x21dd(%rip),%rdi        # 71e1 <_IO_stdin_used+0x1e1>
-    5004:	e8 b7 d4 ff ff       	call   24c0 <fwrite@plt>
+    4fbc:	48 8b 0d 5d 50 00 00 	mov    0x505d(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    4fc3:	ba 0f 00 00 00       	mov    $0xf,%edx
+    4fc8:	be 01 00 00 00       	mov    $0x1,%esi
+    4fcd:	48 8d 3d 0d 22 00 00 	lea    0x220d(%rip),%rdi        # 71e1 <_IO_stdin_used+0x1e1>
+    4fd4:	e8 e7 d4 ff ff       	call   24c0 <fwrite@plt>
       io_uring_cqe_seen(&ring, cqe);
-    5009:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
-    500e:	e9 a0 fe ff ff       	jmp    4eb3 <io_thread+0x3f3>
-    5013:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    4fd9:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    4fde:	e9 a0 fe ff ff       	jmp    4e83 <io_thread+0x3f3>
+    4fe3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
               for (int i = 0; i < req->iovec_count; i++) {
-    5018:	41 8b 44 24 04       	mov    0x4(%r12),%eax
-    501d:	45 31 ff             	xor    %r15d,%r15d
-    5020:	85 c0                	test   %eax,%eax
-    5022:	7e 20                	jle    5044 <io_thread+0x584>
-    5024:	0f 1f 40 00          	nopl   0x0(%rax)
+    4fe8:	41 8b 44 24 04       	mov    0x4(%r12),%eax
+    4fed:	45 31 ff             	xor    %r15d,%r15d
+    4ff0:	85 c0                	test   %eax,%eax
+    4ff2:	7e 20                	jle    5014 <io_thread+0x584>
+    4ff4:	0f 1f 40 00          	nopl   0x0(%rax)
                   free(req->iov[i].iov_base);
-    5028:	4c 89 f8             	mov    %r15,%rax
+    4ff8:	4c 89 f8             	mov    %r15,%rax
               for (int i = 0; i < req->iovec_count; i++) {
-    502b:	49 83 c7 01          	add    $0x1,%r15
+    4ffb:	49 83 c7 01          	add    $0x1,%r15
                   free(req->iov[i].iov_base);
-    502f:	48 c1 e0 04          	shl    $0x4,%rax
-    5033:	49 8b 7c 04 10       	mov    0x10(%r12,%rax,1),%rdi
-    5038:	e8 83 d2 ff ff       	call   22c0 <free@plt>
+    4fff:	48 c1 e0 04          	shl    $0x4,%rax
+    5003:	49 8b 7c 04 10       	mov    0x10(%r12,%rax,1),%rdi
+    5008:	e8 b3 d2 ff ff       	call   22c0 <free@plt>
               for (int i = 0; i < req->iovec_count; i++) {
-    503d:	45 39 7c 24 04       	cmp    %r15d,0x4(%r12)
-    5042:	7f e4                	jg     5028 <io_thread+0x568>
+    500d:	45 39 7c 24 04       	cmp    %r15d,0x4(%r12)
+    5012:	7f e4                	jg     4ff8 <io_thread+0x568>
               close(req->client_socket);
-    5044:	41 8b 7c 24 08       	mov    0x8(%r12),%edi
-    5049:	e8 22 d3 ff ff       	call   2370 <close@plt>
+    5014:	41 8b 7c 24 08       	mov    0x8(%r12),%edi
+    5019:	e8 52 d3 ff ff       	call   2370 <close@plt>
               free(req);
-    504e:	4c 89 e7             	mov    %r12,%rdi
-    5051:	e8 6a d2 ff ff       	call   22c0 <free@plt>
+    501e:	4c 89 e7             	mov    %r12,%rdi
+    5021:	e8 9a d2 ff ff       	call   22c0 <free@plt>
       io_uring_cqe_seen(&ring, cqe);
-    5056:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    5026:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
               break;
-    505b:	e9 53 fe ff ff       	jmp    4eb3 <io_thread+0x3f3>
+    502b:	e9 53 fe ff ff       	jmp    4e83 <io_thread+0x3f3>
     for (int i = 0; i < dest_sz; i++) {
-    5060:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
-    5065:	48 8b 44 24 28       	mov    0x28(%rsp),%rax
-    506a:	48 8d b4 24 40 05 00 00 	lea    0x540(%rsp),%rsi
-    5072:	eb 11                	jmp    5085 <io_thread+0x5c5>
-    5074:	0f 1f 40 00          	nopl   0x0(%rax)
-    5078:	48 83 c0 01          	add    $0x1,%rax
-    507c:	48 83 c2 01          	add    $0x1,%rdx
-    5080:	48 39 c6             	cmp    %rax,%rsi
-    5083:	74 4b                	je     50d0 <io_thread+0x610>
+    5030:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
+    5035:	48 8b 44 24 28       	mov    0x28(%rsp),%rax
+    503a:	48 8d b4 24 40 05 00 00 	lea    0x540(%rsp),%rsi
+    5042:	eb 11                	jmp    5055 <io_thread+0x5c5>
+    5044:	0f 1f 40 00          	nopl   0x0(%rax)
+    5048:	48 83 c0 01          	add    $0x1,%rax
+    504c:	48 83 c2 01          	add    $0x1,%rdx
+    5050:	48 39 c6             	cmp    %rax,%rsi
+    5053:	74 4b                	je     50a0 <io_thread+0x610>
         dest[i] = src[i];
-    5085:	0f b6 0a             	movzbl (%rdx),%ecx
-    5088:	88 08                	mov    %cl,(%rax)
+    5055:	0f b6 0a             	movzbl (%rdx),%ecx
+    5058:	88 08                	mov    %cl,(%rax)
         if (src[i] == '\r' && src[i+1] == '\n') {
-    508a:	80 f9 0d             	cmp    $0xd,%cl
-    508d:	75 e9                	jne    5078 <io_thread+0x5b8>
-    508f:	80 7a 01 0a          	cmpb   $0xa,0x1(%rdx)
-    5093:	75 e3                	jne    5078 <io_thread+0x5b8>
+    505a:	80 f9 0d             	cmp    $0xd,%cl
+    505d:	75 e9                	jne    5048 <io_thread+0x5b8>
+    505f:	80 7a 01 0a          	cmpb   $0xa,0x1(%rdx)
+    5063:	75 e3                	jne    5048 <io_thread+0x5b8>
             dest[i] = '\0';
-    5095:	c6 00 00             	movb   $0x0,(%rax)
+    5065:	c6 00 00             	movb   $0x0,(%rax)
     handle_http_method(http_request, req->client_socket, ring);
-    5098:	48 8b 7c 24 28       	mov    0x28(%rsp),%rdi
-    509d:	48 89 da             	mov    %rbx,%rdx
-    50a0:	41 8b 74 24 08       	mov    0x8(%r12),%esi
-    50a5:	e8 96 f7 ff ff       	call   4840 <handle_http_method>
+    5068:	48 8b 7c 24 28       	mov    0x28(%rsp),%rdi
+    506d:	48 89 da             	mov    %rbx,%rdx
+    5070:	41 8b 74 24 08       	mov    0x8(%r12),%esi
+    5075:	e8 96 f7 ff ff       	call   4810 <handle_http_method>
               free(req->iov[0].iov_base);
-    50aa:	49 8b 7c 24 10       	mov    0x10(%r12),%rdi
-    50af:	e8 0c d2 ff ff       	call   22c0 <free@plt>
+    507a:	49 8b 7c 24 10       	mov    0x10(%r12),%rdi
+    507f:	e8 3c d2 ff ff       	call   22c0 <free@plt>
               free(req);
-    50b4:	4c 89 e7             	mov    %r12,%rdi
-    50b7:	e8 04 d2 ff ff       	call   22c0 <free@plt>
+    5084:	4c 89 e7             	mov    %r12,%rdi
+    5087:	e8 34 d2 ff ff       	call   22c0 <free@plt>
       io_uring_cqe_seen(&ring, cqe);
-    50bc:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    508c:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
               break;
-    50c1:	e9 ed fd ff ff       	jmp    4eb3 <io_thread+0x3f3>
-    50c6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-    50d0:	48 8b 0d 49 4f 00 00 	mov    0x4f49(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    50d7:	ba 12 00 00 00       	mov    $0x12,%edx
-    50dc:	be 01 00 00 00       	mov    $0x1,%esi
-    50e1:	48 8d 3d 4f 20 00 00 	lea    0x204f(%rip),%rdi        # 7137 <_IO_stdin_used+0x137>
-    50e8:	e8 d3 d3 ff ff       	call   24c0 <fwrite@plt>
+    5091:	e9 ed fd ff ff       	jmp    4e83 <io_thread+0x3f3>
+    5096:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    50a0:	48 8b 0d 79 4f 00 00 	mov    0x4f79(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    50a7:	ba 12 00 00 00       	mov    $0x12,%edx
+    50ac:	be 01 00 00 00       	mov    $0x1,%esi
+    50b1:	48 8d 3d 7f 20 00 00 	lea    0x207f(%rip),%rdi        # 7137 <_IO_stdin_used+0x137>
+    50b8:	e8 03 d4 ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    50ed:	bf 01 00 00 00       	mov    $0x1,%edi
-    50f2:	e8 a9 d3 ff ff       	call   24a0 <exit@plt>
-    50f7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    50bd:	bf 01 00 00 00       	mov    $0x1,%edi
+    50c2:	e8 d9 d3 ff ff       	call   24a0 <exit@plt>
+    50c7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 		head = io_uring_smp_load_acquire(sq->khead);
-    5100:	e9 ec fb ff ff       	jmp    4cf1 <io_thread+0x231>
-    5105:	0f 1f 00             	nopl   (%rax)
+    50d0:	e9 ec fb ff ff       	jmp    4cc1 <io_thread+0x231>
+    50d5:	0f 1f 00             	nopl   (%rax)
 	*cqe_ptr = cqe;
-    5108:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
+    50d8:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
 	return err;
-    510d:	e9 94 fe ff ff       	jmp    4fa6 <io_thread+0x4e6>
-    5112:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    50dd:	e9 94 fe ff ff       	jmp    4f76 <io_thread+0x4e6>
+    50e2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
 		io_uring_smp_store_release(cq->khead, *cq->khead + nr);
-    5118:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
+    50e8:	48 8b 94 24 c8 00 00 00 	mov    0xc8(%rsp),%rdx
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    5120:	48 8d 3d 7d 20 00 00 	lea    0x207d(%rip),%rdi        # 71a4 <_IO_stdin_used+0x1a4>
-    5127:	8b 02                	mov    (%rdx),%eax
-    5129:	83 c0 01             	add    $0x1,%eax
-    512c:	89 02                	mov    %eax,(%rdx)
-    512e:	e8 bd d1 ff ff       	call   22f0 <puts@plt>
-    5133:	e9 26 fe ff ff       	jmp    4f5e <io_thread+0x49e>
+    50f0:	48 8d 3d ad 20 00 00 	lea    0x20ad(%rip),%rdi        # 71a4 <_IO_stdin_used+0x1a4>
+    50f7:	8b 02                	mov    (%rdx),%eax
+    50f9:	83 c0 01             	add    $0x1,%eax
+    50fc:	89 02                	mov    %eax,(%rdx)
+    50fe:	e8 ed d1 ff ff       	call   22f0 <puts@plt>
+    5103:	e9 26 fe ff ff       	jmp    4f2e <io_thread+0x49e>
           fprintf(stderr, "Async request failed: %s for event: %d\n",
-    5138:	f7 d8                	neg    %eax
-    513a:	44 89 44 24 08       	mov    %r8d,0x8(%rsp)
-    513f:	89 c7                	mov    %eax,%edi
-    5141:	e8 ba d3 ff ff       	call   2500 <strerror@plt>
+    5108:	f7 d8                	neg    %eax
+    510a:	44 89 44 24 08       	mov    %r8d,0x8(%rsp)
+    510f:	89 c7                	mov    %eax,%edi
+    5111:	e8 ea d3 ff ff       	call   2500 <strerror@plt>
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    5146:	44 8b 44 24 08       	mov    0x8(%rsp),%r8d
-    514b:	be 01 00 00 00       	mov    $0x1,%esi
-    5150:	48 8b 3d c9 4e 00 00 	mov    0x4ec9(%rip),%rdi        # a020 <stderr@GLIBC_2.2.5>
-    5157:	48 89 c1             	mov    %rax,%rcx
-    515a:	48 8d 15 d7 22 00 00 	lea    0x22d7(%rip),%rdx        # 7438 <_IO_stdin_used+0x438>
-    5161:	31 c0                	xor    %eax,%eax
-    5163:	e8 68 d3 ff ff       	call   24d0 <__fprintf_chk@plt>
+    5116:	44 8b 44 24 08       	mov    0x8(%rsp),%r8d
+    511b:	be 01 00 00 00       	mov    $0x1,%esi
+    5120:	48 8b 3d f9 4e 00 00 	mov    0x4ef9(%rip),%rdi        # a020 <stderr@GLIBC_2.2.5>
+    5127:	48 89 c1             	mov    %rax,%rcx
+    512a:	48 8d 15 07 23 00 00 	lea    0x2307(%rip),%rdx        # 7438 <_IO_stdin_used+0x438>
+    5131:	31 c0                	xor    %eax,%eax
+    5133:	e8 98 d3 ff ff       	call   24d0 <__fprintf_chk@plt>
           exit(1);
-    5168:	bf 01 00 00 00       	mov    $0x1,%edi
-    516d:	e8 2e d3 ff ff       	call   24a0 <exit@plt>
-    5172:	48 8b 0d a7 4e 00 00 	mov    0x4ea7(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
-    5179:	ba 28 00 00 00       	mov    $0x28,%edx
-    517e:	be 01 00 00 00       	mov    $0x1,%esi
-    5183:	48 8d 3d 7e 22 00 00 	lea    0x227e(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
-    518a:	e8 31 d3 ff ff       	call   24c0 <fwrite@plt>
+    5138:	bf 01 00 00 00       	mov    $0x1,%edi
+    513d:	e8 5e d3 ff ff       	call   24a0 <exit@plt>
+    5142:	48 8b 0d d7 4e 00 00 	mov    0x4ed7(%rip),%rcx        # a020 <stderr@GLIBC_2.2.5>
+    5149:	ba 28 00 00 00       	mov    $0x28,%edx
+    514e:	be 01 00 00 00       	mov    $0x1,%esi
+    5153:	48 8d 3d ae 22 00 00 	lea    0x22ae(%rip),%rdi        # 7408 <_IO_stdin_used+0x408>
+    515a:	e8 61 d3 ff ff       	call   24c0 <fwrite@plt>
         exit(1);
-    518f:	bf 01 00 00 00       	mov    $0x1,%edi
-    5194:	e8 07 d3 ff ff       	call   24a0 <exit@plt>
+    515f:	bf 01 00 00 00       	mov    $0x1,%edi
+    5164:	e8 37 d3 ff ff       	call   24a0 <exit@plt>
 }
-    5199:	e8 92 d1 ff ff       	call   2330 <__stack_chk_fail@plt>
-    519e:	66 90                	xchg   %ax,%ax
+    5169:	e8 c2 d1 ff ff       	call   2330 <__stack_chk_fail@plt>
+    516e:	66 90                	xchg   %ax,%ax
 
-00000000000051a0 <barriered_work_ingest>:
+0000000000005170 <barriered_work_ingest>:
 int barriered_work_ingest(struct BarrierTask *data) {
-    51a0:	f3 0f 1e fa          	endbr64
+    5170:	f3 0f 1e fa          	endbr64
   for (int b = 0 ; b < data->thread->buffers_count ; b++) {
-    51a4:	48 8b b7 28 01 00 00 	mov    0x128(%rdi),%rsi
-    51ab:	8b 8e ac 00 00 00    	mov    0xac(%rsi),%ecx
-    51b1:	85 c9                	test   %ecx,%ecx
-    51b3:	0f 8e ea 00 00 00    	jle    52a3 <barriered_work_ingest+0x103>
+    5174:	48 8b b7 28 01 00 00 	mov    0x128(%rdi),%rsi
+    517b:	8b 8e ac 00 00 00    	mov    0xac(%rsi),%ecx
+    5181:	85 c9                	test   %ecx,%ecx
+    5183:	0f 8e ea 00 00 00    	jle    5273 <barriered_work_ingest+0x103>
 int barriered_work_ingest(struct BarrierTask *data) {
-    51b9:	41 56                	push   %r14
-    51bb:	41 55                	push   %r13
+    5189:	41 56                	push   %r14
+    518b:	41 55                	push   %r13
     for (int x = 0 ; x < data->thread->buffers[b]->count ; x++) {
-    51bd:	45 31 ed             	xor    %r13d,%r13d
+    518d:	45 31 ed             	xor    %r13d,%r13d
 int barriered_work_ingest(struct BarrierTask *data) {
-    51c0:	41 54                	push   %r12
-    51c2:	49 89 fc             	mov    %rdi,%r12
-    51c5:	55                   	push   %rbp
-    51c6:	53                   	push   %rbx
+    5190:	41 54                	push   %r12
+    5192:	49 89 fc             	mov    %rdi,%r12
+    5195:	55                   	push   %rbp
+    5196:	53                   	push   %rbx
     for (int x = 0 ; x < data->thread->buffers[b]->count ; x++) {
-    51c7:	48 8b 7e 40          	mov    0x40(%rsi),%rdi
-    51cb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    51d0:	4a 8b 04 ef          	mov    (%rdi,%r13,8),%rax
-    51d4:	4e 8d 34 ed 00 00 00 00 	lea    0x0(,%r13,8),%r14
-    51dc:	31 db                	xor    %ebx,%ebx
-    51de:	8b 10                	mov    (%rax),%edx
-    51e0:	85 d2                	test   %edx,%edx
-    51e2:	7e 26                	jle    520a <barriered_work_ingest+0x6a>
-    51e4:	48 8b 48 08          	mov    0x8(%rax),%rcx
+    5197:	48 8b 7e 40          	mov    0x40(%rsi),%rdi
+    519b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    51a0:	4a 8b 04 ef          	mov    (%rdi,%r13,8),%rax
+    51a4:	4e 8d 34 ed 00 00 00 00 	lea    0x0(,%r13,8),%r14
+    51ac:	31 db                	xor    %ebx,%ebx
+    51ae:	8b 10                	mov    (%rax),%edx
+    51b0:	85 d2                	test   %edx,%edx
+    51b2:	7e 26                	jle    51da <barriered_work_ingest+0x6a>
+    51b4:	48 8b 48 08          	mov    0x8(%rax),%rcx
       if (data->thread->buffers[b]->buffer[x].available == 1) {
-    51e8:	48 89 dd             	mov    %rbx,%rbp
-    51eb:	48 c1 e5 08          	shl    $0x8,%rbp
-    51ef:	48 8d 04 29          	lea    (%rcx,%rbp,1),%rax
-    51f3:	83 b8 80 00 00 00 01 	cmpl   $0x1,0x80(%rax)
-    51fa:	74 24                	je     5220 <barriered_work_ingest+0x80>
+    51b8:	48 89 dd             	mov    %rbx,%rbp
+    51bb:	48 c1 e5 08          	shl    $0x8,%rbp
+    51bf:	48 8d 04 29          	lea    (%rcx,%rbp,1),%rax
+    51c3:	83 b8 80 00 00 00 01 	cmpl   $0x1,0x80(%rax)
+    51ca:	74 24                	je     51f0 <barriered_work_ingest+0x80>
     for (int x = 0 ; x < data->thread->buffers[b]->count ; x++) {
-    51fc:	48 83 c3 01          	add    $0x1,%rbx
-    5200:	39 da                	cmp    %ebx,%edx
-    5202:	7f e4                	jg     51e8 <barriered_work_ingest+0x48>
+    51cc:	48 83 c3 01          	add    $0x1,%rbx
+    51d0:	39 da                	cmp    %ebx,%edx
+    51d2:	7f e4                	jg     51b8 <barriered_work_ingest+0x48>
   for (int b = 0 ; b < data->thread->buffers_count ; b++) {
-    5204:	8b 8e ac 00 00 00    	mov    0xac(%rsi),%ecx
-    520a:	49 83 c5 01          	add    $0x1,%r13
-    520e:	44 39 e9             	cmp    %r13d,%ecx
-    5211:	7f bd                	jg     51d0 <barriered_work_ingest+0x30>
+    51d4:	8b 8e ac 00 00 00    	mov    0xac(%rsi),%ecx
+    51da:	49 83 c5 01          	add    $0x1,%r13
+    51de:	44 39 e9             	cmp    %r13d,%ecx
+    51e1:	7f bd                	jg     51a0 <barriered_work_ingest+0x30>
 }
-    5213:	5b                   	pop    %rbx
-    5214:	31 c0                	xor    %eax,%eax
-    5216:	5d                   	pop    %rbp
-    5217:	41 5c                	pop    %r12
-    5219:	41 5d                	pop    %r13
-    521b:	41 5e                	pop    %r14
-    521d:	c3                   	ret
-    521e:	66 90                	xchg   %ax,%ax
+    51e3:	5b                   	pop    %rbx
+    51e4:	31 c0                	xor    %eax,%eax
+    51e6:	5d                   	pop    %rbp
+    51e7:	41 5c                	pop    %r12
+    51e9:	41 5d                	pop    %r13
+    51eb:	41 5e                	pop    %r14
+    51ed:	c3                   	ret
+    51ee:	66 90                	xchg   %ax,%ax
         data->ingest_count++;
-    5220:	49 83 84 24 60 01 00 00 01 	addq   $0x1,0x160(%r12)
+    51f0:	49 83 84 24 60 01 00 00 01 	addq   $0x1,0x160(%r12)
         clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
-    5229:	48 63 b0 94 00 00 00 	movslq 0x94(%rax),%rsi
-    5230:	bf 04 00 00 00       	mov    $0x4,%edi
-    5235:	48 c1 e6 05          	shl    $0x5,%rsi
-    5239:	48 03 b0 88 00 00 00 	add    0x88(%rax),%rsi
-    5240:	48 83 c6 10          	add    $0x10,%rsi
-    5244:	e8 c7 d0 ff ff       	call   2310 <clock_gettime@plt>
+    51f9:	48 63 b0 94 00 00 00 	movslq 0x94(%rax),%rsi
+    5200:	bf 04 00 00 00       	mov    $0x4,%edi
+    5205:	48 c1 e6 05          	shl    $0x5,%rsi
+    5209:	48 03 b0 88 00 00 00 	add    0x88(%rax),%rsi
+    5210:	48 83 c6 10          	add    $0x10,%rsi
+    5214:	e8 f7 d0 ff ff       	call   2310 <clock_gettime@plt>
         data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
-    5249:	49 8b 84 24 28 01 00 00 	mov    0x128(%r12),%rax
-    5251:	48 8b 40 40          	mov    0x40(%rax),%rax
-    5255:	4a 8b 04 30          	mov    (%rax,%r14,1),%rax
-    5259:	48 03 68 08          	add    0x8(%rax),%rbp
+    5219:	49 8b 84 24 28 01 00 00 	mov    0x128(%r12),%rax
+    5221:	48 8b 40 40          	mov    0x40(%rax),%rax
+    5225:	4a 8b 04 30          	mov    (%rax,%r14,1),%rax
+    5229:	48 03 68 08          	add    0x8(%rax),%rbp
         data->thread->buffers[b]->buffer[x].available = 0;
-    525d:	c7 85 80 00 00 00 00 00 00 00 	movl   $0x0,0x80(%rbp)
+    522d:	c7 85 80 00 00 00 00 00 00 00 	movl   $0x0,0x80(%rbp)
         data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
-    5267:	8b 85 94 00 00 00    	mov    0x94(%rbp),%eax
-    526d:	83 c0 01             	add    $0x1,%eax
-    5270:	99                   	cltd
-    5271:	f7 bd 90 00 00 00    	idivl  0x90(%rbp)
-    5277:	89 95 94 00 00 00    	mov    %edx,0x94(%rbp)
+    5237:	8b 85 94 00 00 00    	mov    0x94(%rbp),%eax
+    523d:	83 c0 01             	add    $0x1,%eax
+    5240:	99                   	cltd
+    5241:	f7 bd 90 00 00 00    	idivl  0x90(%rbp)
+    5247:	89 95 94 00 00 00    	mov    %edx,0x94(%rbp)
         asm volatile ("sfence" ::: "memory");
-    527d:	0f ae f8             	sfence
+    524d:	0f ae f8             	sfence
     for (int x = 0 ; x < data->thread->buffers[b]->count ; x++) {
-    5280:	49 8b b4 24 28 01 00 00 	mov    0x128(%r12),%rsi
-    5288:	48 83 c3 01          	add    $0x1,%rbx
-    528c:	48 8b 7e 40          	mov    0x40(%rsi),%rdi
-    5290:	4a 8b 04 37          	mov    (%rdi,%r14,1),%rax
-    5294:	8b 10                	mov    (%rax),%edx
-    5296:	39 da                	cmp    %ebx,%edx
-    5298:	0f 8f 46 ff ff ff    	jg     51e4 <barriered_work_ingest+0x44>
-    529e:	e9 61 ff ff ff       	jmp    5204 <barriered_work_ingest+0x64>
+    5250:	49 8b b4 24 28 01 00 00 	mov    0x128(%r12),%rsi
+    5258:	48 83 c3 01          	add    $0x1,%rbx
+    525c:	48 8b 7e 40          	mov    0x40(%rsi),%rdi
+    5260:	4a 8b 04 37          	mov    (%rdi,%r14,1),%rax
+    5264:	8b 10                	mov    (%rax),%edx
+    5266:	39 da                	cmp    %ebx,%edx
+    5268:	0f 8f 46 ff ff ff    	jg     51b4 <barriered_work_ingest+0x44>
+    526e:	e9 61 ff ff ff       	jmp    51d4 <barriered_work_ingest+0x64>
 }
-    52a3:	31 c0                	xor    %eax,%eax
-    52a5:	c3                   	ret
-    52a6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    5273:	31 c0                	xor    %eax,%eax
+    5275:	c3                   	ret
+    5276:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-00000000000052b0 <barriered_thread>:
+0000000000005280 <barriered_thread>:
 void* barriered_thread(void *arg) {
-    52b0:	f3 0f 1e fa          	endbr64
-    52b4:	41 56                	push   %r14
-    52b6:	41 55                	push   %r13
-    52b8:	41 54                	push   %r12
-    52ba:	49 89 fc             	mov    %rdi,%r12
-    52bd:	55                   	push   %rbp
+    5280:	f3 0f 1e fa          	endbr64
+    5284:	41 56                	push   %r14
+    5286:	41 55                	push   %r13
+    5288:	41 54                	push   %r12
+    528a:	49 89 fc             	mov    %rdi,%r12
+    528d:	55                   	push   %rbp
   int waiting = 0;
-    52be:	31 ed                	xor    %ebp,%ebp
+    528e:	31 ed                	xor    %ebp,%ebp
 void* barriered_thread(void *arg) {
-    52c0:	53                   	push   %rbx
+    5290:	53                   	push   %rbx
   int t = 0;
-    52c1:	31 db                	xor    %ebx,%ebx
+    5291:	31 db                	xor    %ebx,%ebx
   while (data->running == 1) {
-    52c3:	41 83 7c 24 34 01    	cmpl   $0x1,0x34(%r12)
-    52c9:	0f 85 7d 01 00 00    	jne    544c <barriered_thread+0x19c>
+    5293:	41 83 7c 24 34 01    	cmpl   $0x1,0x34(%r12)
+    5299:	0f 85 7d 01 00 00    	jne    541c <barriered_thread+0x19c>
     if (t >= data->task_count) {
-    52cf:	41 8b 54 24 30       	mov    0x30(%r12),%edx
-    52d4:	0f 1f 40 00          	nopl   0x0(%rax)
-    52d8:	39 d3                	cmp    %edx,%ebx
-    52da:	0f 8d 80 01 00 00    	jge    5460 <barriered_thread+0x1b0>
-    52e0:	48 63 fb             	movslq %ebx,%rdi
-    52e3:	48 c1 e7 09          	shl    $0x9,%rdi
-    52e7:	49 89 fd             	mov    %rdi,%r13
-    52ea:	eb 16                	jmp    5302 <barriered_thread+0x52>
-    52ec:	0f 1f 40 00          	nopl   0x0(%rax)
+    529f:	41 8b 54 24 30       	mov    0x30(%r12),%edx
+    52a4:	0f 1f 40 00          	nopl   0x0(%rax)
+    52a8:	39 d3                	cmp    %edx,%ebx
+    52aa:	0f 8d 80 01 00 00    	jge    5430 <barriered_thread+0x1b0>
+    52b0:	48 63 fb             	movslq %ebx,%rdi
+    52b3:	48 c1 e7 09          	shl    $0x9,%rdi
+    52b7:	49 89 fd             	mov    %rdi,%r13
+    52ba:	eb 16                	jmp    52d2 <barriered_thread+0x52>
+    52bc:	0f 1f 40 00          	nopl   0x0(%rax)
     for (; t < data->task_count; t++) {
-    52f0:	83 c3 01             	add    $0x1,%ebx
-    52f3:	49 81 c5 00 02 00 00 	add    $0x200,%r13
-    52fa:	39 d3                	cmp    %edx,%ebx
-    52fc:	0f 8d 3e 01 00 00    	jge    5440 <barriered_thread+0x190>
+    52c0:	83 c3 01             	add    $0x1,%ebx
+    52c3:	49 81 c5 00 02 00 00 	add    $0x200,%r13
+    52ca:	39 d3                	cmp    %edx,%ebx
+    52cc:	0f 8d 3e 01 00 00    	jge    5410 <barriered_thread+0x190>
       if (data->tasks[t].available == 1) {
-    5302:	49 8b 44 24 28       	mov    0x28(%r12),%rax
-    5307:	4a 8d 34 28          	lea    (%rax,%r13,1),%rsi
-    530b:	83 be 38 01 00 00 01 	cmpl   $0x1,0x138(%rsi)
-    5312:	75 dc                	jne    52f0 <barriered_thread+0x40>
+    52d2:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    52d7:	4a 8d 34 28          	lea    (%rax,%r13,1),%rsi
+    52db:	83 be 38 01 00 00 01 	cmpl   $0x1,0x138(%rsi)
+    52e2:	75 dc                	jne    52c0 <barriered_thread+0x40>
         for (int thread = 0 ; thread < data->thread_count; thread++) {
-    5314:	41 8b 7c 24 18       	mov    0x18(%r12),%edi
+    52e4:	41 8b 7c 24 18       	mov    0x18(%r12),%edi
           previous = t - 1;
-    5319:	83 ea 01             	sub    $0x1,%edx
-    531c:	8d 4b ff             	lea    -0x1(%rbx),%ecx
-    531f:	85 db                	test   %ebx,%ebx
-    5321:	0f 4f d1             	cmovg  %ecx,%edx
+    52e9:	83 ea 01             	sub    $0x1,%edx
+    52ec:	8d 4b ff             	lea    -0x1(%rbx),%ecx
+    52ef:	85 db                	test   %ebx,%ebx
+    52f1:	0f 4f d1             	cmovg  %ecx,%edx
         for (int thread = 0 ; thread < data->thread_count; thread++) {
-    5324:	85 ff                	test   %edi,%edi
-    5326:	0f 8e 5c 01 00 00    	jle    5488 <barriered_thread+0x1d8>
-    532c:	49 8b 44 24 10       	mov    0x10(%r12),%rax
+    52f4:	85 ff                	test   %edi,%edi
+    52f6:	0f 8e 5c 01 00 00    	jle    5458 <barriered_thread+0x1d8>
+    52fc:	49 8b 44 24 10       	mov    0x10(%r12),%rax
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
-    5331:	48 63 ca             	movslq %edx,%rcx
-    5334:	48 63 d7             	movslq %edi,%rdx
+    5301:	48 63 ca             	movslq %edx,%rcx
+    5304:	48 63 d7             	movslq %edi,%rdx
         int prearrive = 0; 
-    5337:	45 31 d2             	xor    %r10d,%r10d
+    5307:	45 31 d2             	xor    %r10d,%r10d
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
-    533a:	44 8b 8e 80 00 00 00 	mov    0x80(%rsi),%r9d
+    530a:	44 8b 8e 80 00 00 00 	mov    0x80(%rsi),%r9d
           if (data->threads[thread]->tasks[previous].prearrive == data->tasks[t].prearrive) {
-    5341:	44 8b 86 00 01 00 00 	mov    0x100(%rsi),%r8d
+    5311:	44 8b 86 00 01 00 00 	mov    0x100(%rsi),%r8d
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
-    5348:	48 c1 e1 09          	shl    $0x9,%rcx
+    5318:	48 c1 e1 09          	shl    $0x9,%rcx
         int arrived = 0; 
-    534c:	45 31 f6             	xor    %r14d,%r14d
-    534f:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
-    5353:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    531c:	45 31 f6             	xor    %r14d,%r14d
+    531f:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
+    5323:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
-    5358:	48 8b 10             	mov    (%rax),%rdx
-    535b:	4c 8b 5a 28          	mov    0x28(%rdx),%r11
-    535f:	49 01 cb             	add    %rcx,%r11
-    5362:	4c 89 da             	mov    %r11,%rdx
-    5365:	45 3b 8b 80 00 00 00 	cmp    0x80(%r11),%r9d
-    536c:	75 04                	jne    5372 <barriered_thread+0xc2>
+    5328:	48 8b 10             	mov    (%rax),%rdx
+    532b:	4c 8b 5a 28          	mov    0x28(%rdx),%r11
+    532f:	49 01 cb             	add    %rcx,%r11
+    5332:	4c 89 da             	mov    %r11,%rdx
+    5335:	45 3b 8b 80 00 00 00 	cmp    0x80(%r11),%r9d
+    533c:	75 04                	jne    5342 <barriered_thread+0xc2>
             arrived++;
-    536e:	41 83 c6 01          	add    $0x1,%r14d
+    533e:	41 83 c6 01          	add    $0x1,%r14d
           if (data->threads[thread]->tasks[previous].prearrive == data->tasks[t].prearrive) {
-    5372:	44 3b 82 00 01 00 00 	cmp    0x100(%rdx),%r8d
-    5379:	75 04                	jne    537f <barriered_thread+0xcf>
+    5342:	44 3b 82 00 01 00 00 	cmp    0x100(%rdx),%r8d
+    5349:	75 04                	jne    534f <barriered_thread+0xcf>
             prearrive++;
-    537b:	41 83 c2 01          	add    $0x1,%r10d
+    534b:	41 83 c2 01          	add    $0x1,%r10d
         for (int thread = 0 ; thread < data->thread_count; thread++) {
-    537f:	48 83 c0 08          	add    $0x8,%rax
-    5383:	48 39 f0             	cmp    %rsi,%rax
-    5386:	75 d0                	jne    5358 <barriered_thread+0xa8>
+    534f:	48 83 c0 08          	add    $0x8,%rax
+    5353:	48 39 f0             	cmp    %rsi,%rax
+    5356:	75 d0                	jne    5328 <barriered_thread+0xa8>
         if (prearrive == 0 || prearrive == data->thread_count) {
-    5388:	45 85 d2             	test   %r10d,%r10d
-    538b:	0f 84 e7 00 00 00    	je     5478 <barriered_thread+0x1c8>
-    5391:	44 39 d7             	cmp    %r10d,%edi
-    5394:	0f 84 de 00 00 00    	je     5478 <barriered_thread+0x1c8>
+    5358:	45 85 d2             	test   %r10d,%r10d
+    535b:	0f 84 e7 00 00 00    	je     5448 <barriered_thread+0x1c8>
+    5361:	44 39 d7             	cmp    %r10d,%edi
+    5364:	0f 84 de 00 00 00    	je     5448 <barriered_thread+0x1c8>
         if (arrived == 0 || arrived == data->thread_count) {
-    539a:	45 85 f6             	test   %r14d,%r14d
-    539d:	74 0b                	je     53aa <barriered_thread+0xfa>
-    539f:	45 39 74 24 18       	cmp    %r14d,0x18(%r12)
-    53a4:	0f 85 be 01 00 00    	jne    5568 <barriered_thread+0x2b8>
-    53aa:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    536a:	45 85 f6             	test   %r14d,%r14d
+    536d:	74 0b                	je     537a <barriered_thread+0xfa>
+    536f:	45 39 74 24 18       	cmp    %r14d,0x18(%r12)
+    5374:	0f 85 be 01 00 00    	jne    5538 <barriered_thread+0x2b8>
+    537a:	49 8b 44 24 28       	mov    0x28(%r12),%rax
           data->tasks[t].prearrive++;
-    53af:	4c 01 e8             	add    %r13,%rax
-    53b2:	83 80 00 01 00 00 01 	addl   $0x1,0x100(%rax)
+    537f:	4c 01 e8             	add    %r13,%rax
+    5382:	83 80 00 01 00 00 01 	addl   $0x1,0x100(%rax)
           if (t == 0 && data->timestamp_count < data->timestamp_limit) {
-    53b9:	85 db                	test   %ebx,%ebx
-    53bb:	75 10                	jne    53cd <barriered_thread+0x11d>
-    53bd:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
-    53c2:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
-    53c7:	0f 8c 7b 01 00 00    	jl     5548 <barriered_thread+0x298>
+    5389:	85 db                	test   %ebx,%ebx
+    538b:	75 10                	jne    539d <barriered_thread+0x11d>
+    538d:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
+    5392:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
+    5397:	0f 8c 7b 01 00 00    	jl     5518 <barriered_thread+0x298>
           data->tasks[t].run(&data->threads[data->thread_index]->tasks[t]);
-    53cd:	49 63 0c 24          	movslq (%r12),%rcx
-    53d1:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
+    539d:	49 63 0c 24          	movslq (%r12),%rcx
+    53a1:	49 8b 54 24 10       	mov    0x10(%r12),%rdx
           data->tasks[t].available = 0;
-    53d6:	c7 80 38 01 00 00 00 00 00 00 	movl   $0x0,0x138(%rax)
+    53a6:	c7 80 38 01 00 00 00 00 00 00 	movl   $0x0,0x138(%rax)
           data->tasks[t].run(&data->threads[data->thread_index]->tasks[t]);
-    53e0:	48 8b 14 ca          	mov    (%rdx,%rcx,8),%rdx
-    53e4:	48 8b 7a 28          	mov    0x28(%rdx),%rdi
-    53e8:	4c 01 ef             	add    %r13,%rdi
-    53eb:	ff 90 18 01 00 00    	call   *0x118(%rax)
+    53b0:	48 8b 14 ca          	mov    (%rdx,%rcx,8),%rdx
+    53b4:	48 8b 7a 28          	mov    0x28(%rdx),%rdi
+    53b8:	4c 01 ef             	add    %r13,%rdi
+    53bb:	ff 90 18 01 00 00    	call   *0x118(%rax)
           data->tasks[t].arrived++;
-    53f1:	49 8b 44 24 28       	mov    0x28(%r12),%rax
-    53f6:	4c 01 e8             	add    %r13,%rax
-    53f9:	83 80 80 00 00 00 01 	addl   $0x1,0x80(%rax)
+    53c1:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    53c6:	4c 01 e8             	add    %r13,%rax
+    53c9:	83 80 80 00 00 00 01 	addl   $0x1,0x80(%rax)
           if (t == data->task_count - 1 && data->timestamp_count < data->timestamp_limit) {
-    5400:	41 8b 44 24 30       	mov    0x30(%r12),%eax
+    53d0:	41 8b 44 24 30       	mov    0x30(%r12),%eax
           data->iteration_count++;
-    5405:	49 83 44 24 68 01    	addq   $0x1,0x68(%r12)
+    53d5:	49 83 44 24 68 01    	addq   $0x1,0x68(%r12)
           if (t == data->task_count - 1 && data->timestamp_count < data->timestamp_limit) {
-    540b:	83 e8 01             	sub    $0x1,%eax
-    540e:	39 d8                	cmp    %ebx,%eax
-    5410:	0f 84 ca 00 00 00    	je     54e0 <barriered_thread+0x230>
+    53db:	83 e8 01             	sub    $0x1,%eax
+    53de:	39 d8                	cmp    %ebx,%eax
+    53e0:	0f 84 ca 00 00 00    	je     54b0 <barriered_thread+0x230>
           asm volatile ("sfence" ::: "memory");
-    5416:	0f ae f8             	sfence
+    53e6:	0f ae f8             	sfence
           if (waiting == 0) {
-    5419:	85 ed                	test   %ebp,%ebp
-    541b:	0f 84 ef 00 00 00    	je     5510 <barriered_thread+0x260>
+    53e9:	85 ed                	test   %ebp,%ebp
+    53eb:	0f 84 ef 00 00 00    	je     54e0 <barriered_thread+0x260>
     for (; t < data->task_count; t++) {
-    5421:	41 8b 54 24 30       	mov    0x30(%r12),%edx
-    5426:	83 c3 01             	add    $0x1,%ebx
-    5429:	49 81 c5 00 02 00 00 	add    $0x200,%r13
-    5430:	39 d3                	cmp    %edx,%ebx
-    5432:	0f 8c ca fe ff ff    	jl     5302 <barriered_thread+0x52>
-    5438:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    53f1:	41 8b 54 24 30       	mov    0x30(%r12),%edx
+    53f6:	83 c3 01             	add    $0x1,%ebx
+    53f9:	49 81 c5 00 02 00 00 	add    $0x200,%r13
+    5400:	39 d3                	cmp    %edx,%ebx
+    5402:	0f 8c ca fe ff ff    	jl     52d2 <barriered_thread+0x52>
+    5408:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
   while (data->running == 1) {
-    5440:	41 83 7c 24 34 01    	cmpl   $0x1,0x34(%r12)
-    5446:	0f 84 8c fe ff ff    	je     52d8 <barriered_thread+0x28>
+    5410:	41 83 7c 24 34 01    	cmpl   $0x1,0x34(%r12)
+    5416:	0f 84 8c fe ff ff    	je     52a8 <barriered_thread+0x28>
 }
-    544c:	5b                   	pop    %rbx
-    544d:	31 c0                	xor    %eax,%eax
-    544f:	5d                   	pop    %rbp
-    5450:	41 5c                	pop    %r12
-    5452:	41 5d                	pop    %r13
-    5454:	41 5e                	pop    %r14
-    5456:	c3                   	ret
-    5457:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    541c:	5b                   	pop    %rbx
+    541d:	31 c0                	xor    %eax,%eax
+    541f:	5d                   	pop    %rbp
+    5420:	41 5c                	pop    %r12
+    5422:	41 5d                	pop    %r13
+    5424:	41 5e                	pop    %r14
+    5426:	c3                   	ret
+    5427:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
       data->cycles++;
-    5460:	49 83 84 24 98 00 00 00 01 	addq   $0x1,0x98(%r12)
+    5430:	49 83 84 24 98 00 00 00 01 	addq   $0x1,0x98(%r12)
     for (; t < data->task_count; t++) {
-    5469:	85 d2                	test   %edx,%edx
-    546b:	7e f3                	jle    5460 <barriered_thread+0x1b0>
-    546d:	31 db                	xor    %ebx,%ebx
-    546f:	e9 6c fe ff ff       	jmp    52e0 <barriered_thread+0x30>
-    5474:	0f 1f 40 00          	nopl   0x0(%rax)
+    5439:	85 d2                	test   %edx,%edx
+    543b:	7e f3                	jle    5430 <barriered_thread+0x1b0>
+    543d:	31 db                	xor    %ebx,%ebx
+    543f:	e9 6c fe ff ff       	jmp    52b0 <barriered_thread+0x30>
+    5444:	0f 1f 40 00          	nopl   0x0(%rax)
           if (waiting == 1) {
-    5478:	83 fd 01             	cmp    $0x1,%ebp
-    547b:	74 1b                	je     5498 <barriered_thread+0x1e8>
+    5448:	83 fd 01             	cmp    $0x1,%ebp
+    544b:	74 1b                	je     5468 <barriered_thread+0x1e8>
         int arrived = 0; 
-    547d:	31 ed                	xor    %ebp,%ebp
-    547f:	e9 16 ff ff ff       	jmp    539a <barriered_thread+0xea>
-    5484:	0f 1f 40 00          	nopl   0x0(%rax)
+    544d:	31 ed                	xor    %ebp,%ebp
+    544f:	e9 16 ff ff ff       	jmp    536a <barriered_thread+0xea>
+    5454:	0f 1f 40 00          	nopl   0x0(%rax)
           if (waiting == 1) {
-    5488:	83 fd 01             	cmp    $0x1,%ebp
-    548b:	0f 85 1e ff ff ff    	jne    53af <barriered_thread+0xff>
+    5458:	83 fd 01             	cmp    $0x1,%ebp
+    545b:	0f 85 1e ff ff ff    	jne    537f <barriered_thread+0xff>
         int arrived = 0; 
-    5491:	45 31 f6             	xor    %r14d,%r14d
-    5494:	0f 1f 40 00          	nopl   0x0(%rax)
+    5461:	45 31 f6             	xor    %r14d,%r14d
+    5464:	0f 1f 40 00          	nopl   0x0(%rax)
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
-    5498:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
-    54a0:	bf 04 00 00 00       	mov    $0x4,%edi
+    5468:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    5470:	bf 04 00 00 00       	mov    $0x4,%edi
         int arrived = 0; 
-    54a5:	31 ed                	xor    %ebp,%ebp
+    5475:	31 ed                	xor    %ebp,%ebp
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_end);
-    54a7:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
-    54ab:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
-    54b3:	48 8d 74 d0 10       	lea    0x10(%rax,%rdx,8),%rsi
-    54b8:	e8 53 ce ff ff       	call   2310 <clock_gettime@plt>
+    5477:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
+    547b:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
+    5483:	48 8d 74 d0 10       	lea    0x10(%rax,%rdx,8),%rsi
+    5488:	e8 83 ce ff ff       	call   2310 <clock_gettime@plt>
             data->task_timestamp_count = (data->task_timestamp_count + 1) % data->task_timestamp_limit;
-    54bd:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
-    54c5:	48 83 c0 01          	add    $0x1,%rax
-    54c9:	48 99                	cqto
-    54cb:	49 f7 bc 24 90 00 00 00 	idivq  0x90(%r12)
-    54d3:	49 89 94 24 88 00 00 00 	mov    %rdx,0x88(%r12)
+    548d:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    5495:	48 83 c0 01          	add    $0x1,%rax
+    5499:	48 99                	cqto
+    549b:	49 f7 bc 24 90 00 00 00 	idivq  0x90(%r12)
+    54a3:	49 89 94 24 88 00 00 00 	mov    %rdx,0x88(%r12)
             waiting = 0; 
-    54db:	e9 ba fe ff ff       	jmp    539a <barriered_thread+0xea>
+    54ab:	e9 ba fe ff ff       	jmp    536a <barriered_thread+0xea>
           if (t == data->task_count - 1 && data->timestamp_count < data->timestamp_limit) {
-    54e0:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
-    54e5:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
-    54ea:	0f 8d 26 ff ff ff    	jge    5416 <barriered_thread+0x166>
+    54b0:	49 8b 74 24 70       	mov    0x70(%r12),%rsi
+    54b5:	49 3b 74 24 78       	cmp    0x78(%r12),%rsi
+    54ba:	0f 8d 26 ff ff ff    	jge    53e6 <barriered_thread+0x166>
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
-    54f0:	48 c1 e6 04          	shl    $0x4,%rsi
-    54f4:	bf 04 00 00 00       	mov    $0x4,%edi
-    54f9:	49 03 74 24 60       	add    0x60(%r12),%rsi
-    54fe:	e8 0d ce ff ff       	call   2310 <clock_gettime@plt>
+    54c0:	48 c1 e6 04          	shl    $0x4,%rsi
+    54c4:	bf 04 00 00 00       	mov    $0x4,%edi
+    54c9:	49 03 74 24 60       	add    0x60(%r12),%rsi
+    54ce:	e8 3d ce ff ff       	call   2310 <clock_gettime@plt>
             data->timestamp_count = data->timestamp_count + 1;
-    5503:	49 83 44 24 70 01    	addq   $0x1,0x70(%r12)
-    5509:	e9 08 ff ff ff       	jmp    5416 <barriered_thread+0x166>
-    550e:	66 90                	xchg   %ax,%ax
+    54d3:	49 83 44 24 70 01    	addq   $0x1,0x70(%r12)
+    54d9:	e9 08 ff ff ff       	jmp    53e6 <barriered_thread+0x166>
+    54de:	66 90                	xchg   %ax,%ax
             data->task_snapshot[data->task_timestamp_count].task = t;
-    5510:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
+    54e0:	49 8b 84 24 88 00 00 00 	mov    0x88(%r12),%rax
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
-    5518:	bf 04 00 00 00       	mov    $0x4,%edi
+    54e8:	bf 04 00 00 00       	mov    $0x4,%edi
     for (; t < data->task_count; t++) {
-    551d:	bd 01 00 00 00       	mov    $0x1,%ebp
+    54ed:	bd 01 00 00 00       	mov    $0x1,%ebp
             data->task_snapshot[data->task_timestamp_count].task = t;
-    5522:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
-    5526:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
-    552e:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
-    5532:	89 5e 20             	mov    %ebx,0x20(%rsi)
+    54f2:	48 8d 14 80          	lea    (%rax,%rax,4),%rdx
+    54f6:	49 8b 84 24 80 00 00 00 	mov    0x80(%r12),%rax
+    54fe:	48 8d 34 d0          	lea    (%rax,%rdx,8),%rsi
+    5502:	89 5e 20             	mov    %ebx,0x20(%rsi)
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
-    5535:	e8 d6 cd ff ff       	call   2310 <clock_gettime@plt>
+    5505:	e8 06 ce ff ff       	call   2310 <clock_gettime@plt>
     for (; t < data->task_count; t++) {
-    553a:	41 8b 54 24 30       	mov    0x30(%r12),%edx
-    553f:	e9 ac fd ff ff       	jmp    52f0 <barriered_thread+0x40>
-    5544:	0f 1f 40 00          	nopl   0x0(%rax)
+    550a:	41 8b 54 24 30       	mov    0x30(%r12),%edx
+    550f:	e9 ac fd ff ff       	jmp    52c0 <barriered_thread+0x40>
+    5514:	0f 1f 40 00          	nopl   0x0(%rax)
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->start[data->timestamp_count]);
-    5548:	48 c1 e6 04          	shl    $0x4,%rsi
-    554c:	bf 04 00 00 00       	mov    $0x4,%edi
-    5551:	49 03 74 24 58       	add    0x58(%r12),%rsi
-    5556:	e8 b5 cd ff ff       	call   2310 <clock_gettime@plt>
+    5518:	48 c1 e6 04          	shl    $0x4,%rsi
+    551c:	bf 04 00 00 00       	mov    $0x4,%edi
+    5521:	49 03 74 24 58       	add    0x58(%r12),%rsi
+    5526:	e8 e5 cd ff ff       	call   2310 <clock_gettime@plt>
           data->tasks[t].available = 0;
-    555b:	49 8b 44 24 28       	mov    0x28(%r12),%rax
-    5560:	4c 01 e8             	add    %r13,%rax
-    5563:	e9 65 fe ff ff       	jmp    53cd <barriered_thread+0x11d>
+    552b:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+    5530:	4c 01 e8             	add    %r13,%rax
+    5533:	e9 65 fe ff ff       	jmp    539d <barriered_thread+0x11d>
           barriered_work_ingest(&data->threads[data->thread_index]->tasks[t]);
-    5568:	49 63 14 24          	movslq (%r12),%rdx
-    556c:	49 8b 44 24 10       	mov    0x10(%r12),%rax
-    5571:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
-    5575:	48 8b 78 28          	mov    0x28(%rax),%rdi
-    5579:	4c 01 ef             	add    %r13,%rdi
-    557c:	e8 1f fc ff ff       	call   51a0 <barriered_work_ingest>
+    5538:	49 63 14 24          	movslq (%r12),%rdx
+    553c:	49 8b 44 24 10       	mov    0x10(%r12),%rax
+    5541:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
+    5545:	48 8b 78 28          	mov    0x28(%rax),%rdi
+    5549:	4c 01 ef             	add    %r13,%rdi
+    554c:	e8 1f fc ff ff       	call   5170 <barriered_work_ingest>
           break;
-    5581:	e9 3d fd ff ff       	jmp    52c3 <barriered_thread+0x13>
-    5586:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    5551:	e9 3d fd ff ff       	jmp    5293 <barriered_thread+0x13>
+    5556:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000005590 <receive>:
+0000000000005560 <receive>:
 int receive(struct BarrierTask *data) {
-    5590:	f3 0f 1e fa          	endbr64
+    5560:	f3 0f 1e fa          	endbr64
   for (int n = 0 ; n < data->thread_count; n++) {
-    5594:	8b 87 34 01 00 00    	mov    0x134(%rdi),%eax
-    559a:	85 c0                	test   %eax,%eax
-    559c:	0f 8e f1 00 00 00    	jle    5693 <receive+0x103>
+    5564:	8b 87 34 01 00 00    	mov    0x134(%rdi),%eax
+    556a:	85 c0                	test   %eax,%eax
+    556c:	0f 8e f1 00 00 00    	jle    5663 <receive+0x103>
 int receive(struct BarrierTask *data) {
-    55a2:	41 54                	push   %r12
-    55a4:	48 89 fa             	mov    %rdi,%rdx
-    55a7:	55                   	push   %rbp
-    55a8:	31 ed                	xor    %ebp,%ebp
-    55aa:	53                   	push   %rbx
-    55ab:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    5572:	41 54                	push   %r12
+    5574:	48 89 fa             	mov    %rdi,%rdx
+    5577:	55                   	push   %rbp
+    5578:	31 ed                	xor    %ebp,%ebp
+    557a:	53                   	push   %rbx
+    557b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
     struct Data *me = data->mailboxes[n].lower;
-    55b0:	48 89 ee             	mov    %rbp,%rsi
-    55b3:	48 c1 e6 05          	shl    $0x5,%rsi
-    55b7:	48 03 b2 68 01 00 00 	add    0x168(%rdx),%rsi
-    55be:	4c 8b 26             	mov    (%rsi),%r12
+    5580:	48 89 ee             	mov    %rbp,%rsi
+    5583:	48 c1 e6 05          	shl    $0x5,%rsi
+    5587:	48 03 b2 68 01 00 00 	add    0x168(%rdx),%rsi
+    558e:	4c 8b 26             	mov    (%rsi),%r12
     for (int x = 0 ; x < me->messages_count ; x++) {
-    55c1:	49 8b 7c 24 08       	mov    0x8(%r12),%rdi
-    55c6:	48 85 ff             	test   %rdi,%rdi
-    55c9:	0f 8e a1 00 00 00    	jle    5670 <receive+0xe0>
+    5591:	49 8b 7c 24 08       	mov    0x8(%r12),%rdi
+    5596:	48 85 ff             	test   %rdi,%rdi
+    5599:	0f 8e a1 00 00 00    	jle    5640 <receive+0xe0>
       data->sends++;
-    55cf:	48 8b 8a 70 01 00 00 	mov    0x170(%rdx),%rcx
-    55d6:	4d 8b 04 24          	mov    (%r12),%r8
+    559f:	48 8b 8a 70 01 00 00 	mov    0x170(%rdx),%rcx
+    55a6:	4d 8b 04 24          	mov    (%r12),%r8
       if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
-    55da:	4c 63 1a             	movslq (%rdx),%r11
-    55dd:	49 89 c9             	mov    %rcx,%r9
-    55e0:	48 8d 41 01          	lea    0x1(%rcx),%rax
-    55e4:	49 f7 d9             	neg    %r9
-    55e7:	48 01 c7             	add    %rax,%rdi
-    55ea:	4f 8d 14 c8          	lea    (%r8,%r9,8),%r10
+    55aa:	4c 63 1a             	movslq (%rdx),%r11
+    55ad:	49 89 c9             	mov    %rcx,%r9
+    55b0:	48 8d 41 01          	lea    0x1(%rcx),%rax
+    55b4:	49 f7 d9             	neg    %r9
+    55b7:	48 01 c7             	add    %rax,%rdi
+    55ba:	4f 8d 14 c8          	lea    (%r8,%r9,8),%r10
       data->n++;
-    55ee:	4c 8b 8a 08 01 00 00 	mov    0x108(%rdx),%r9
+    55be:	4c 8b 8a 08 01 00 00 	mov    0x108(%rdx),%r9
       data->mailboxes[n].received++;
-    55f5:	4c 8b 46 18          	mov    0x18(%rsi),%r8
+    55c5:	4c 8b 46 18          	mov    0x18(%rsi),%r8
       data->n++;
-    55f9:	49 29 c9             	sub    %rcx,%r9
+    55c9:	49 29 c9             	sub    %rcx,%r9
       data->mailboxes[n].received++;
-    55fc:	49 29 c8             	sub    %rcx,%r8
-    55ff:	eb 10                	jmp    5611 <receive+0x81>
-    5601:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    55cc:	49 29 c8             	sub    %rcx,%r8
+    55cf:	eb 10                	jmp    55e1 <receive+0x81>
+    55d1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     for (int x = 0 ; x < me->messages_count ; x++) {
-    5608:	48 83 c0 01          	add    $0x1,%rax
-    560c:	48 39 c7             	cmp    %rax,%rdi
-    560f:	74 5f                	je     5670 <receive+0xe0>
+    55d8:	48 83 c0 01          	add    $0x1,%rax
+    55dc:	48 39 c7             	cmp    %rax,%rdi
+    55df:	74 5f                	je     5640 <receive+0xe0>
       data->n++;
-    5611:	49 8d 0c 01          	lea    (%r9,%rax,1),%rcx
+    55e1:	49 8d 0c 01          	lea    (%r9,%rax,1),%rcx
       data->sends++;
-    5615:	48 89 82 70 01 00 00 	mov    %rax,0x170(%rdx)
+    55e5:	48 89 82 70 01 00 00 	mov    %rax,0x170(%rdx)
       data->n++;
-    561c:	48 89 8a 08 01 00 00 	mov    %rcx,0x108(%rdx)
+    55ec:	48 89 8a 08 01 00 00 	mov    %rcx,0x108(%rdx)
       data->mailboxes[n].received++;
-    5623:	49 8d 0c 00          	lea    (%r8,%rax,1),%rcx
-    5627:	48 89 4e 18          	mov    %rcx,0x18(%rsi)
+    55f3:	49 8d 0c 00          	lea    (%r8,%rax,1),%rcx
+    55f7:	48 89 4e 18          	mov    %rcx,0x18(%rsi)
       if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
-    562b:	49 8b 4c c2 f8       	mov    -0x8(%r10,%rax,8),%rcx
-    5630:	4c 39 59 10          	cmp    %r11,0x10(%rcx)
-    5634:	75 d2                	jne    5608 <receive+0x78>
-    5636:	48 63 9a 30 01 00 00 	movslq 0x130(%rdx),%rbx
-    563d:	48 39 59 08          	cmp    %rbx,0x8(%rcx)
-    5641:	75 c5                	jne    5608 <receive+0x78>
+    55fb:	49 8b 4c c2 f8       	mov    -0x8(%r10,%rax,8),%rcx
+    5600:	4c 39 59 10          	cmp    %r11,0x10(%rcx)
+    5604:	75 d2                	jne    55d8 <receive+0x78>
+    5606:	48 63 9a 30 01 00 00 	movslq 0x130(%rdx),%rbx
+    560d:	48 39 59 08          	cmp    %rbx,0x8(%rcx)
+    5611:	75 c5                	jne    55d8 <receive+0x78>
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    5643:	bf 01 00 00 00       	mov    $0x1,%edi
-    5648:	b9 01 00 00 00       	mov    $0x1,%ecx
-    564d:	ba 01 00 00 00       	mov    $0x1,%edx
-    5652:	31 c0                	xor    %eax,%eax
-    5654:	48 8d 35 05 1e 00 00 	lea    0x1e05(%rip),%rsi        # 7460 <_IO_stdin_used+0x460>
-    565b:	e8 f0 cd ff ff       	call   2450 <__printf_chk@plt>
+    5613:	bf 01 00 00 00       	mov    $0x1,%edi
+    5618:	b9 01 00 00 00       	mov    $0x1,%ecx
+    561d:	ba 01 00 00 00       	mov    $0x1,%edx
+    5622:	31 c0                	xor    %eax,%eax
+    5624:	48 8d 35 35 1e 00 00 	lea    0x1e35(%rip),%rsi        # 7460 <_IO_stdin_used+0x460>
+    562b:	e8 20 ce ff ff       	call   2450 <__printf_chk@plt>
         exit(1);
-    5660:	bf 01 00 00 00       	mov    $0x1,%edi
-    5665:	e8 36 ce ff ff       	call   24a0 <exit@plt>
-    566a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    5630:	bf 01 00 00 00       	mov    $0x1,%edi
+    5635:	e8 66 ce ff ff       	call   24a0 <exit@plt>
+    563a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
     me->messages_count = 0;
-    5670:	49 c7 44 24 08 00 00 00 00 	movq   $0x0,0x8(%r12)
+    5640:	49 c7 44 24 08 00 00 00 00 	movq   $0x0,0x8(%r12)
     asm volatile ("sfence" ::: "memory");
-    5679:	0f ae f8             	sfence
+    5649:	0f ae f8             	sfence
   for (int n = 0 ; n < data->thread_count; n++) {
-    567c:	48 83 c5 01          	add    $0x1,%rbp
-    5680:	39 aa 34 01 00 00    	cmp    %ebp,0x134(%rdx)
-    5686:	0f 8f 24 ff ff ff    	jg     55b0 <receive+0x20>
+    564c:	48 83 c5 01          	add    $0x1,%rbp
+    5650:	39 aa 34 01 00 00    	cmp    %ebp,0x134(%rdx)
+    5656:	0f 8f 24 ff ff ff    	jg     5580 <receive+0x20>
 }
-    568c:	5b                   	pop    %rbx
-    568d:	31 c0                	xor    %eax,%eax
-    568f:	5d                   	pop    %rbp
-    5690:	41 5c                	pop    %r12
-    5692:	c3                   	ret
-    5693:	31 c0                	xor    %eax,%eax
-    5695:	c3                   	ret
-    5696:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    565c:	5b                   	pop    %rbx
+    565d:	31 c0                	xor    %eax,%eax
+    565f:	5d                   	pop    %rbp
+    5660:	41 5c                	pop    %r12
+    5662:	c3                   	ret
+    5663:	31 c0                	xor    %eax,%eax
+    5665:	c3                   	ret
+    5666:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-00000000000056a0 <barriered_work>:
+0000000000005670 <barriered_work>:
 int barriered_work(struct BarrierTask *data) {
-    56a0:	f3 0f 1e fa          	endbr64
-    56a4:	41 57                	push   %r15
-    56a6:	41 56                	push   %r14
-    56a8:	41 55                	push   %r13
-    56aa:	41 54                	push   %r12
-    56ac:	55                   	push   %rbp
-    56ad:	53                   	push   %rbx
-    56ae:	48 89 fb             	mov    %rdi,%rbx
-    56b1:	48 83 ec 18          	sub    $0x18,%rsp
+    5670:	f3 0f 1e fa          	endbr64
+    5674:	41 57                	push   %r15
+    5676:	41 56                	push   %r14
+    5678:	41 55                	push   %r13
+    567a:	41 54                	push   %r12
+    567c:	55                   	push   %rbp
+    567d:	53                   	push   %rbx
+    567e:	48 89 fb             	mov    %rdi,%rbx
+    5681:	48 83 ec 18          	sub    $0x18,%rsp
   if (data->thread_index == data->task_index) {
-    56b5:	8b 07                	mov    (%rdi),%eax
-    56b7:	39 87 30 01 00 00    	cmp    %eax,0x130(%rdi)
-    56bd:	0f 84 3d 01 00 00    	je     5800 <barriered_work+0x160>
+    5685:	8b 07                	mov    (%rdi),%eax
+    5687:	39 87 30 01 00 00    	cmp    %eax,0x130(%rdi)
+    568d:	0f 84 3d 01 00 00    	je     57d0 <barriered_work+0x160>
     receive(data);
-    56c3:	e8 c8 fe ff ff       	call   5590 <receive>
+    5693:	e8 c8 fe ff ff       	call   5560 <receive>
     while (data->scheduled == 1) {
-    56c8:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
-    56cf:	75 1b                	jne    56ec <barriered_work+0x4c>
-    56d1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5698:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
+    569f:	75 1b                	jne    56bc <barriered_work+0x4c>
+    56a1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
       data->n++;
-    56d8:	48 83 83 08 01 00 00 01 	addq   $0x1,0x108(%rbx)
+    56a8:	48 83 83 08 01 00 00 01 	addq   $0x1,0x108(%rbx)
       asm volatile ("sfence" ::: "memory");
-    56e0:	0f ae f8             	sfence
+    56b0:	0f ae f8             	sfence
     while (data->scheduled == 1) {
-    56e3:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
-    56ea:	74 ec                	je     56d8 <barriered_work+0x38>
+    56b3:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
+    56ba:	74 ec                	je     56a8 <barriered_work+0x38>
   if (data->sending == 1) {
-    56ec:	83 bb 78 01 00 00 01 	cmpl   $0x1,0x178(%rbx)
-    56f3:	0f 85 74 02 00 00    	jne    596d <barriered_work+0x2cd>
+    56bc:	83 bb 78 01 00 00 01 	cmpl   $0x1,0x178(%rbx)
+    56c3:	0f 85 74 02 00 00    	jne    593d <barriered_work+0x2cd>
       for (int n = 0 ; n < data->thread_count; n++) {
-    56f9:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
-    56ff:	85 c0                	test   %eax,%eax
-    5701:	0f 8e 72 02 00 00    	jle    5979 <barriered_work+0x2d9>
-    5707:	48 8d 8b 80 01 00 00 	lea    0x180(%rbx),%rcx
-    570e:	31 d2                	xor    %edx,%edx
-    5710:	48 89 0c 24          	mov    %rcx,(%rsp)
-    5714:	48 8d 8b 88 01 00 00 	lea    0x188(%rbx),%rcx
-    571b:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+    56c9:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
+    56cf:	85 c0                	test   %eax,%eax
+    56d1:	0f 8e 72 02 00 00    	jle    5949 <barriered_work+0x2d9>
+    56d7:	48 8d 8b 80 01 00 00 	lea    0x180(%rbx),%rcx
+    56de:	31 d2                	xor    %edx,%edx
+    56e0:	48 89 0c 24          	mov    %rcx,(%rsp)
+    56e4:	48 8d 8b 88 01 00 00 	lea    0x188(%rbx),%rcx
+    56eb:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
         if (n == data->thread_index) { continue; }
-    5720:	39 93 30 01 00 00    	cmp    %edx,0x130(%rbx)
-    5726:	0f 84 bf 00 00 00    	je     57eb <barriered_work+0x14b>
+    56f0:	39 93 30 01 00 00    	cmp    %edx,0x130(%rbx)
+    56f6:	0f 84 bf 00 00 00    	je     57bb <barriered_work+0x14b>
         struct Data *them = data->mailboxes[n].higher;
-    572c:	49 89 d1             	mov    %rdx,%r9
-    572f:	49 c1 e1 05          	shl    $0x5,%r9
-    5733:	4c 03 8b 68 01 00 00 	add    0x168(%rbx),%r9
-    573a:	4d 8b 51 08          	mov    0x8(%r9),%r10
+    56fc:	49 89 d1             	mov    %rdx,%r9
+    56ff:	49 c1 e1 05          	shl    $0x5,%r9
+    5703:	4c 03 8b 68 01 00 00 	add    0x168(%rbx),%r9
+    570a:	4d 8b 51 08          	mov    0x8(%r9),%r10
         for (; them->messages_count < min;) {
-    573e:	4d 8b 5a 08          	mov    0x8(%r10),%r11
-    5742:	4d 63 42 10          	movslq 0x10(%r10),%r8
-    5746:	4d 39 c3             	cmp    %r8,%r11
-    5749:	0f 8d 93 00 00 00    	jge    57e2 <barriered_work+0x142>
-    574f:	4c 89 c6             	mov    %r8,%rsi
-    5752:	48 8b ab 08 01 00 00 	mov    0x108(%rbx),%rbp
-    5759:	4d 8b 71 10          	mov    0x10(%r9),%r14
-    575d:	4c 29 de             	sub    %r11,%rsi
+    570e:	4d 8b 5a 08          	mov    0x8(%r10),%r11
+    5712:	4d 63 42 10          	movslq 0x10(%r10),%r8
+    5716:	4d 39 c3             	cmp    %r8,%r11
+    5719:	0f 8d 93 00 00 00    	jge    57b2 <barriered_work+0x142>
+    571f:	4c 89 c6             	mov    %r8,%rsi
+    5722:	48 8b ab 08 01 00 00 	mov    0x108(%rbx),%rbp
+    5729:	4d 8b 71 10          	mov    0x10(%r9),%r14
+    572d:	4c 29 de             	sub    %r11,%rsi
           them->messages[them->messages_count++] = data->message; 
-    5760:	49 8b 0a             	mov    (%r10),%rcx
-    5763:	48 8d 46 ff          	lea    -0x1(%rsi),%rax
-    5767:	48 83 f8 02          	cmp    $0x2,%rax
-    576b:	0f 86 8f 02 00 00    	jbe    5a00 <barriered_work+0x360>
-    5771:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
-    5779:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
-    5781:	4c 8d 24 01          	lea    (%rcx,%rax,1),%r12
-    5785:	4c 8d 2c 39          	lea    (%rcx,%rdi,1),%r13
-    5789:	4c 39 2c 24          	cmp    %r13,(%rsp)
-    578d:	0f 83 fd 01 00 00    	jae    5990 <barriered_work+0x2f0>
-    5793:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    5798:	4d 39 fc             	cmp    %r15,%r12
-    579b:	0f 83 ef 01 00 00    	jae    5990 <barriered_work+0x2f0>
-    57a1:	4c 8d 1c 01          	lea    (%rcx,%rax,1),%r11
-    57a5:	48 01 cf             	add    %rcx,%rdi
-    57a8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-    57b0:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    5730:	49 8b 0a             	mov    (%r10),%rcx
+    5733:	48 8d 46 ff          	lea    -0x1(%rsi),%rax
+    5737:	48 83 f8 02          	cmp    $0x2,%rax
+    573b:	0f 86 8f 02 00 00    	jbe    59d0 <barriered_work+0x360>
+    5741:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
+    5749:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
+    5751:	4c 8d 24 01          	lea    (%rcx,%rax,1),%r12
+    5755:	4c 8d 2c 39          	lea    (%rcx,%rdi,1),%r13
+    5759:	4c 39 2c 24          	cmp    %r13,(%rsp)
+    575d:	0f 83 fd 01 00 00    	jae    5960 <barriered_work+0x2f0>
+    5763:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
+    5768:	4d 39 fc             	cmp    %r15,%r12
+    576b:	0f 83 ef 01 00 00    	jae    5960 <barriered_work+0x2f0>
+    5771:	4c 8d 1c 01          	lea    (%rcx,%rax,1),%r11
+    5775:	48 01 cf             	add    %rcx,%rdi
+    5778:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    5780:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
         for (; them->messages_count < min;) {
-    57b7:	49 83 c3 08          	add    $0x8,%r11
+    5787:	49 83 c3 08          	add    $0x8,%r11
           them->messages[them->messages_count++] = data->message; 
-    57bb:	49 89 43 f8          	mov    %rax,-0x8(%r11)
+    578b:	49 89 43 f8          	mov    %rax,-0x8(%r11)
         for (; them->messages_count < min;) {
-    57bf:	49 39 fb             	cmp    %rdi,%r11
-    57c2:	75 ec                	jne    57b0 <barriered_work+0x110>
-    57c4:	0f 1f 40 00          	nopl   0x0(%rax)
-    57c8:	48 01 f5             	add    %rsi,%rbp
-    57cb:	4c 01 f6             	add    %r14,%rsi
-    57ce:	48 89 ab 08 01 00 00 	mov    %rbp,0x108(%rbx)
-    57d5:	49 89 71 10          	mov    %rsi,0x10(%r9)
-    57d9:	4d 89 42 08          	mov    %r8,0x8(%r10)
-    57dd:	4a 89 44 c1 f8       	mov    %rax,-0x8(%rcx,%r8,8)
+    578f:	49 39 fb             	cmp    %rdi,%r11
+    5792:	75 ec                	jne    5780 <barriered_work+0x110>
+    5794:	0f 1f 40 00          	nopl   0x0(%rax)
+    5798:	48 01 f5             	add    %rsi,%rbp
+    579b:	4c 01 f6             	add    %r14,%rsi
+    579e:	48 89 ab 08 01 00 00 	mov    %rbp,0x108(%rbx)
+    57a5:	49 89 71 10          	mov    %rsi,0x10(%r9)
+    57a9:	4d 89 42 08          	mov    %r8,0x8(%r10)
+    57ad:	4a 89 44 c1 f8       	mov    %rax,-0x8(%rcx,%r8,8)
         asm volatile ("sfence" ::: "memory");
-    57e2:	0f ae f8             	sfence
+    57b2:	0f ae f8             	sfence
       for (int n = 0 ; n < data->thread_count; n++) {
-    57e5:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
-    57eb:	48 83 c2 01          	add    $0x1,%rdx
-    57ef:	39 d0                	cmp    %edx,%eax
-    57f1:	0f 8f 29 ff ff ff    	jg     5720 <barriered_work+0x80>
-    57f7:	e9 7d 01 00 00       	jmp    5979 <barriered_work+0x2d9>
-    57fc:	0f 1f 40 00          	nopl   0x0(%rax)
+    57b5:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
+    57bb:	48 83 c2 01          	add    $0x1,%rdx
+    57bf:	39 d0                	cmp    %edx,%eax
+    57c1:	0f 8f 29 ff ff ff    	jg     56f0 <barriered_work+0x80>
+    57c7:	e9 7d 01 00 00       	jmp    5949 <barriered_work+0x2d9>
+    57cc:	0f 1f 40 00          	nopl   0x0(%rax)
       receive(data);
-    5800:	e8 8b fd ff ff       	call   5590 <receive>
+    57d0:	e8 8b fd ff ff       	call   5560 <receive>
         for (int y = 0; y < data->thread_count ; y++) {
-    5805:	4c 63 8b 34 01 00 00 	movslq 0x134(%rbx),%r9
+    57d5:	4c 63 8b 34 01 00 00 	movslq 0x134(%rbx),%r9
         int t = data->task_index;
-    580c:	8b 03                	mov    (%rbx),%eax
+    57dc:	8b 03                	mov    (%rbx),%eax
         for (int y = 0; y < data->thread_count ; y++) {
-    580e:	45 85 c9             	test   %r9d,%r9d
-    5811:	0f 8e 85 00 00 00    	jle    589c <barriered_work+0x1fc>
+    57de:	45 85 c9             	test   %r9d,%r9d
+    57e1:	0f 8e 85 00 00 00    	jle    586c <barriered_work+0x1fc>
               tmp = data->thread->threads[y]->tasks[t].mailboxes[b].higher; 
-    5817:	48 8b 93 28 01 00 00 	mov    0x128(%rbx),%rdx
-    581e:	4c 63 d8             	movslq %eax,%r11
+    57e7:	48 8b 93 28 01 00 00 	mov    0x128(%rbx),%rdx
+    57ee:	4c 63 d8             	movslq %eax,%r11
               int next_task = abs((t + 1) % (data->thread_count));
-    5821:	83 c0 01             	add    $0x1,%eax
+    57f1:	83 c0 01             	add    $0x1,%eax
               tmp = data->thread->threads[y]->tasks[t].mailboxes[b].higher; 
-    5824:	49 c1 e3 09          	shl    $0x9,%r11
-    5828:	4c 8b 52 10          	mov    0x10(%rdx),%r10
+    57f4:	49 c1 e3 09          	shl    $0x9,%r11
+    57f8:	4c 8b 52 10          	mov    0x10(%rdx),%r10
               int next_task = abs((t + 1) % (data->thread_count));
-    582c:	99                   	cltd
-    582d:	41 f7 f9             	idiv   %r9d
-    5830:	4c 89 d7             	mov    %r10,%rdi
-    5833:	4f 8d 24 ca          	lea    (%r10,%r9,8),%r12
-    5837:	89 d0                	mov    %edx,%eax
-    5839:	f7 d8                	neg    %eax
-    583b:	0f 49 d0             	cmovns %eax,%edx
+    57fc:	99                   	cltd
+    57fd:	41 f7 f9             	idiv   %r9d
+    5800:	4c 89 d7             	mov    %r10,%rdi
+    5803:	4f 8d 24 ca          	lea    (%r10,%r9,8),%r12
+    5807:	89 d0                	mov    %edx,%eax
+    5809:	f7 d8                	neg    %eax
+    580b:	0f 49 d0             	cmovns %eax,%edx
               data->thread->threads[b]->tasks[next_task].mailboxes[y].lower = tmp;
-    583e:	45 31 c0             	xor    %r8d,%r8d
+    580e:	45 31 c0             	xor    %r8d,%r8d
               int next_task = abs((t + 1) % (data->thread_count));
-    5841:	48 63 ea             	movslq %edx,%rbp
+    5811:	48 63 ea             	movslq %edx,%rbp
               data->thread->threads[b]->tasks[next_task].mailboxes[y].lower = tmp;
-    5844:	48 c1 e5 09          	shl    $0x9,%rbp
-    5848:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    5814:	48 c1 e5 09          	shl    $0x9,%rbp
+    5818:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
 int barriered_work(struct BarrierTask *data) {
-    5850:	31 c0                	xor    %eax,%eax
-    5852:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    5820:	31 c0                	xor    %eax,%eax
+    5822:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
               data->thread->threads[b]->tasks[next_task].mailboxes[y].lower = tmp;
-    5858:	49 8b 14 c2          	mov    (%r10,%rax,8),%rdx
-    585c:	48 8b 52 28          	mov    0x28(%rdx),%rdx
-    5860:	48 8b 8c 2a 68 01 00 00 	mov    0x168(%rdx,%rbp,1),%rcx
+    5828:	49 8b 14 c2          	mov    (%r10,%rax,8),%rdx
+    582c:	48 8b 52 28          	mov    0x28(%rdx),%rdx
+    5830:	48 8b 8c 2a 68 01 00 00 	mov    0x168(%rdx,%rbp,1),%rcx
               tmp = data->thread->threads[y]->tasks[t].mailboxes[b].higher; 
-    5868:	48 8b 17             	mov    (%rdi),%rdx
-    586b:	48 8b 72 28          	mov    0x28(%rdx),%rsi
-    586f:	48 89 c2             	mov    %rax,%rdx
+    5838:	48 8b 17             	mov    (%rdi),%rdx
+    583b:	48 8b 72 28          	mov    0x28(%rdx),%rsi
+    583f:	48 89 c2             	mov    %rax,%rdx
           for (int b = 0; b < data->thread_count ; b++) {
-    5872:	48 83 c0 01          	add    $0x1,%rax
+    5842:	48 83 c0 01          	add    $0x1,%rax
               tmp = data->thread->threads[y]->tasks[t].mailboxes[b].higher; 
-    5876:	48 c1 e2 05          	shl    $0x5,%rdx
-    587a:	4a 03 94 1e 68 01 00 00 	add    0x168(%rsi,%r11,1),%rdx
+    5846:	48 c1 e2 05          	shl    $0x5,%rdx
+    584a:	4a 03 94 1e 68 01 00 00 	add    0x168(%rsi,%r11,1),%rdx
               data->thread->threads[b]->tasks[next_task].mailboxes[y].lower = tmp;
-    5882:	48 8b 52 08          	mov    0x8(%rdx),%rdx
-    5886:	4a 89 14 01          	mov    %rdx,(%rcx,%r8,1)
+    5852:	48 8b 52 08          	mov    0x8(%rdx),%rdx
+    5856:	4a 89 14 01          	mov    %rdx,(%rcx,%r8,1)
           for (int b = 0; b < data->thread_count ; b++) {
-    588a:	49 39 c1             	cmp    %rax,%r9
-    588d:	75 c9                	jne    5858 <barriered_work+0x1b8>
+    585a:	49 39 c1             	cmp    %rax,%r9
+    585d:	75 c9                	jne    5828 <barriered_work+0x1b8>
         for (int y = 0; y < data->thread_count ; y++) {
-    588f:	48 83 c7 08          	add    $0x8,%rdi
-    5893:	49 83 c0 20          	add    $0x20,%r8
-    5897:	49 39 fc             	cmp    %rdi,%r12
-    589a:	75 b4                	jne    5850 <barriered_work+0x1b0>
+    585f:	48 83 c7 08          	add    $0x8,%rdi
+    5863:	49 83 c0 20          	add    $0x20,%r8
+    5867:	49 39 fc             	cmp    %rdi,%r12
+    586a:	75 b4                	jne    5820 <barriered_work+0x1b0>
       asm volatile ("sfence" ::: "memory");
-    589c:	0f ae f8             	sfence
+    586c:	0f ae f8             	sfence
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
-    589f:	48 8b b3 58 01 00 00 	mov    0x158(%rbx),%rsi
-    58a6:	31 ff                	xor    %edi,%edi
-    58a8:	48 c1 e6 05          	shl    $0x5,%rsi
-    58ac:	48 03 b3 48 01 00 00 	add    0x148(%rbx),%rsi
-    58b3:	e8 58 ca ff ff       	call   2310 <clock_gettime@plt>
+    586f:	48 8b b3 58 01 00 00 	mov    0x158(%rbx),%rsi
+    5876:	31 ff                	xor    %edi,%edi
+    5878:	48 c1 e6 05          	shl    $0x5,%rsi
+    587c:	48 03 b3 48 01 00 00 	add    0x148(%rbx),%rsi
+    5883:	e8 88 ca ff ff       	call   2310 <clock_gettime@plt>
     int modcount = ++data->thread->protected_state->modcount;
-    58b8:	48 8b 83 28 01 00 00 	mov    0x128(%rbx),%rax
+    5888:	48 8b 83 28 01 00 00 	mov    0x128(%rbx),%rax
     while (data->scheduled == 1) {
-    58bf:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
+    588f:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
     int modcount = ++data->thread->protected_state->modcount;
-    58c6:	48 8b 50 38          	mov    0x38(%rax),%rdx
-    58ca:	8b 4a 10             	mov    0x10(%rdx),%ecx
-    58cd:	8d 69 01             	lea    0x1(%rcx),%ebp
-    58d0:	89 6a 10             	mov    %ebp,0x10(%rdx)
+    5896:	48 8b 50 38          	mov    0x38(%rax),%rdx
+    589a:	8b 4a 10             	mov    0x10(%rdx),%ecx
+    589d:	8d 69 01             	lea    0x1(%rcx),%ebp
+    58a0:	89 6a 10             	mov    %ebp,0x10(%rdx)
     while (data->scheduled == 1) {
-    58d3:	75 53                	jne    5928 <barriered_work+0x288>
-    58d5:	0f 1f 00             	nopl   (%rax)
+    58a3:	75 53                	jne    58f8 <barriered_work+0x288>
+    58a5:	0f 1f 00             	nopl   (%rax)
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    58d8:	48 63 93 30 01 00 00 	movslq 0x130(%rbx),%rdx
-    58df:	48 8b 40 10          	mov    0x10(%rax),%rax
-    58e3:	48 63 3b             	movslq (%rbx),%rdi
+    58a8:	48 63 93 30 01 00 00 	movslq 0x130(%rbx),%rdx
+    58af:	48 8b 40 10          	mov    0x10(%rax),%rax
+    58b3:	48 63 3b             	movslq (%rbx),%rdi
       data->n++;
-    58e6:	48 83 83 08 01 00 00 01 	addq   $0x1,0x108(%rbx)
+    58b6:	48 83 83 08 01 00 00 01 	addq   $0x1,0x108(%rbx)
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    58ee:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
-    58f2:	48 c1 e7 09          	shl    $0x9,%rdi
-    58f6:	48 03 78 28          	add    0x28(%rax),%rdi
-    58fa:	ff 93 20 01 00 00    	call   *0x120(%rbx)
+    58be:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
+    58c2:	48 c1 e7 09          	shl    $0x9,%rdi
+    58c6:	48 03 78 28          	add    0x28(%rax),%rdi
+    58ca:	ff 93 20 01 00 00    	call   *0x120(%rbx)
       asm volatile ("sfence" ::: "memory");
-    5900:	0f ae f8             	sfence
+    58d0:	0f ae f8             	sfence
     while (data->scheduled == 1) {
-    5903:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
+    58d3:	83 bb 40 01 00 00 01 	cmpl   $0x1,0x140(%rbx)
     if (modcount != data->thread->protected_state->modcount) {
-    590a:	48 8b 83 28 01 00 00 	mov    0x128(%rbx),%rax
+    58da:	48 8b 83 28 01 00 00 	mov    0x128(%rbx),%rax
     while (data->scheduled == 1) {
-    5911:	74 c5                	je     58d8 <barriered_work+0x238>
+    58e1:	74 c5                	je     58a8 <barriered_work+0x238>
     if (modcount != data->thread->protected_state->modcount) {
-    5913:	48 8b 40 38          	mov    0x38(%rax),%rax
-    5917:	3b 68 10             	cmp    0x10(%rax),%ebp
-    591a:	74 0c                	je     5928 <barriered_work+0x288>
-    591c:	48 8d 3d e1 18 00 00 	lea    0x18e1(%rip),%rdi        # 7204 <_IO_stdin_used+0x204>
-    5923:	e8 c8 c9 ff ff       	call   22f0 <puts@plt>
+    58e3:	48 8b 40 38          	mov    0x38(%rax),%rax
+    58e7:	3b 68 10             	cmp    0x10(%rax),%ebp
+    58ea:	74 0c                	je     58f8 <barriered_work+0x288>
+    58ec:	48 8d 3d 11 19 00 00 	lea    0x1911(%rip),%rdi        # 7204 <_IO_stdin_used+0x204>
+    58f3:	e8 f8 c9 ff ff       	call   22f0 <puts@plt>
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
-    5928:	48 8b b3 58 01 00 00 	mov    0x158(%rbx),%rsi
-    592f:	31 ff                	xor    %edi,%edi
-    5931:	48 c1 e6 05          	shl    $0x5,%rsi
-    5935:	48 03 b3 48 01 00 00 	add    0x148(%rbx),%rsi
-    593c:	48 83 c6 10          	add    $0x10,%rsi
-    5940:	e8 cb c9 ff ff       	call   2310 <clock_gettime@plt>
+    58f8:	48 8b b3 58 01 00 00 	mov    0x158(%rbx),%rsi
+    58ff:	31 ff                	xor    %edi,%edi
+    5901:	48 c1 e6 05          	shl    $0x5,%rsi
+    5905:	48 03 b3 48 01 00 00 	add    0x148(%rbx),%rsi
+    590c:	48 83 c6 10          	add    $0x10,%rsi
+    5910:	e8 fb c9 ff ff       	call   2310 <clock_gettime@plt>
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    5945:	48 8b 83 58 01 00 00 	mov    0x158(%rbx),%rax
-    594c:	48 83 c0 01          	add    $0x1,%rax
-    5950:	48 99                	cqto
-    5952:	48 f7 bb 50 01 00 00 	idivq  0x150(%rbx)
+    5915:	48 8b 83 58 01 00 00 	mov    0x158(%rbx),%rax
+    591c:	48 83 c0 01          	add    $0x1,%rax
+    5920:	48 99                	cqto
+    5922:	48 f7 bb 50 01 00 00 	idivq  0x150(%rbx)
   if (data->sending == 1) {
-    5959:	83 bb 78 01 00 00 01 	cmpl   $0x1,0x178(%rbx)
+    5929:	83 bb 78 01 00 00 01 	cmpl   $0x1,0x178(%rbx)
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    5960:	48 89 93 58 01 00 00 	mov    %rdx,0x158(%rbx)
+    5930:	48 89 93 58 01 00 00 	mov    %rdx,0x158(%rbx)
   if (data->sending == 1) {
-    5967:	0f 84 a8 00 00 00    	je     5a15 <barriered_work+0x375>
-    596d:	48 8d 3d a0 18 00 00 	lea    0x18a0(%rip),%rdi        # 7214 <_IO_stdin_used+0x214>
-    5974:	e8 77 c9 ff ff       	call   22f0 <puts@plt>
+    5937:	0f 84 a8 00 00 00    	je     59e5 <barriered_work+0x375>
+    593d:	48 8d 3d d0 18 00 00 	lea    0x18d0(%rip),%rdi        # 7214 <_IO_stdin_used+0x214>
+    5944:	e8 a7 c9 ff ff       	call   22f0 <puts@plt>
   asm volatile ("sfence" ::: "memory");
-    5979:	0f ae f8             	sfence
+    5949:	0f ae f8             	sfence
 }
-    597c:	48 83 c4 18          	add    $0x18,%rsp
-    5980:	31 c0                	xor    %eax,%eax
-    5982:	5b                   	pop    %rbx
-    5983:	5d                   	pop    %rbp
-    5984:	41 5c                	pop    %r12
-    5986:	41 5d                	pop    %r13
-    5988:	41 5e                	pop    %r14
-    598a:	41 5f                	pop    %r15
-    598c:	c3                   	ret
-    598d:	0f 1f 00             	nopl   (%rax)
-    5990:	49 89 f5             	mov    %rsi,%r13
-    5993:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
-    599a:	4c 89 e7             	mov    %r12,%rdi
-    599d:	49 d1 ed             	shr    %r13
-    59a0:	49 c1 e5 04          	shl    $0x4,%r13
-    59a4:	66 48 0f 6e c0       	movq   %rax,%xmm0
-    59a9:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
-    59ad:	41 83 e5 10          	and    $0x10,%r13d
-    59b1:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
-    59b5:	74 11                	je     59c8 <barriered_work+0x328>
+    594c:	48 83 c4 18          	add    $0x18,%rsp
+    5950:	31 c0                	xor    %eax,%eax
+    5952:	5b                   	pop    %rbx
+    5953:	5d                   	pop    %rbp
+    5954:	41 5c                	pop    %r12
+    5956:	41 5d                	pop    %r13
+    5958:	41 5e                	pop    %r14
+    595a:	41 5f                	pop    %r15
+    595c:	c3                   	ret
+    595d:	0f 1f 00             	nopl   (%rax)
+    5960:	49 89 f5             	mov    %rsi,%r13
+    5963:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    596a:	4c 89 e7             	mov    %r12,%rdi
+    596d:	49 d1 ed             	shr    %r13
+    5970:	49 c1 e5 04          	shl    $0x4,%r13
+    5974:	66 48 0f 6e c0       	movq   %rax,%xmm0
+    5979:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
+    597d:	41 83 e5 10          	and    $0x10,%r13d
+    5981:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
+    5985:	74 11                	je     5998 <barriered_work+0x328>
           them->messages[them->messages_count++] = data->message; 
-    59b7:	48 83 c7 10          	add    $0x10,%rdi
-    59bb:	41 0f 11 04 24       	movups %xmm0,(%r12)
+    5987:	48 83 c7 10          	add    $0x10,%rdi
+    598b:	41 0f 11 04 24       	movups %xmm0,(%r12)
         for (; them->messages_count < min;) {
-    59c0:	49 39 ff             	cmp    %rdi,%r15
-    59c3:	74 13                	je     59d8 <barriered_work+0x338>
-    59c5:	0f 1f 00             	nopl   (%rax)
+    5990:	49 39 ff             	cmp    %rdi,%r15
+    5993:	74 13                	je     59a8 <barriered_work+0x338>
+    5995:	0f 1f 00             	nopl   (%rax)
           them->messages[them->messages_count++] = data->message; 
-    59c8:	0f 11 07             	movups %xmm0,(%rdi)
-    59cb:	48 83 c7 20          	add    $0x20,%rdi
-    59cf:	0f 11 47 f0          	movups %xmm0,-0x10(%rdi)
+    5998:	0f 11 07             	movups %xmm0,(%rdi)
+    599b:	48 83 c7 20          	add    $0x20,%rdi
+    599f:	0f 11 47 f0          	movups %xmm0,-0x10(%rdi)
         for (; them->messages_count < min;) {
-    59d3:	49 39 ff             	cmp    %rdi,%r15
-    59d6:	75 f0                	jne    59c8 <barriered_work+0x328>
-    59d8:	48 89 f7             	mov    %rsi,%rdi
-    59db:	48 83 e7 fe          	and    $0xfffffffffffffffe,%rdi
-    59df:	4c 01 df             	add    %r11,%rdi
-    59e2:	40 f6 c6 01          	test   $0x1,%sil
-    59e6:	0f 84 dc fd ff ff    	je     57c8 <barriered_work+0x128>
+    59a3:	49 39 ff             	cmp    %rdi,%r15
+    59a6:	75 f0                	jne    5998 <barriered_work+0x328>
+    59a8:	48 89 f7             	mov    %rsi,%rdi
+    59ab:	48 83 e7 fe          	and    $0xfffffffffffffffe,%rdi
+    59af:	4c 01 df             	add    %r11,%rdi
+    59b2:	40 f6 c6 01          	test   $0x1,%sil
+    59b6:	0f 84 dc fd ff ff    	je     5798 <barriered_work+0x128>
           them->messages[them->messages_count++] = data->message; 
-    59ec:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
-    59f3:	48 89 04 f9          	mov    %rax,(%rcx,%rdi,8)
+    59bc:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    59c3:	48 89 04 f9          	mov    %rax,(%rcx,%rdi,8)
         for (; them->messages_count < min;) {
-    59f7:	e9 cc fd ff ff       	jmp    57c8 <barriered_work+0x128>
-    59fc:	0f 1f 40 00          	nopl   0x0(%rax)
-    5a00:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
-    5a08:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
-    5a10:	e9 8c fd ff ff       	jmp    57a1 <barriered_work+0x101>
+    59c7:	e9 cc fd ff ff       	jmp    5798 <barriered_work+0x128>
+    59cc:	0f 1f 40 00          	nopl   0x0(%rax)
+    59d0:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
+    59d8:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
+    59e0:	e9 8c fd ff ff       	jmp    5771 <barriered_work+0x101>
       for (int n = 0 ; n < data->thread_count; n++) {
-    5a15:	48 8d 8b 80 01 00 00 	lea    0x180(%rbx),%rcx
-    5a1c:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
-    5a22:	31 d2                	xor    %edx,%edx
-    5a24:	48 89 0c 24          	mov    %rcx,(%rsp)
-    5a28:	48 8d 8b 88 01 00 00 	lea    0x188(%rbx),%rcx
-    5a2f:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
-    5a34:	85 c0                	test   %eax,%eax
-    5a36:	0f 8e 3d ff ff ff    	jle    5979 <barriered_work+0x2d9>
-    5a3c:	0f 1f 40 00          	nopl   0x0(%rax)
+    59e5:	48 8d 8b 80 01 00 00 	lea    0x180(%rbx),%rcx
+    59ec:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
+    59f2:	31 d2                	xor    %edx,%edx
+    59f4:	48 89 0c 24          	mov    %rcx,(%rsp)
+    59f8:	48 8d 8b 88 01 00 00 	lea    0x188(%rbx),%rcx
+    59ff:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+    5a04:	85 c0                	test   %eax,%eax
+    5a06:	0f 8e 3d ff ff ff    	jle    5949 <barriered_work+0x2d9>
+    5a0c:	0f 1f 40 00          	nopl   0x0(%rax)
         if (n == data->thread_index) { continue; }
-    5a40:	39 93 30 01 00 00    	cmp    %edx,0x130(%rbx)
-    5a46:	0f 84 af 00 00 00    	je     5afb <barriered_work+0x45b>
+    5a10:	39 93 30 01 00 00    	cmp    %edx,0x130(%rbx)
+    5a16:	0f 84 af 00 00 00    	je     5acb <barriered_work+0x45b>
         struct Data *them = data->mailboxes[n].higher;
-    5a4c:	49 89 d1             	mov    %rdx,%r9
-    5a4f:	49 c1 e1 05          	shl    $0x5,%r9
-    5a53:	4c 03 8b 68 01 00 00 	add    0x168(%rbx),%r9
-    5a5a:	4d 8b 51 08          	mov    0x8(%r9),%r10
+    5a1c:	49 89 d1             	mov    %rdx,%r9
+    5a1f:	49 c1 e1 05          	shl    $0x5,%r9
+    5a23:	4c 03 8b 68 01 00 00 	add    0x168(%rbx),%r9
+    5a2a:	4d 8b 51 08          	mov    0x8(%r9),%r10
         for (; them->messages_count < min;) {
-    5a5e:	4d 8b 5a 08          	mov    0x8(%r10),%r11
-    5a62:	4d 63 42 10          	movslq 0x10(%r10),%r8
-    5a66:	4d 39 d8             	cmp    %r11,%r8
-    5a69:	0f 8e 83 00 00 00    	jle    5af2 <barriered_work+0x452>
-    5a6f:	4c 89 c6             	mov    %r8,%rsi
-    5a72:	48 8b ab 08 01 00 00 	mov    0x108(%rbx),%rbp
-    5a79:	4d 8b 71 10          	mov    0x10(%r9),%r14
-    5a7d:	4c 29 de             	sub    %r11,%rsi
+    5a2e:	4d 8b 5a 08          	mov    0x8(%r10),%r11
+    5a32:	4d 63 42 10          	movslq 0x10(%r10),%r8
+    5a36:	4d 39 d8             	cmp    %r11,%r8
+    5a39:	0f 8e 83 00 00 00    	jle    5ac2 <barriered_work+0x452>
+    5a3f:	4c 89 c6             	mov    %r8,%rsi
+    5a42:	48 8b ab 08 01 00 00 	mov    0x108(%rbx),%rbp
+    5a49:	4d 8b 71 10          	mov    0x10(%r9),%r14
+    5a4d:	4c 29 de             	sub    %r11,%rsi
           them->messages[them->messages_count++] = data->message; 
-    5a80:	49 8b 0a             	mov    (%r10),%rcx
-    5a83:	48 8d 46 ff          	lea    -0x1(%rsi),%rax
-    5a87:	48 83 f8 02          	cmp    $0x2,%rax
-    5a8b:	0f 86 ef 00 00 00    	jbe    5b80 <barriered_work+0x4e0>
-    5a91:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
-    5a99:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
-    5aa1:	4c 8d 24 01          	lea    (%rcx,%rax,1),%r12
-    5aa5:	4c 8d 2c 39          	lea    (%rcx,%rdi,1),%r13
-    5aa9:	4c 39 2c 24          	cmp    %r13,(%rsp)
-    5aad:	73 61                	jae    5b10 <barriered_work+0x470>
-    5aaf:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    5ab4:	4d 39 fc             	cmp    %r15,%r12
-    5ab7:	73 57                	jae    5b10 <barriered_work+0x470>
-    5ab9:	4c 8d 1c 01          	lea    (%rcx,%rax,1),%r11
-    5abd:	48 01 cf             	add    %rcx,%rdi
-    5ac0:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    5a50:	49 8b 0a             	mov    (%r10),%rcx
+    5a53:	48 8d 46 ff          	lea    -0x1(%rsi),%rax
+    5a57:	48 83 f8 02          	cmp    $0x2,%rax
+    5a5b:	0f 86 ef 00 00 00    	jbe    5b50 <barriered_work+0x4e0>
+    5a61:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
+    5a69:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
+    5a71:	4c 8d 24 01          	lea    (%rcx,%rax,1),%r12
+    5a75:	4c 8d 2c 39          	lea    (%rcx,%rdi,1),%r13
+    5a79:	4c 39 2c 24          	cmp    %r13,(%rsp)
+    5a7d:	73 61                	jae    5ae0 <barriered_work+0x470>
+    5a7f:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
+    5a84:	4d 39 fc             	cmp    %r15,%r12
+    5a87:	73 57                	jae    5ae0 <barriered_work+0x470>
+    5a89:	4c 8d 1c 01          	lea    (%rcx,%rax,1),%r11
+    5a8d:	48 01 cf             	add    %rcx,%rdi
+    5a90:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
         for (; them->messages_count < min;) {
-    5ac7:	49 83 c3 08          	add    $0x8,%r11
+    5a97:	49 83 c3 08          	add    $0x8,%r11
           them->messages[them->messages_count++] = data->message; 
-    5acb:	49 89 43 f8          	mov    %rax,-0x8(%r11)
+    5a9b:	49 89 43 f8          	mov    %rax,-0x8(%r11)
         for (; them->messages_count < min;) {
-    5acf:	49 39 fb             	cmp    %rdi,%r11
-    5ad2:	75 ec                	jne    5ac0 <barriered_work+0x420>
-    5ad4:	0f 1f 40 00          	nopl   0x0(%rax)
-    5ad8:	48 01 f5             	add    %rsi,%rbp
-    5adb:	4c 01 f6             	add    %r14,%rsi
-    5ade:	48 89 ab 08 01 00 00 	mov    %rbp,0x108(%rbx)
-    5ae5:	49 89 71 10          	mov    %rsi,0x10(%r9)
-    5ae9:	4d 89 42 08          	mov    %r8,0x8(%r10)
-    5aed:	4a 89 44 c1 f8       	mov    %rax,-0x8(%rcx,%r8,8)
+    5a9f:	49 39 fb             	cmp    %rdi,%r11
+    5aa2:	75 ec                	jne    5a90 <barriered_work+0x420>
+    5aa4:	0f 1f 40 00          	nopl   0x0(%rax)
+    5aa8:	48 01 f5             	add    %rsi,%rbp
+    5aab:	4c 01 f6             	add    %r14,%rsi
+    5aae:	48 89 ab 08 01 00 00 	mov    %rbp,0x108(%rbx)
+    5ab5:	49 89 71 10          	mov    %rsi,0x10(%r9)
+    5ab9:	4d 89 42 08          	mov    %r8,0x8(%r10)
+    5abd:	4a 89 44 c1 f8       	mov    %rax,-0x8(%rcx,%r8,8)
         asm volatile ("sfence" ::: "memory");
-    5af2:	0f ae f8             	sfence
+    5ac2:	0f ae f8             	sfence
       for (int n = 0 ; n < data->thread_count; n++) {
-    5af5:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
-    5afb:	48 83 c2 01          	add    $0x1,%rdx
-    5aff:	39 d0                	cmp    %edx,%eax
-    5b01:	0f 8f 39 ff ff ff    	jg     5a40 <barriered_work+0x3a0>
-    5b07:	e9 6d fe ff ff       	jmp    5979 <barriered_work+0x2d9>
-    5b0c:	0f 1f 40 00          	nopl   0x0(%rax)
-    5b10:	49 89 f5             	mov    %rsi,%r13
-    5b13:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
-    5b1a:	4c 89 e7             	mov    %r12,%rdi
-    5b1d:	49 d1 ed             	shr    %r13
-    5b20:	49 c1 e5 04          	shl    $0x4,%r13
-    5b24:	66 48 0f 6e c0       	movq   %rax,%xmm0
-    5b29:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
-    5b2d:	41 83 e5 10          	and    $0x10,%r13d
-    5b31:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
-    5b35:	74 11                	je     5b48 <barriered_work+0x4a8>
+    5ac5:	8b 83 34 01 00 00    	mov    0x134(%rbx),%eax
+    5acb:	48 83 c2 01          	add    $0x1,%rdx
+    5acf:	39 d0                	cmp    %edx,%eax
+    5ad1:	0f 8f 39 ff ff ff    	jg     5a10 <barriered_work+0x3a0>
+    5ad7:	e9 6d fe ff ff       	jmp    5949 <barriered_work+0x2d9>
+    5adc:	0f 1f 40 00          	nopl   0x0(%rax)
+    5ae0:	49 89 f5             	mov    %rsi,%r13
+    5ae3:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    5aea:	4c 89 e7             	mov    %r12,%rdi
+    5aed:	49 d1 ed             	shr    %r13
+    5af0:	49 c1 e5 04          	shl    $0x4,%r13
+    5af4:	66 48 0f 6e c0       	movq   %rax,%xmm0
+    5af9:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
+    5afd:	41 83 e5 10          	and    $0x10,%r13d
+    5b01:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
+    5b05:	74 11                	je     5b18 <barriered_work+0x4a8>
           them->messages[them->messages_count++] = data->message; 
-    5b37:	48 83 c7 10          	add    $0x10,%rdi
-    5b3b:	41 0f 11 04 24       	movups %xmm0,(%r12)
+    5b07:	48 83 c7 10          	add    $0x10,%rdi
+    5b0b:	41 0f 11 04 24       	movups %xmm0,(%r12)
         for (; them->messages_count < min;) {
-    5b40:	4c 39 ff             	cmp    %r15,%rdi
-    5b43:	74 13                	je     5b58 <barriered_work+0x4b8>
-    5b45:	0f 1f 00             	nopl   (%rax)
+    5b10:	4c 39 ff             	cmp    %r15,%rdi
+    5b13:	74 13                	je     5b28 <barriered_work+0x4b8>
+    5b15:	0f 1f 00             	nopl   (%rax)
           them->messages[them->messages_count++] = data->message; 
-    5b48:	0f 11 07             	movups %xmm0,(%rdi)
-    5b4b:	48 83 c7 20          	add    $0x20,%rdi
-    5b4f:	0f 11 47 f0          	movups %xmm0,-0x10(%rdi)
+    5b18:	0f 11 07             	movups %xmm0,(%rdi)
+    5b1b:	48 83 c7 20          	add    $0x20,%rdi
+    5b1f:	0f 11 47 f0          	movups %xmm0,-0x10(%rdi)
         for (; them->messages_count < min;) {
-    5b53:	4c 39 ff             	cmp    %r15,%rdi
-    5b56:	75 f0                	jne    5b48 <barriered_work+0x4a8>
-    5b58:	48 89 f7             	mov    %rsi,%rdi
-    5b5b:	48 83 e7 fe          	and    $0xfffffffffffffffe,%rdi
-    5b5f:	4c 01 df             	add    %r11,%rdi
-    5b62:	40 f6 c6 01          	test   $0x1,%sil
-    5b66:	0f 84 6c ff ff ff    	je     5ad8 <barriered_work+0x438>
+    5b23:	4c 39 ff             	cmp    %r15,%rdi
+    5b26:	75 f0                	jne    5b18 <barriered_work+0x4a8>
+    5b28:	48 89 f7             	mov    %rsi,%rdi
+    5b2b:	48 83 e7 fe          	and    $0xfffffffffffffffe,%rdi
+    5b2f:	4c 01 df             	add    %r11,%rdi
+    5b32:	40 f6 c6 01          	test   $0x1,%sil
+    5b36:	0f 84 6c ff ff ff    	je     5aa8 <barriered_work+0x438>
           them->messages[them->messages_count++] = data->message; 
-    5b6c:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
-    5b73:	48 89 04 f9          	mov    %rax,(%rcx,%rdi,8)
+    5b3c:	48 8b 83 80 01 00 00 	mov    0x180(%rbx),%rax
+    5b43:	48 89 04 f9          	mov    %rax,(%rcx,%rdi,8)
         for (; them->messages_count < min;) {
-    5b77:	e9 5c ff ff ff       	jmp    5ad8 <barriered_work+0x438>
-    5b7c:	0f 1f 40 00          	nopl   0x0(%rax)
-    5b80:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
-    5b88:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
-    5b90:	e9 24 ff ff ff       	jmp    5ab9 <barriered_work+0x419>
-    5b95:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    5b47:	e9 5c ff ff ff       	jmp    5aa8 <barriered_work+0x438>
+    5b4c:	0f 1f 40 00          	nopl   0x0(%rax)
+    5b50:	4a 8d 04 dd 00 00 00 00 	lea    0x0(,%r11,8),%rax
+    5b58:	4a 8d 3c c5 00 00 00 00 	lea    0x0(,%r8,8),%rdi
+    5b60:	e9 24 ff ff ff       	jmp    5a89 <barriered_work+0x419>
+    5b65:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
 
-0000000000005ba0 <barriered_work_ingest_andwork>:
+0000000000005b70 <barriered_work_ingest_andwork>:
 int barriered_work_ingest_andwork(struct BarrierTask *data) {
-    5ba0:	f3 0f 1e fa          	endbr64
-    5ba4:	53                   	push   %rbx
-    5ba5:	48 89 fb             	mov    %rdi,%rbx
+    5b70:	f3 0f 1e fa          	endbr64
+    5b74:	53                   	push   %rbx
+    5b75:	48 89 fb             	mov    %rdi,%rbx
   barriered_work_ingest(data);
-    5ba8:	e8 f3 f5 ff ff       	call   51a0 <barriered_work_ingest>
+    5b78:	e8 f3 f5 ff ff       	call   5170 <barriered_work_ingest>
   barriered_work(data);
-    5bad:	48 89 df             	mov    %rbx,%rdi
+    5b7d:	48 89 df             	mov    %rbx,%rdi
 }
-    5bb0:	5b                   	pop    %rbx
+    5b80:	5b                   	pop    %rbx
   barriered_work(data);
-    5bb1:	e9 ea fa ff ff       	jmp    56a0 <barriered_work>
-    5bb6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    5b81:	e9 ea fa ff ff       	jmp    5670 <barriered_work>
+    5b86:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000005bc0 <sendm>:
+0000000000005b90 <sendm>:
 int sendm(struct BarrierTask *data) {
-    5bc0:	f3 0f 1e fa          	endbr64
-    5bc4:	41 57                	push   %r15
-    5bc6:	41 56                	push   %r14
-    5bc8:	41 55                	push   %r13
-    5bca:	41 54                	push   %r12
-    5bcc:	55                   	push   %rbp
-    5bcd:	53                   	push   %rbx
-    5bce:	48 83 ec 18          	sub    $0x18,%rsp
+    5b90:	f3 0f 1e fa          	endbr64
+    5b94:	41 57                	push   %r15
+    5b96:	41 56                	push   %r14
+    5b98:	41 55                	push   %r13
+    5b9a:	41 54                	push   %r12
+    5b9c:	55                   	push   %rbp
+    5b9d:	53                   	push   %rbx
+    5b9e:	48 83 ec 18          	sub    $0x18,%rsp
   if (data->sending == 1) {
-    5bd2:	83 bf 78 01 00 00 01 	cmpl   $0x1,0x178(%rdi)
-    5bd9:	0f 85 99 01 00 00    	jne    5d78 <sendm+0x1b8>
-    5bdf:	48 8d b7 80 01 00 00 	lea    0x180(%rdi),%rsi
+    5ba2:	83 bf 78 01 00 00 01 	cmpl   $0x1,0x178(%rdi)
+    5ba9:	0f 85 99 01 00 00    	jne    5d48 <sendm+0x1b8>
+    5baf:	48 8d b7 80 01 00 00 	lea    0x180(%rdi),%rsi
       for (int n = 0 ; n < data->thread_count; n++) {
-    5be6:	8b 87 34 01 00 00    	mov    0x134(%rdi),%eax
-    5bec:	48 89 fa             	mov    %rdi,%rdx
-    5bef:	31 c9                	xor    %ecx,%ecx
-    5bf1:	48 89 34 24          	mov    %rsi,(%rsp)
-    5bf5:	48 8d b7 88 01 00 00 	lea    0x188(%rdi),%rsi
-    5bfc:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
-    5c01:	85 c0                	test   %eax,%eax
-    5c03:	0f 8e ce 00 00 00    	jle    5cd7 <sendm+0x117>
-    5c09:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5bb6:	8b 87 34 01 00 00    	mov    0x134(%rdi),%eax
+    5bbc:	48 89 fa             	mov    %rdi,%rdx
+    5bbf:	31 c9                	xor    %ecx,%ecx
+    5bc1:	48 89 34 24          	mov    %rsi,(%rsp)
+    5bc5:	48 8d b7 88 01 00 00 	lea    0x188(%rdi),%rsi
+    5bcc:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
+    5bd1:	85 c0                	test   %eax,%eax
+    5bd3:	0f 8e ce 00 00 00    	jle    5ca7 <sendm+0x117>
+    5bd9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
         if (n == data->thread_index) { continue; }
-    5c10:	39 8a 30 01 00 00    	cmp    %ecx,0x130(%rdx)
-    5c16:	0f 84 af 00 00 00    	je     5ccb <sendm+0x10b>
+    5be0:	39 8a 30 01 00 00    	cmp    %ecx,0x130(%rdx)
+    5be6:	0f 84 af 00 00 00    	je     5c9b <sendm+0x10b>
         struct Data *them = data->mailboxes[n].higher;
-    5c1c:	49 89 ca             	mov    %rcx,%r10
-    5c1f:	49 c1 e2 05          	shl    $0x5,%r10
-    5c23:	4c 03 92 68 01 00 00 	add    0x168(%rdx),%r10
-    5c2a:	4d 8b 5a 08          	mov    0x8(%r10),%r11
+    5bec:	49 89 ca             	mov    %rcx,%r10
+    5bef:	49 c1 e2 05          	shl    $0x5,%r10
+    5bf3:	4c 03 92 68 01 00 00 	add    0x168(%rdx),%r10
+    5bfa:	4d 8b 5a 08          	mov    0x8(%r10),%r11
         for (; them->messages_count < min;) {
-    5c2e:	49 8b 5b 08          	mov    0x8(%r11),%rbx
-    5c32:	4d 63 4b 10          	movslq 0x10(%r11),%r9
-    5c36:	4c 39 cb             	cmp    %r9,%rbx
-    5c39:	0f 8d 83 00 00 00    	jge    5cc2 <sendm+0x102>
-    5c3f:	4c 89 cf             	mov    %r9,%rdi
-    5c42:	48 8b aa 08 01 00 00 	mov    0x108(%rdx),%rbp
-    5c49:	4d 8b 72 10          	mov    0x10(%r10),%r14
-    5c4d:	48 29 df             	sub    %rbx,%rdi
+    5bfe:	49 8b 5b 08          	mov    0x8(%r11),%rbx
+    5c02:	4d 63 4b 10          	movslq 0x10(%r11),%r9
+    5c06:	4c 39 cb             	cmp    %r9,%rbx
+    5c09:	0f 8d 83 00 00 00    	jge    5c92 <sendm+0x102>
+    5c0f:	4c 89 cf             	mov    %r9,%rdi
+    5c12:	48 8b aa 08 01 00 00 	mov    0x108(%rdx),%rbp
+    5c19:	4d 8b 72 10          	mov    0x10(%r10),%r14
+    5c1d:	48 29 df             	sub    %rbx,%rdi
           them->messages[them->messages_count++] = data->message; 
-    5c50:	49 8b 33             	mov    (%r11),%rsi
-    5c53:	48 8d 47 ff          	lea    -0x1(%rdi),%rax
-    5c57:	48 83 f8 02          	cmp    $0x2,%rax
-    5c5b:	0f 86 ff 00 00 00    	jbe    5d60 <sendm+0x1a0>
-    5c61:	48 8d 04 dd 00 00 00 00 	lea    0x0(,%rbx,8),%rax
-    5c69:	4e 8d 04 cd 00 00 00 00 	lea    0x0(,%r9,8),%r8
-    5c71:	4c 8d 24 06          	lea    (%rsi,%rax,1),%r12
-    5c75:	4e 8d 2c 06          	lea    (%rsi,%r8,1),%r13
-    5c79:	4c 39 2c 24          	cmp    %r13,(%rsp)
-    5c7d:	73 71                	jae    5cf0 <sendm+0x130>
-    5c7f:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    5c84:	4d 39 fc             	cmp    %r15,%r12
-    5c87:	73 67                	jae    5cf0 <sendm+0x130>
-    5c89:	48 8d 1c 06          	lea    (%rsi,%rax,1),%rbx
-    5c8d:	49 01 f0             	add    %rsi,%r8
-    5c90:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
+    5c20:	49 8b 33             	mov    (%r11),%rsi
+    5c23:	48 8d 47 ff          	lea    -0x1(%rdi),%rax
+    5c27:	48 83 f8 02          	cmp    $0x2,%rax
+    5c2b:	0f 86 ff 00 00 00    	jbe    5d30 <sendm+0x1a0>
+    5c31:	48 8d 04 dd 00 00 00 00 	lea    0x0(,%rbx,8),%rax
+    5c39:	4e 8d 04 cd 00 00 00 00 	lea    0x0(,%r9,8),%r8
+    5c41:	4c 8d 24 06          	lea    (%rsi,%rax,1),%r12
+    5c45:	4e 8d 2c 06          	lea    (%rsi,%r8,1),%r13
+    5c49:	4c 39 2c 24          	cmp    %r13,(%rsp)
+    5c4d:	73 71                	jae    5cc0 <sendm+0x130>
+    5c4f:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
+    5c54:	4d 39 fc             	cmp    %r15,%r12
+    5c57:	73 67                	jae    5cc0 <sendm+0x130>
+    5c59:	48 8d 1c 06          	lea    (%rsi,%rax,1),%rbx
+    5c5d:	49 01 f0             	add    %rsi,%r8
+    5c60:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
         for (; them->messages_count < min;) {
-    5c97:	48 83 c3 08          	add    $0x8,%rbx
+    5c67:	48 83 c3 08          	add    $0x8,%rbx
           them->messages[them->messages_count++] = data->message; 
-    5c9b:	48 89 43 f8          	mov    %rax,-0x8(%rbx)
+    5c6b:	48 89 43 f8          	mov    %rax,-0x8(%rbx)
         for (; them->messages_count < min;) {
-    5c9f:	49 39 d8             	cmp    %rbx,%r8
-    5ca2:	75 ec                	jne    5c90 <sendm+0xd0>
-    5ca4:	0f 1f 40 00          	nopl   0x0(%rax)
-    5ca8:	48 01 fd             	add    %rdi,%rbp
-    5cab:	4c 01 f7             	add    %r14,%rdi
-    5cae:	48 89 aa 08 01 00 00 	mov    %rbp,0x108(%rdx)
-    5cb5:	49 89 7a 10          	mov    %rdi,0x10(%r10)
-    5cb9:	4d 89 4b 08          	mov    %r9,0x8(%r11)
-    5cbd:	4a 89 44 ce f8       	mov    %rax,-0x8(%rsi,%r9,8)
+    5c6f:	49 39 d8             	cmp    %rbx,%r8
+    5c72:	75 ec                	jne    5c60 <sendm+0xd0>
+    5c74:	0f 1f 40 00          	nopl   0x0(%rax)
+    5c78:	48 01 fd             	add    %rdi,%rbp
+    5c7b:	4c 01 f7             	add    %r14,%rdi
+    5c7e:	48 89 aa 08 01 00 00 	mov    %rbp,0x108(%rdx)
+    5c85:	49 89 7a 10          	mov    %rdi,0x10(%r10)
+    5c89:	4d 89 4b 08          	mov    %r9,0x8(%r11)
+    5c8d:	4a 89 44 ce f8       	mov    %rax,-0x8(%rsi,%r9,8)
         asm volatile ("sfence" ::: "memory");
-    5cc2:	0f ae f8             	sfence
+    5c92:	0f ae f8             	sfence
       for (int n = 0 ; n < data->thread_count; n++) {
-    5cc5:	8b 82 34 01 00 00    	mov    0x134(%rdx),%eax
-    5ccb:	48 83 c1 01          	add    $0x1,%rcx
-    5ccf:	39 c8                	cmp    %ecx,%eax
-    5cd1:	0f 8f 39 ff ff ff    	jg     5c10 <sendm+0x50>
+    5c95:	8b 82 34 01 00 00    	mov    0x134(%rdx),%eax
+    5c9b:	48 83 c1 01          	add    $0x1,%rcx
+    5c9f:	39 c8                	cmp    %ecx,%eax
+    5ca1:	0f 8f 39 ff ff ff    	jg     5be0 <sendm+0x50>
 }
-    5cd7:	48 83 c4 18          	add    $0x18,%rsp
-    5cdb:	31 c0                	xor    %eax,%eax
-    5cdd:	5b                   	pop    %rbx
-    5cde:	5d                   	pop    %rbp
-    5cdf:	41 5c                	pop    %r12
-    5ce1:	41 5d                	pop    %r13
-    5ce3:	41 5e                	pop    %r14
-    5ce5:	41 5f                	pop    %r15
-    5ce7:	c3                   	ret
-    5ce8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-    5cf0:	49 89 fd             	mov    %rdi,%r13
-    5cf3:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
-    5cfa:	4d 89 e0             	mov    %r12,%r8
-    5cfd:	49 d1 ed             	shr    %r13
-    5d00:	49 c1 e5 04          	shl    $0x4,%r13
-    5d04:	66 48 0f 6e c0       	movq   %rax,%xmm0
-    5d09:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
-    5d0d:	41 83 e5 10          	and    $0x10,%r13d
-    5d11:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
-    5d15:	74 11                	je     5d28 <sendm+0x168>
+    5ca7:	48 83 c4 18          	add    $0x18,%rsp
+    5cab:	31 c0                	xor    %eax,%eax
+    5cad:	5b                   	pop    %rbx
+    5cae:	5d                   	pop    %rbp
+    5caf:	41 5c                	pop    %r12
+    5cb1:	41 5d                	pop    %r13
+    5cb3:	41 5e                	pop    %r14
+    5cb5:	41 5f                	pop    %r15
+    5cb7:	c3                   	ret
+    5cb8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    5cc0:	49 89 fd             	mov    %rdi,%r13
+    5cc3:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
+    5cca:	4d 89 e0             	mov    %r12,%r8
+    5ccd:	49 d1 ed             	shr    %r13
+    5cd0:	49 c1 e5 04          	shl    $0x4,%r13
+    5cd4:	66 48 0f 6e c0       	movq   %rax,%xmm0
+    5cd9:	4f 8d 3c 2c          	lea    (%r12,%r13,1),%r15
+    5cdd:	41 83 e5 10          	and    $0x10,%r13d
+    5ce1:	66 0f 6c c0          	punpcklqdq %xmm0,%xmm0
+    5ce5:	74 11                	je     5cf8 <sendm+0x168>
           them->messages[them->messages_count++] = data->message; 
-    5d17:	49 83 c0 10          	add    $0x10,%r8
-    5d1b:	41 0f 11 04 24       	movups %xmm0,(%r12)
+    5ce7:	49 83 c0 10          	add    $0x10,%r8
+    5ceb:	41 0f 11 04 24       	movups %xmm0,(%r12)
         for (; them->messages_count < min;) {
-    5d20:	4d 39 f8             	cmp    %r15,%r8
-    5d23:	74 15                	je     5d3a <sendm+0x17a>
-    5d25:	0f 1f 00             	nopl   (%rax)
+    5cf0:	4d 39 f8             	cmp    %r15,%r8
+    5cf3:	74 15                	je     5d0a <sendm+0x17a>
+    5cf5:	0f 1f 00             	nopl   (%rax)
           them->messages[them->messages_count++] = data->message; 
-    5d28:	41 0f 11 00          	movups %xmm0,(%r8)
-    5d2c:	49 83 c0 20          	add    $0x20,%r8
-    5d30:	41 0f 11 40 f0       	movups %xmm0,-0x10(%r8)
+    5cf8:	41 0f 11 00          	movups %xmm0,(%r8)
+    5cfc:	49 83 c0 20          	add    $0x20,%r8
+    5d00:	41 0f 11 40 f0       	movups %xmm0,-0x10(%r8)
         for (; them->messages_count < min;) {
-    5d35:	4d 39 f8             	cmp    %r15,%r8
-    5d38:	75 ee                	jne    5d28 <sendm+0x168>
-    5d3a:	49 89 f8             	mov    %rdi,%r8
-    5d3d:	49 83 e0 fe          	and    $0xfffffffffffffffe,%r8
-    5d41:	49 01 d8             	add    %rbx,%r8
-    5d44:	40 f6 c7 01          	test   $0x1,%dil
-    5d48:	0f 84 5a ff ff ff    	je     5ca8 <sendm+0xe8>
+    5d05:	4d 39 f8             	cmp    %r15,%r8
+    5d08:	75 ee                	jne    5cf8 <sendm+0x168>
+    5d0a:	49 89 f8             	mov    %rdi,%r8
+    5d0d:	49 83 e0 fe          	and    $0xfffffffffffffffe,%r8
+    5d11:	49 01 d8             	add    %rbx,%r8
+    5d14:	40 f6 c7 01          	test   $0x1,%dil
+    5d18:	0f 84 5a ff ff ff    	je     5c78 <sendm+0xe8>
           them->messages[them->messages_count++] = data->message; 
-    5d4e:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
-    5d55:	4a 89 04 c6          	mov    %rax,(%rsi,%r8,8)
+    5d1e:	48 8b 82 80 01 00 00 	mov    0x180(%rdx),%rax
+    5d25:	4a 89 04 c6          	mov    %rax,(%rsi,%r8,8)
         for (; them->messages_count < min;) {
-    5d59:	e9 4a ff ff ff       	jmp    5ca8 <sendm+0xe8>
-    5d5e:	66 90                	xchg   %ax,%ax
-    5d60:	48 8d 04 dd 00 00 00 00 	lea    0x0(,%rbx,8),%rax
-    5d68:	4e 8d 04 cd 00 00 00 00 	lea    0x0(,%r9,8),%r8
-    5d70:	e9 14 ff ff ff       	jmp    5c89 <sendm+0xc9>
-    5d75:	0f 1f 00             	nopl   (%rax)
-    5d78:	48 8d 3d 95 14 00 00 	lea    0x1495(%rip),%rdi        # 7214 <_IO_stdin_used+0x214>
-    5d7f:	e8 6c c5 ff ff       	call   22f0 <puts@plt>
-    5d84:	e9 4e ff ff ff       	jmp    5cd7 <sendm+0x117>
-    5d89:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5d29:	e9 4a ff ff ff       	jmp    5c78 <sendm+0xe8>
+    5d2e:	66 90                	xchg   %ax,%ax
+    5d30:	48 8d 04 dd 00 00 00 00 	lea    0x0(,%rbx,8),%rax
+    5d38:	4e 8d 04 cd 00 00 00 00 	lea    0x0(,%r9,8),%r8
+    5d40:	e9 14 ff ff ff       	jmp    5c59 <sendm+0xc9>
+    5d45:	0f 1f 00             	nopl   (%rax)
+    5d48:	48 8d 3d c5 14 00 00 	lea    0x14c5(%rip),%rdi        # 7214 <_IO_stdin_used+0x214>
+    5d4f:	e8 9c c5 ff ff       	call   22f0 <puts@plt>
+    5d54:	e9 4e ff ff ff       	jmp    5ca7 <sendm+0x117>
+    5d59:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000005d90 <barriered_nulltask>:
+0000000000005d60 <barriered_nulltask>:
 int barriered_nulltask(struct BarrierTask *data) {
-    5d90:	f3 0f 1e fa          	endbr64
+    5d60:	f3 0f 1e fa          	endbr64
 }
-    5d94:	31 c0                	xor    %eax,%eax
-    5d96:	c3                   	ret
-    5d97:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    5d64:	31 c0                	xor    %eax,%eax
+    5d66:	c3                   	ret
+    5d67:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
-0000000000005da0 <barriered_steal>:
+0000000000005d70 <barriered_steal>:
 int barriered_steal(struct BarrierTask *data) {
-    5da0:	f3 0f 1e fa          	endbr64
-    5da4:	31 c0                	xor    %eax,%eax
-    5da6:	c3                   	ret
-    5da7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    5d70:	f3 0f 1e fa          	endbr64
+    5d74:	31 c0                	xor    %eax,%eax
+    5d76:	c3                   	ret
+    5d77:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
-0000000000005db0 <after>:
+0000000000005d80 <after>:
 int after(struct timespec left, struct timespec right) {
-    5db0:	f3 0f 1e fa          	endbr64
+    5d80:	f3 0f 1e fa          	endbr64
   return left.tv_sec > right.tv_sec &&
-    5db4:	31 c0                	xor    %eax,%eax
-    5db6:	48 39 d7             	cmp    %rdx,%rdi
-    5db9:	7e 08                	jle    5dc3 <after+0x13>
-    5dbb:	31 c0                	xor    %eax,%eax
-    5dbd:	48 39 ce             	cmp    %rcx,%rsi
-    5dc0:	0f 9f c0             	setg   %al
+    5d84:	31 c0                	xor    %eax,%eax
+    5d86:	48 39 d7             	cmp    %rdx,%rdi
+    5d89:	7e 08                	jle    5d93 <after+0x13>
+    5d8b:	31 c0                	xor    %eax,%eax
+    5d8d:	48 39 ce             	cmp    %rcx,%rsi
+    5d90:	0f 9f c0             	setg   %al
 }
-    5dc3:	c3                   	ret
-    5dc4:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    5dcf:	90                   	nop
+    5d93:	c3                   	ret
+    5d94:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    5d9f:	90                   	nop
 
-0000000000005dd0 <within>:
+0000000000005da0 <within>:
 int within(struct timespec a, struct timespec b, struct timespec c, struct timespec d) {
-    5dd0:	f3 0f 1e fa          	endbr64
-    5dd4:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
-    5dd9:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    5da0:	f3 0f 1e fa          	endbr64
+    5da4:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
+    5da9:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
   return 0;
-    5dde:	31 c0                	xor    %eax,%eax
+    5dae:	31 c0                	xor    %eax,%eax
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    5de0:	48 39 d7             	cmp    %rdx,%rdi
-    5de3:	7f 18                	jg     5dfd <within+0x2d>
-    5de5:	4d 39 d8             	cmp    %r11,%r8
-    5de8:	0f 9e c2             	setle  %dl
-    5deb:	48 39 ce             	cmp    %rcx,%rsi
-    5dee:	0f 9e c0             	setle  %al
-    5df1:	21 c2                	and    %eax,%edx
+    5db0:	48 39 d7             	cmp    %rdx,%rdi
+    5db3:	7f 18                	jg     5dcd <within+0x2d>
+    5db5:	4d 39 d8             	cmp    %r11,%r8
+    5db8:	0f 9e c2             	setle  %dl
+    5dbb:	48 39 ce             	cmp    %rcx,%rsi
+    5dbe:	0f 9e c0             	setle  %al
+    5dc1:	21 c2                	and    %eax,%edx
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    5df3:	31 c0                	xor    %eax,%eax
-    5df5:	4d 39 d1             	cmp    %r10,%r9
-    5df8:	0f 9e c0             	setle  %al
-    5dfb:	21 d0                	and    %edx,%eax
+    5dc3:	31 c0                	xor    %eax,%eax
+    5dc5:	4d 39 d1             	cmp    %r10,%r9
+    5dc8:	0f 9e c0             	setle  %al
+    5dcb:	21 d0                	and    %edx,%eax
 }
-    5dfd:	c3                   	ret
-    5dfe:	66 90                	xchg   %ax,%ax
+    5dcd:	c3                   	ret
+    5dce:	66 90                	xchg   %ax,%ax
 
-0000000000005e00 <overlap>:
+0000000000005dd0 <overlap>:
 int overlap(struct Snapshot left, struct Snapshot right) {
-    5e00:	f3 0f 1e fa          	endbr64
-    5e04:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
-    5e09:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
-    5e0e:	4c 8b 4c 24 18       	mov    0x18(%rsp),%r9
-    5e13:	4c 8b 54 24 20       	mov    0x20(%rsp),%r10
-    5e18:	4c 8b 44 24 38       	mov    0x38(%rsp),%r8
-    5e1d:	4c 8b 5c 24 40       	mov    0x40(%rsp),%r11
+    5dd0:	f3 0f 1e fa          	endbr64
+    5dd4:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
+    5dd9:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
+    5dde:	4c 8b 4c 24 18       	mov    0x18(%rsp),%r9
+    5de3:	4c 8b 54 24 20       	mov    0x20(%rsp),%r10
+    5de8:	4c 8b 44 24 38       	mov    0x38(%rsp),%r8
+    5ded:	4c 8b 5c 24 40       	mov    0x40(%rsp),%r11
   if (after(left.start, right.start) && after(right.end, left.end)) {
-    5e22:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
-    5e27:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
+    5df2:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+    5df7:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
   return left.tv_sec > right.tv_sec &&
-    5e2c:	48 39 fe             	cmp    %rdi,%rsi
-    5e2f:	7d 2f                	jge    5e60 <overlap+0x60>
-    5e31:	48 39 ca             	cmp    %rcx,%rdx
-    5e34:	7d 62                	jge    5e98 <overlap+0x98>
-    5e36:	4d 39 da             	cmp    %r11,%r10
-    5e39:	7d 0e                	jge    5e49 <overlap+0x49>
+    5dfc:	48 39 fe             	cmp    %rdi,%rsi
+    5dff:	7d 2f                	jge    5e30 <overlap+0x60>
+    5e01:	48 39 ca             	cmp    %rcx,%rdx
+    5e04:	7d 62                	jge    5e68 <overlap+0x98>
+    5e06:	4d 39 da             	cmp    %r11,%r10
+    5e09:	7d 0e                	jge    5e19 <overlap+0x49>
     return 1;
-    5e3b:	b8 01 00 00 00       	mov    $0x1,%eax
+    5e0b:	b8 01 00 00 00       	mov    $0x1,%eax
   return left.tv_sec > right.tv_sec &&
-    5e40:	4d 39 c1             	cmp    %r8,%r9
-    5e43:	0f 8c 7f 00 00 00    	jl     5ec8 <overlap+0xc8>
+    5e10:	4d 39 c1             	cmp    %r8,%r9
+    5e13:	0f 8c 7f 00 00 00    	jl     5e98 <overlap+0xc8>
   return 0;
-    5e49:	31 c0                	xor    %eax,%eax
+    5e19:	31 c0                	xor    %eax,%eax
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    5e4b:	4d 39 c1             	cmp    %r8,%r9
-    5e4e:	7f 4c                	jg     5e9c <overlap+0x9c>
+    5e1b:	4d 39 c1             	cmp    %r8,%r9
+    5e1e:	7f 4c                	jg     5e6c <overlap+0x9c>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    5e50:	31 c0                	xor    %eax,%eax
-    5e52:	4d 39 da             	cmp    %r11,%r10
-    5e55:	0f 9e c0             	setle  %al
-    5e58:	c3                   	ret
-    5e59:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5e20:	31 c0                	xor    %eax,%eax
+    5e22:	4d 39 da             	cmp    %r11,%r10
+    5e25:	0f 9e c0             	setle  %al
+    5e28:	c3                   	ret
+    5e29:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
   return left.tv_sec > right.tv_sec &&
-    5e60:	7e 4e                	jle    5eb0 <overlap+0xb0>
-    5e62:	48 39 ca             	cmp    %rcx,%rdx
-    5e65:	7f 39                	jg     5ea0 <overlap+0xa0>
+    5e30:	7e 4e                	jle    5e80 <overlap+0xb0>
+    5e32:	48 39 ca             	cmp    %rcx,%rdx
+    5e35:	7f 39                	jg     5e70 <overlap+0xa0>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    5e67:	75 31                	jne    5e9a <overlap+0x9a>
-    5e69:	4d 39 c1             	cmp    %r8,%r9
-    5e6c:	7c 2c                	jl     5e9a <overlap+0x9a>
+    5e37:	75 31                	jne    5e6a <overlap+0x9a>
+    5e39:	4d 39 c1             	cmp    %r8,%r9
+    5e3c:	7c 2c                	jl     5e6a <overlap+0x9a>
     return 1;
-    5e6e:	b8 01 00 00 00       	mov    $0x1,%eax
+    5e3e:	b8 01 00 00 00       	mov    $0x1,%eax
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    5e73:	4d 39 da             	cmp    %r11,%r10
-    5e76:	7d 24                	jge    5e9c <overlap+0x9c>
+    5e43:	4d 39 da             	cmp    %r11,%r10
+    5e46:	7d 24                	jge    5e6c <overlap+0x9c>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    5e78:	48 39 ca             	cmp    %rcx,%rdx
-    5e7b:	0f 94 c2             	sete   %dl
-    5e7e:	48 39 fe             	cmp    %rdi,%rsi
-    5e81:	0f 94 c0             	sete   %al
-    5e84:	21 c2                	and    %eax,%edx
-    5e86:	31 c0                	xor    %eax,%eax
-    5e88:	4d 39 c1             	cmp    %r8,%r9
-    5e8b:	0f 94 c0             	sete   %al
-    5e8e:	21 d0                	and    %edx,%eax
-    5e90:	c3                   	ret
+    5e48:	48 39 ca             	cmp    %rcx,%rdx
+    5e4b:	0f 94 c2             	sete   %dl
+    5e4e:	48 39 fe             	cmp    %rdi,%rsi
+    5e51:	0f 94 c0             	sete   %al
+    5e54:	21 c2                	and    %eax,%edx
+    5e56:	31 c0                	xor    %eax,%eax
+    5e58:	4d 39 c1             	cmp    %r8,%r9
+    5e5b:	0f 94 c0             	sete   %al
+    5e5e:	21 d0                	and    %edx,%eax
+    5e60:	c3                   	ret
+    5e61:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5e68:	74 af                	je     5e19 <overlap+0x49>
+  return 0;
+    5e6a:	31 c0                	xor    %eax,%eax
+}
+    5e6c:	c3                   	ret
+    5e6d:	0f 1f 00             	nopl   (%rax)
+  return left.tv_sec > right.tv_sec &&
+    5e70:	4d 39 da             	cmp    %r11,%r10
+    5e73:	7e c4                	jle    5e39 <overlap+0x69>
+    return 1;
+    5e75:	b8 01 00 00 00       	mov    $0x1,%eax
+  return left.tv_sec > right.tv_sec &&
+    5e7a:	4d 39 c1             	cmp    %r8,%r9
+    5e7d:	7e ba                	jle    5e39 <overlap+0x69>
+    5e7f:	c3                   	ret
+  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
+    5e80:	48 39 ca             	cmp    %rcx,%rdx
+    5e83:	7c 94                	jl     5e19 <overlap+0x49>
+    5e85:	4d 39 c1             	cmp    %r8,%r9
+    5e88:	7d b4                	jge    5e3e <overlap+0x6e>
+    5e8a:	48 39 ca             	cmp    %rcx,%rdx
+    5e8d:	74 91                	je     5e20 <overlap+0x50>
+    5e8f:	eb d9                	jmp    5e6a <overlap+0x9a>
     5e91:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    5e98:	74 af                	je     5e49 <overlap+0x49>
-  return 0;
-    5e9a:	31 c0                	xor    %eax,%eax
-}
-    5e9c:	c3                   	ret
-    5e9d:	0f 1f 00             	nopl   (%rax)
-  return left.tv_sec > right.tv_sec &&
-    5ea0:	4d 39 da             	cmp    %r11,%r10
-    5ea3:	7e c4                	jle    5e69 <overlap+0x69>
-    return 1;
-    5ea5:	b8 01 00 00 00       	mov    $0x1,%eax
-  return left.tv_sec > right.tv_sec &&
-    5eaa:	4d 39 c1             	cmp    %r8,%r9
-    5ead:	7e ba                	jle    5e69 <overlap+0x69>
-    5eaf:	c3                   	ret
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    5eb0:	48 39 ca             	cmp    %rcx,%rdx
-    5eb3:	7c 94                	jl     5e49 <overlap+0x49>
-    5eb5:	4d 39 c1             	cmp    %r8,%r9
-    5eb8:	7d b4                	jge    5e6e <overlap+0x6e>
-    5eba:	48 39 ca             	cmp    %rcx,%rdx
-    5ebd:	74 91                	je     5e50 <overlap+0x50>
-    5ebf:	eb d9                	jmp    5e9a <overlap+0x9a>
-    5ec1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    5ec8:	c3                   	ret
-    5ec9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    5e98:	c3                   	ret
+    5e99:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000005ed0 <verify>:
+0000000000005ea0 <verify>:
 int verify(struct KernelThread *thread_data, int thread_count) {
-    5ed0:	f3 0f 1e fa          	endbr64
+    5ea0:	f3 0f 1e fa          	endbr64
   for (int x = 0 ; x < thread_count; x++) {
-    5ed4:	85 f6                	test   %esi,%esi
-    5ed6:	0f 8e 44 03 00 00    	jle    6220 <verify+0x350>
+    5ea4:	85 f6                	test   %esi,%esi
+    5ea6:	0f 8e 44 03 00 00    	jle    61f0 <verify+0x350>
 int verify(struct KernelThread *thread_data, int thread_count) {
-    5edc:	41 57                	push   %r15
-    5ede:	41 89 f7             	mov    %esi,%r15d
-    5ee1:	41 56                	push   %r14
+    5eac:	41 57                	push   %r15
+    5eae:	41 89 f7             	mov    %esi,%r15d
+    5eb1:	41 56                	push   %r14
   for (int x = 0 ; x < thread_count; x++) {
-    5ee3:	45 31 f6             	xor    %r14d,%r14d
+    5eb3:	45 31 f6             	xor    %r14d,%r14d
 int verify(struct KernelThread *thread_data, int thread_count) {
-    5ee6:	41 55                	push   %r13
-    5ee8:	41 54                	push   %r12
-    5eea:	55                   	push   %rbp
-    5eeb:	53                   	push   %rbx
-    5eec:	48 8d 5f 28          	lea    0x28(%rdi),%rbx
-    5ef0:	48 83 ec 58          	sub    $0x58,%rsp
+    5eb6:	41 55                	push   %r13
+    5eb8:	41 54                	push   %r12
+    5eba:	55                   	push   %rbp
+    5ebb:	53                   	push   %rbx
+    5ebc:	48 8d 5f 28          	lea    0x28(%rdi),%rbx
+    5ec0:	48 83 ec 58          	sub    $0x58,%rsp
   for (int x = 0 ; x < thread_count; x++) {
-    5ef4:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+    5ec4:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
     for (int z = 0 ; z < thread_count; z++) {
-    5ef9:	48 89 5c 24 10       	mov    %rbx,0x10(%rsp)
-    5efe:	45 31 e4             	xor    %r12d,%r12d
+    5ec9:	48 89 5c 24 10       	mov    %rbx,0x10(%rsp)
+    5ece:	45 31 e4             	xor    %r12d,%r12d
       if (z != x)  {
-    5f01:	45 39 e6             	cmp    %r12d,%r14d
-    5f04:	0f 84 4e 02 00 00    	je     6158 <verify+0x288>
+    5ed1:	45 39 e6             	cmp    %r12d,%r14d
+    5ed4:	0f 84 4e 02 00 00    	je     6128 <verify+0x288>
         for (int y = 0 ; y < thread_data[x].task_count ; y++) {
-    5f0a:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    5f0f:	8b 50 08             	mov    0x8(%rax),%edx
-    5f12:	85 d2                	test   %edx,%edx
-    5f14:	0f 8e 3e 02 00 00    	jle    6158 <verify+0x288>
-    5f1a:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
-    5f1f:	31 c9                	xor    %ecx,%ecx
-    5f21:	44 89 64 24 3c       	mov    %r12d,0x3c(%rsp)
-    5f26:	31 c0                	xor    %eax,%eax
-    5f28:	44 89 f2             	mov    %r14d,%edx
-    5f2b:	bf 01 00 00 00       	mov    $0x1,%edi
-    5f30:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
-    5f35:	48 8d 35 e4 12 00 00 	lea    0x12e4(%rip),%rsi        # 7220 <_IO_stdin_used+0x220>
-    5f3c:	e8 0f c5 ff ff       	call   2450 <__printf_chk@plt>
+    5eda:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    5edf:	8b 50 08             	mov    0x8(%rax),%edx
+    5ee2:	85 d2                	test   %edx,%edx
+    5ee4:	0f 8e 3e 02 00 00    	jle    6128 <verify+0x288>
+    5eea:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
+    5eef:	31 c9                	xor    %ecx,%ecx
+    5ef1:	44 89 64 24 3c       	mov    %r12d,0x3c(%rsp)
+    5ef6:	31 c0                	xor    %eax,%eax
+    5ef8:	44 89 f2             	mov    %r14d,%edx
+    5efb:	bf 01 00 00 00       	mov    $0x1,%edi
+    5f00:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+    5f05:	48 8d 35 14 13 00 00 	lea    0x1314(%rip),%rsi        # 7220 <_IO_stdin_used+0x220>
+    5f0c:	e8 3f c5 ff ff       	call   2450 <__printf_chk@plt>
           for (int k = 0 ; k < thread_data[z].task_count; k++) {
-    5f41:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    5f46:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
-    5f4b:	8b 40 08             	mov    0x8(%rax),%eax
-    5f4e:	85 c0                	test   %eax,%eax
-    5f50:	0f 8e e6 01 00 00    	jle    613c <verify+0x26c>
-    5f56:	48 89 c8             	mov    %rcx,%rax
+    5f11:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    5f16:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
+    5f1b:	8b 40 08             	mov    0x8(%rax),%eax
+    5f1e:	85 c0                	test   %eax,%eax
+    5f20:	0f 8e e6 01 00 00    	jle    610c <verify+0x26c>
+    5f26:	48 89 c8             	mov    %rcx,%rax
             printf("%ld %ld\n", thread_data[z].tasks[k].current_snapshot, thread_data[x].tasks[y].current_snapshot);
-    5f59:	48 89 4c 24 40       	mov    %rcx,0x40(%rsp)
-    5f5e:	31 db                	xor    %ebx,%ebx
-    5f60:	48 c1 e0 09          	shl    $0x9,%rax
-    5f64:	44 89 74 24 48       	mov    %r14d,0x48(%rsp)
-    5f69:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-    5f6e:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    5f73:	44 89 7c 24 4c       	mov    %r15d,0x4c(%rsp)
-    5f78:	4c 8b 20             	mov    (%rax),%r12
-    5f7b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    5f80:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
-    5f85:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    5f8a:	49 89 de             	mov    %rbx,%r14
-    5f8d:	48 8d 35 a1 12 00 00 	lea    0x12a1(%rip),%rsi        # 7235 <_IO_stdin_used+0x235>
-    5f94:	49 c1 e6 09          	shl    $0x9,%r14
-    5f98:	bf 01 00 00 00       	mov    $0x1,%edi
-    5f9d:	48 8b 45 00          	mov    0x0(%rbp),%rax
-    5fa1:	4b 8b 8c 3c 58 01 00 00 	mov    0x158(%r12,%r15,1),%rcx
-    5fa9:	4c 89 74 24 20       	mov    %r14,0x20(%rsp)
-    5fae:	4a 8b 94 30 58 01 00 00 	mov    0x158(%rax,%r14,1),%rdx
-    5fb6:	31 c0                	xor    %eax,%eax
-    5fb8:	e8 93 c4 ff ff       	call   2450 <__printf_chk@plt>
+    5f29:	48 89 4c 24 40       	mov    %rcx,0x40(%rsp)
+    5f2e:	31 db                	xor    %ebx,%ebx
+    5f30:	48 c1 e0 09          	shl    $0x9,%rax
+    5f34:	44 89 74 24 48       	mov    %r14d,0x48(%rsp)
+    5f39:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+    5f3e:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    5f43:	44 89 7c 24 4c       	mov    %r15d,0x4c(%rsp)
+    5f48:	4c 8b 20             	mov    (%rax),%r12
+    5f4b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    5f50:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
+    5f55:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
+    5f5a:	49 89 de             	mov    %rbx,%r14
+    5f5d:	48 8d 35 d1 12 00 00 	lea    0x12d1(%rip),%rsi        # 7235 <_IO_stdin_used+0x235>
+    5f64:	49 c1 e6 09          	shl    $0x9,%r14
+    5f68:	bf 01 00 00 00       	mov    $0x1,%edi
+    5f6d:	48 8b 45 00          	mov    0x0(%rbp),%rax
+    5f71:	4b 8b 8c 3c 58 01 00 00 	mov    0x158(%r12,%r15,1),%rcx
+    5f79:	4c 89 74 24 20       	mov    %r14,0x20(%rsp)
+    5f7e:	4a 8b 94 30 58 01 00 00 	mov    0x158(%rax,%r14,1),%rdx
+    5f86:	31 c0                	xor    %eax,%eax
+    5f88:	e8 c3 c4 ff ff       	call   2450 <__printf_chk@plt>
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    5fbd:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    5fc2:	4c 8b 20             	mov    (%rax),%r12
-    5fc5:	4b 83 bc 3c 58 01 00 00 00 	cmpq   $0x0,0x158(%r12,%r15,1)
-    5fce:	0f 8e 47 01 00 00    	jle    611b <verify+0x24b>
-    5fd4:	4c 03 75 00          	add    0x0(%rbp),%r14
-    5fd8:	48 89 5c 24 28       	mov    %rbx,0x28(%rsp)
+    5f8d:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    5f92:	4c 8b 20             	mov    (%rax),%r12
+    5f95:	4b 83 bc 3c 58 01 00 00 00 	cmpq   $0x0,0x158(%r12,%r15,1)
+    5f9e:	0f 8e 47 01 00 00    	jle    60eb <verify+0x24b>
+    5fa4:	4c 03 75 00          	add    0x0(%rbp),%r14
+    5fa8:	48 89 5c 24 28       	mov    %rbx,0x28(%rsp)
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    5fdd:	ba 01 00 00 00       	mov    $0x1,%edx
-    5fe2:	4d 89 f5             	mov    %r14,%r13
-    5fe5:	4d 8b b5 58 01 00 00 	mov    0x158(%r13),%r14
-    5fec:	4d 85 f6             	test   %r14,%r14
-    5fef:	0f 8e 21 01 00 00    	jle    6116 <verify+0x246>
-    5ff5:	0f 1f 00             	nopl   (%rax)
+    5fad:	ba 01 00 00 00       	mov    $0x1,%edx
+    5fb2:	4d 89 f5             	mov    %r14,%r13
+    5fb5:	4d 8b b5 58 01 00 00 	mov    0x158(%r13),%r14
+    5fbc:	4d 85 f6             	test   %r14,%r14
+    5fbf:	0f 8e 21 01 00 00    	jle    60e6 <verify+0x246>
+    5fc5:	0f 1f 00             	nopl   (%rax)
                 if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
-    5ff8:	48 89 d5             	mov    %rdx,%rbp
-    5ffb:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-    6000:	31 db                	xor    %ebx,%ebx
-    6002:	4d 89 f2             	mov    %r14,%r10
-    6005:	48 c1 e5 05          	shl    $0x5,%rbp
-    6009:	48 83 ed 20          	sub    $0x20,%rbp
-    600d:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
-    6011:	49 89 ee             	mov    %rbp,%r14
-    6014:	48 89 dd             	mov    %rbx,%rbp
-    6017:	48 89 d3             	mov    %rdx,%rbx
-    601a:	eb 31                	jmp    604d <verify+0x17d>
-    601c:	0f 1f 40 00          	nopl   0x0(%rax)
+    5fc8:	48 89 d5             	mov    %rdx,%rbp
+    5fcb:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+    5fd0:	31 db                	xor    %ebx,%ebx
+    5fd2:	4d 89 f2             	mov    %r14,%r10
+    5fd5:	48 c1 e5 05          	shl    $0x5,%rbp
+    5fd9:	48 83 ed 20          	sub    $0x20,%rbp
+    5fdd:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
+    5fe1:	49 89 ee             	mov    %rbp,%r14
+    5fe4:	48 89 dd             	mov    %rbx,%rbp
+    5fe7:	48 89 d3             	mov    %rdx,%rbx
+    5fea:	eb 31                	jmp    601d <verify+0x17d>
+    5fec:	0f 1f 40 00          	nopl   0x0(%rax)
   return left.tv_sec > right.tv_sec &&
-    6020:	4c 39 c2             	cmp    %r8,%rdx
-    6023:	0f 8d 57 01 00 00    	jge    6180 <verify+0x2b0>
-    6029:	4c 39 df             	cmp    %r11,%rdi
-    602c:	7e 05                	jle    6033 <verify+0x163>
-    602e:	49 39 c1             	cmp    %rax,%r9
-    6031:	7c 75                	jl     60a8 <verify+0x1d8>
+    5ff0:	4c 39 c2             	cmp    %r8,%rdx
+    5ff3:	0f 8d 57 01 00 00    	jge    6150 <verify+0x2b0>
+    5ff9:	4c 39 df             	cmp    %r11,%rdi
+    5ffc:	7e 05                	jle    6003 <verify+0x163>
+    5ffe:	49 39 c1             	cmp    %rax,%r9
+    6001:	7c 75                	jl     6078 <verify+0x1d8>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6033:	4c 39 df             	cmp    %r11,%rdi
-    6036:	0f 8d ab 01 00 00    	jge    61e7 <verify+0x317>
-    603c:	0f 1f 40 00          	nopl   0x0(%rax)
+    6003:	4c 39 df             	cmp    %r11,%rdi
+    6006:	0f 8d ab 01 00 00    	jge    61b7 <verify+0x317>
+    600c:	0f 1f 40 00          	nopl   0x0(%rax)
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    6040:	48 83 c5 01          	add    $0x1,%rbp
-    6044:	49 39 ea             	cmp    %rbp,%r10
-    6047:	0f 8e a9 00 00 00    	jle    60f6 <verify+0x226>
+    6010:	48 83 c5 01          	add    $0x1,%rbp
+    6014:	49 39 ea             	cmp    %rbp,%r10
+    6017:	0f 8e a9 00 00 00    	jle    60c6 <verify+0x226>
                 if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
-    604d:	49 8b 97 48 01 00 00 	mov    0x148(%r15),%rdx
-    6054:	48 89 e8             	mov    %rbp,%rax
-    6057:	48 c1 e0 05          	shl    $0x5,%rax
-    605b:	49 03 85 48 01 00 00 	add    0x148(%r13),%rax
-    6062:	4c 01 f2             	add    %r14,%rdx
-    6065:	48 8b 08             	mov    (%rax),%rcx
-    6068:	48 8b 78 10          	mov    0x10(%rax),%rdi
-    606c:	48 8b 32             	mov    (%rdx),%rsi
-    606f:	4c 8b 42 08          	mov    0x8(%rdx),%r8
-    6073:	4c 8b 5a 10          	mov    0x10(%rdx),%r11
-    6077:	4c 8b 4a 18          	mov    0x18(%rdx),%r9
-    607b:	48 8b 50 08          	mov    0x8(%rax),%rdx
-    607f:	48 8b 40 18          	mov    0x18(%rax),%rax
+    601d:	49 8b 97 48 01 00 00 	mov    0x148(%r15),%rdx
+    6024:	48 89 e8             	mov    %rbp,%rax
+    6027:	48 c1 e0 05          	shl    $0x5,%rax
+    602b:	49 03 85 48 01 00 00 	add    0x148(%r13),%rax
+    6032:	4c 01 f2             	add    %r14,%rdx
+    6035:	48 8b 08             	mov    (%rax),%rcx
+    6038:	48 8b 78 10          	mov    0x10(%rax),%rdi
+    603c:	48 8b 32             	mov    (%rdx),%rsi
+    603f:	4c 8b 42 08          	mov    0x8(%rdx),%r8
+    6043:	4c 8b 5a 10          	mov    0x10(%rdx),%r11
+    6047:	4c 8b 4a 18          	mov    0x18(%rdx),%r9
+    604b:	48 8b 50 08          	mov    0x8(%rax),%rdx
+    604f:	48 8b 40 18          	mov    0x18(%rax),%rax
   return left.tv_sec > right.tv_sec &&
-    6083:	48 39 f1             	cmp    %rsi,%rcx
-    6086:	7c 98                	jl     6020 <verify+0x150>
-    6088:	0f 8e 42 01 00 00    	jle    61d0 <verify+0x300>
-    608e:	4c 39 c2             	cmp    %r8,%rdx
-    6091:	0f 8f f9 00 00 00    	jg     6190 <verify+0x2c0>
+    6053:	48 39 f1             	cmp    %rsi,%rcx
+    6056:	7c 98                	jl     5ff0 <verify+0x150>
+    6058:	0f 8e 42 01 00 00    	jle    61a0 <verify+0x300>
+    605e:	4c 39 c2             	cmp    %r8,%rdx
+    6061:	0f 8f f9 00 00 00    	jg     6160 <verify+0x2c0>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6097:	75 a7                	jne    6040 <verify+0x170>
-    6099:	4c 39 df             	cmp    %r11,%rdi
-    609c:	7f a2                	jg     6040 <verify+0x170>
+    6067:	75 a7                	jne    6010 <verify+0x170>
+    6069:	4c 39 df             	cmp    %r11,%rdi
+    606c:	7f a2                	jg     6010 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    609e:	49 39 c1             	cmp    %rax,%r9
-    60a1:	7c 9d                	jl     6040 <verify+0x170>
-    60a3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    60a8:	49 89 c1             	mov    %rax,%r9
-    60ab:	48 89 f9             	mov    %rdi,%rcx
-    60ae:	48 89 f2             	mov    %rsi,%rdx
-    60b1:	bf 01 00 00 00       	mov    $0x1,%edi
-    60b6:	48 8d 35 cb 13 00 00 	lea    0x13cb(%rip),%rsi        # 7488 <_IO_stdin_used+0x488>
-    60bd:	31 c0                	xor    %eax,%eax
+    606e:	49 39 c1             	cmp    %rax,%r9
+    6071:	7c 9d                	jl     6010 <verify+0x170>
+    6073:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    6078:	49 89 c1             	mov    %rax,%r9
+    607b:	48 89 f9             	mov    %rdi,%rcx
+    607e:	48 89 f2             	mov    %rsi,%rdx
+    6081:	bf 01 00 00 00       	mov    $0x1,%edi
+    6086:	48 8d 35 fb 13 00 00 	lea    0x13fb(%rip),%rsi        # 7488 <_IO_stdin_used+0x488>
+    608d:	31 c0                	xor    %eax,%eax
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    60bf:	48 83 c5 01          	add    $0x1,%rbp
-    60c3:	e8 88 c3 ff ff       	call   2450 <__printf_chk@plt>
-    60c8:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    60cd:	4c 8b 6c 24 20       	mov    0x20(%rsp),%r13
-    60d2:	4c 03 28             	add    (%rax),%r13
+    608f:	48 83 c5 01          	add    $0x1,%rbp
+    6093:	e8 b8 c3 ff ff       	call   2450 <__printf_chk@plt>
+    6098:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    609d:	4c 8b 6c 24 20       	mov    0x20(%rsp),%r13
+    60a2:	4c 03 28             	add    (%rax),%r13
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    60d5:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    60a5:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    60da:	4d 8b 95 58 01 00 00 	mov    0x158(%r13),%r10
+    60aa:	4d 8b 95 58 01 00 00 	mov    0x158(%r13),%r10
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    60e1:	4c 8b 20             	mov    (%rax),%r12
-    60e4:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-    60e9:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
+    60b1:	4c 8b 20             	mov    (%rax),%r12
+    60b4:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+    60b9:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    60ed:	49 39 ea             	cmp    %rbp,%r10
-    60f0:	0f 8f 57 ff ff ff    	jg     604d <verify+0x17d>
+    60bd:	49 39 ea             	cmp    %rbp,%r10
+    60c0:	0f 8f 57 ff ff ff    	jg     601d <verify+0x17d>
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    60f6:	48 89 da             	mov    %rbx,%rdx
-    60f9:	49 3b 9f 58 01 00 00 	cmp    0x158(%r15),%rbx
-    6100:	7d 14                	jge    6116 <verify+0x246>
+    60c6:	48 89 da             	mov    %rbx,%rdx
+    60c9:	49 3b 9f 58 01 00 00 	cmp    0x158(%r15),%rbx
+    60d0:	7d 14                	jge    60e6 <verify+0x246>
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    6102:	4d 8b b5 58 01 00 00 	mov    0x158(%r13),%r14
-    6109:	48 83 c2 01          	add    $0x1,%rdx
-    610d:	4d 85 f6             	test   %r14,%r14
-    6110:	0f 8f e2 fe ff ff    	jg     5ff8 <verify+0x128>
-    6116:	48 8b 5c 24 28       	mov    0x28(%rsp),%rbx
+    60d2:	4d 8b b5 58 01 00 00 	mov    0x158(%r13),%r14
+    60d9:	48 83 c2 01          	add    $0x1,%rdx
+    60dd:	4d 85 f6             	test   %r14,%r14
+    60e0:	0f 8f e2 fe ff ff    	jg     5fc8 <verify+0x128>
+    60e6:	48 8b 5c 24 28       	mov    0x28(%rsp),%rbx
           for (int k = 0 ; k < thread_data[z].task_count; k++) {
-    611b:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    6120:	48 83 c3 01          	add    $0x1,%rbx
-    6124:	39 58 08             	cmp    %ebx,0x8(%rax)
-    6127:	0f 8f 53 fe ff ff    	jg     5f80 <verify+0xb0>
-    612d:	48 8b 4c 24 40       	mov    0x40(%rsp),%rcx
-    6132:	44 8b 74 24 48       	mov    0x48(%rsp),%r14d
-    6137:	44 8b 7c 24 4c       	mov    0x4c(%rsp),%r15d
+    60eb:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    60f0:	48 83 c3 01          	add    $0x1,%rbx
+    60f4:	39 58 08             	cmp    %ebx,0x8(%rax)
+    60f7:	0f 8f 53 fe ff ff    	jg     5f50 <verify+0xb0>
+    60fd:	48 8b 4c 24 40       	mov    0x40(%rsp),%rcx
+    6102:	44 8b 74 24 48       	mov    0x48(%rsp),%r14d
+    6107:	44 8b 7c 24 4c       	mov    0x4c(%rsp),%r15d
         for (int y = 0 ; y < thread_data[x].task_count ; y++) {
-    613c:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    6141:	48 83 c1 01          	add    $0x1,%rcx
-    6145:	39 48 08             	cmp    %ecx,0x8(%rax)
-    6148:	0f 8f d8 fd ff ff    	jg     5f26 <verify+0x56>
-    614e:	48 8b 5c 24 30       	mov    0x30(%rsp),%rbx
-    6153:	44 8b 64 24 3c       	mov    0x3c(%rsp),%r12d
+    610c:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    6111:	48 83 c1 01          	add    $0x1,%rcx
+    6115:	39 48 08             	cmp    %ecx,0x8(%rax)
+    6118:	0f 8f d8 fd ff ff    	jg     5ef6 <verify+0x56>
+    611e:	48 8b 5c 24 30       	mov    0x30(%rsp),%rbx
+    6123:	44 8b 64 24 3c       	mov    0x3c(%rsp),%r12d
     for (int z = 0 ; z < thread_count; z++) {
-    6158:	48 81 44 24 10 b0 00 00 00 	addq   $0xb0,0x10(%rsp)
-    6161:	41 8d 44 24 01       	lea    0x1(%r12),%eax
-    6166:	41 39 c7             	cmp    %eax,%r15d
-    6169:	0f 84 86 00 00 00    	je     61f5 <verify+0x325>
-    616f:	41 89 c4             	mov    %eax,%r12d
-    6172:	e9 8a fd ff ff       	jmp    5f01 <verify+0x31>
-    6177:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    6128:	48 81 44 24 10 b0 00 00 00 	addq   $0xb0,0x10(%rsp)
+    6131:	41 8d 44 24 01       	lea    0x1(%r12),%eax
+    6136:	41 39 c7             	cmp    %eax,%r15d
+    6139:	0f 84 86 00 00 00    	je     61c5 <verify+0x325>
+    613f:	41 89 c4             	mov    %eax,%r12d
+    6142:	e9 8a fd ff ff       	jmp    5ed1 <verify+0x31>
+    6147:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6180:	0f 85 ba fe ff ff    	jne    6040 <verify+0x170>
-    6186:	e9 a8 fe ff ff       	jmp    6033 <verify+0x163>
-    618b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    6150:	0f 85 ba fe ff ff    	jne    6010 <verify+0x170>
+    6156:	e9 a8 fe ff ff       	jmp    6003 <verify+0x163>
+    615b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
   return left.tv_sec > right.tv_sec &&
-    6190:	49 39 c1             	cmp    %rax,%r9
-    6193:	7e 09                	jle    619e <verify+0x2ce>
-    6195:	4c 39 df             	cmp    %r11,%rdi
-    6198:	0f 8c 0a ff ff ff    	jl     60a8 <verify+0x1d8>
+    6160:	49 39 c1             	cmp    %rax,%r9
+    6163:	7e 09                	jle    616e <verify+0x2ce>
+    6165:	4c 39 df             	cmp    %r11,%rdi
+    6168:	0f 8c 0a ff ff ff    	jl     6078 <verify+0x1d8>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    619e:	4c 39 df             	cmp    %r11,%rdi
-    61a1:	0f 8f 99 fe ff ff    	jg     6040 <verify+0x170>
+    616e:	4c 39 df             	cmp    %r11,%rdi
+    6171:	0f 8f 99 fe ff ff    	jg     6010 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    61a7:	49 39 c1             	cmp    %rax,%r9
-    61aa:	0f 8d f8 fe ff ff    	jge    60a8 <verify+0x1d8>
+    6177:	49 39 c1             	cmp    %rax,%r9
+    617a:	0f 8d f8 fe ff ff    	jge    6078 <verify+0x1d8>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    61b0:	48 39 f1             	cmp    %rsi,%rcx
-    61b3:	0f 85 87 fe ff ff    	jne    6040 <verify+0x170>
-    61b9:	4c 39 c2             	cmp    %r8,%rdx
-    61bc:	0f 85 7e fe ff ff    	jne    6040 <verify+0x170>
-    61c2:	4c 39 df             	cmp    %r11,%rdi
-    61c5:	0f 84 dd fe ff ff    	je     60a8 <verify+0x1d8>
-    61cb:	e9 70 fe ff ff       	jmp    6040 <verify+0x170>
-    61d0:	4c 39 c2             	cmp    %r8,%rdx
-    61d3:	0f 8c 5a fe ff ff    	jl     6033 <verify+0x163>
-    61d9:	4c 39 df             	cmp    %r11,%rdi
-    61dc:	7e c9                	jle    61a7 <verify+0x2d7>
-    61de:	4c 39 c2             	cmp    %r8,%rdx
-    61e1:	0f 85 59 fe ff ff    	jne    6040 <verify+0x170>
+    6180:	48 39 f1             	cmp    %rsi,%rcx
+    6183:	0f 85 87 fe ff ff    	jne    6010 <verify+0x170>
+    6189:	4c 39 c2             	cmp    %r8,%rdx
+    618c:	0f 85 7e fe ff ff    	jne    6010 <verify+0x170>
+    6192:	4c 39 df             	cmp    %r11,%rdi
+    6195:	0f 84 dd fe ff ff    	je     6078 <verify+0x1d8>
+    619b:	e9 70 fe ff ff       	jmp    6010 <verify+0x170>
+    61a0:	4c 39 c2             	cmp    %r8,%rdx
+    61a3:	0f 8c 5a fe ff ff    	jl     6003 <verify+0x163>
+    61a9:	4c 39 df             	cmp    %r11,%rdi
+    61ac:	7e c9                	jle    6177 <verify+0x2d7>
+    61ae:	4c 39 c2             	cmp    %r8,%rdx
+    61b1:	0f 85 59 fe ff ff    	jne    6010 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    61e7:	49 39 c1             	cmp    %rax,%r9
-    61ea:	0f 8f 50 fe ff ff    	jg     6040 <verify+0x170>
-    61f0:	e9 b3 fe ff ff       	jmp    60a8 <verify+0x1d8>
+    61b7:	49 39 c1             	cmp    %rax,%r9
+    61ba:	0f 8f 50 fe ff ff    	jg     6010 <verify+0x170>
+    61c0:	e9 b3 fe ff ff       	jmp    6078 <verify+0x1d8>
   for (int x = 0 ; x < thread_count; x++) {
-    61f5:	48 81 44 24 18 b0 00 00 00 	addq   $0xb0,0x18(%rsp)
-    61fe:	41 8d 46 01          	lea    0x1(%r14),%eax
-    6202:	45 39 e6             	cmp    %r12d,%r14d
-    6205:	74 08                	je     620f <verify+0x33f>
-    6207:	41 89 c6             	mov    %eax,%r14d
-    620a:	e9 ea fc ff ff       	jmp    5ef9 <verify+0x29>
+    61c5:	48 81 44 24 18 b0 00 00 00 	addq   $0xb0,0x18(%rsp)
+    61ce:	41 8d 46 01          	lea    0x1(%r14),%eax
+    61d2:	45 39 e6             	cmp    %r12d,%r14d
+    61d5:	74 08                	je     61df <verify+0x33f>
+    61d7:	41 89 c6             	mov    %eax,%r14d
+    61da:	e9 ea fc ff ff       	jmp    5ec9 <verify+0x29>
 }
-    620f:	48 83 c4 58          	add    $0x58,%rsp
-    6213:	31 c0                	xor    %eax,%eax
-    6215:	5b                   	pop    %rbx
-    6216:	5d                   	pop    %rbp
-    6217:	41 5c                	pop    %r12
-    6219:	41 5d                	pop    %r13
-    621b:	41 5e                	pop    %r14
-    621d:	41 5f                	pop    %r15
-    621f:	c3                   	ret
-    6220:	31 c0                	xor    %eax,%eax
-    6222:	c3                   	ret
+    61df:	48 83 c4 58          	add    $0x58,%rsp
+    61e3:	31 c0                	xor    %eax,%eax
+    61e5:	5b                   	pop    %rbx
+    61e6:	5d                   	pop    %rbp
+    61e7:	41 5c                	pop    %r12
+    61e9:	41 5d                	pop    %r13
+    61eb:	41 5e                	pop    %r14
+    61ed:	41 5f                	pop    %r15
+    61ef:	c3                   	ret
+    61f0:	31 c0                	xor    %eax,%eax
+    61f2:	c3                   	ret
 
 Disassembly of section .fini:
 
-0000000000006224 <_fini>:
-    6224:	f3 0f 1e fa          	endbr64
-    6228:	48 83 ec 08          	sub    $0x8,%rsp
-    622c:	48 83 c4 08          	add    $0x8,%rsp
-    6230:	c3                   	ret
+00000000000061f4 <_fini>:
+    61f4:	f3 0f 1e fa          	endbr64
+    61f8:	48 83 ec 08          	sub    $0x8,%rsp
+    61fc:	48 83 c4 08          	add    $0x8,%rsp
+    6200:	c3                   	ret

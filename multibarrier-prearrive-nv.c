@@ -1339,12 +1339,12 @@ int main() {
 
     for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
       for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
+	for (int k = 0 ; k < snapshot_limit ; k++) {
 	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
 	  struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
 	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
 	  const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, b, seconds, seconds2 / 1000000, seconds2);
 
 	}
       }
