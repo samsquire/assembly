@@ -589,6 +589,7 @@ int receive(struct BarrierTask *data) {
       data->sends++;
       data->n++;
       data->mailboxes[n].received++;
+      // printf("%d Received %s\n", data->thread_index, me->messages[x]->message);
       // printf("on %d from %d task %d received: %s\n", data->thread_index, n, data->task_index, me->messages[x]->message);
       if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread_index) {
         printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread_index);
@@ -757,6 +758,7 @@ void* barriered_thread(void *arg) {
         }   
       } else {
            // printf("%d not available\n", t);
+          barriered_work_ingest(&data->threads[data->thread_index]->tasks[t]);
       }
     }
   } 
@@ -1041,7 +1043,7 @@ int main() {
 
   int buffers_required = thread_count * barrier_count;
   struct Buffers *buffers = calloc(buffers_required, sizeof(struct Buffers));
-  int snapshot_limit = 10;
+  int snapshot_limit = 100;
   for (int x = 0 ; x < buffers_required; x++) {
     buffers[x].count = buffer_size;
     buffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
@@ -1339,7 +1341,7 @@ int main() {
 
     for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
       for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-	for (int k = 0 ; k < snapshot_limit ; k++) {
+	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
 	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
 	  struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
 	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
