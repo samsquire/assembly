@@ -15,6 +15,13 @@
 #include <sys/eventfd.h>
 #include <sched.h>
 
+struct Reader {
+  struct Log ** others;
+  long value;
+  int running;
+  int thread_count;
+};
+
 struct Log {
   int thread_index;
   int thread_count;
@@ -27,6 +34,29 @@ struct Log {
   long mine;
 };
 
+void* reader(void * arg) {
+  struct Reader * reader = arg;
+  struct Log ** logptrs = reader->others;
+
+  printf("reader started\n");
+
+  while (reader->running == 1) {
+    long start = 0;
+    for (int x = 0 ; x < reader->thread_count ; x++) {
+      start += logptrs[x]->data[logptrs[x]->index % logptrs[x]->data_size];
+    } 
+    reader->value = start;
+    printf("read: %ld\n", reader->value);
+    struct timespec rem2;
+    struct timespec preempt = {
+      1,
+      0 };
+    nanosleep(&preempt , &rem2);
+  }
+
+  return 0;
+}
+
 void* stream(void * arg) {
   struct Log * log = arg;
   printf("log stream %d started\n", log->thread_index);
@@ -37,10 +67,10 @@ void* stream(void * arg) {
     }
     for (int x = 0 ; x < log->data_size; x++) {
       log->data[(log->index + 1) % log->data_size] = log->data[log->index % log->data_size] + 1;    
-      log->result = start + log->data[log->index % log->data_size];
       log->index++;
       log->mine++;
     }
+    log->result = start + log->data[log->index % log->data_size];
   }
   
   return (void*)log->result;
@@ -70,18 +100,27 @@ int main() {
   for (int x = 0 ; x < thread_count ; x++) {
     pthread_create(&thread[x], &attr[x], &stream, &logs[x]);
   }
-
+  struct Reader *reader_data = calloc(1, sizeof(pthread_t));
+  reader_data->others = logptrs;
+  reader_data->running = 1;
+  reader_data->thread_count = thread_count;
+  pthread_t *reader_thread = calloc(1, sizeof(pthread_t));
+  pthread_attr_t      *reader_attr = calloc(1, sizeof(pthread_attr_t));
+  pthread_create(reader_thread, reader_attr, &reader, reader_data);
   
   struct timespec rem2;
   struct timespec preempt = {
     5,
     0 };
   nanosleep(&preempt , &rem2);
+  reader_data->running = 0;
   for (int x = 0 ; x < thread_count ; x++) {
     logs[x].running = 0;
   }
   asm volatile ("sfence":::"memory");
 
+  void * reader_result; 
+  pthread_join(*reader_thread, &reader_result);
   for (int x = 0 ; x < thread_count ; x++) {
     void * result; 
     pthread_join(thread[x], &result);
