@@ -24,6 +24,7 @@ struct Log {
   long index;
   int running;
   long result;
+  long mine;
 };
 
 void* stream(void * arg) {
@@ -36,12 +37,13 @@ void* stream(void * arg) {
     }
     for (int x = 0 ; x < log->data_size; x++) {
       log->data[(log->index + 1) % log->data_size] = log->data[log->index % log->data_size] + 1;    
+      log->result = start + log->data[log->index % log->data_size];
       log->index++;
+      log->mine++;
     }
-    log->result = start + log->data[log->index % log->data_size];
   }
   
-  return log->result;
+  return (void*)log->result;
 }
 
 int main() {
@@ -58,6 +60,7 @@ int main() {
     logs[x].thread_count = thread_count;
     logs[x].data = calloc(data_size, sizeof(int));
     logs[x].data[0] = 1;
+    logs[x].mine = 1;
     logs[x].others = logptrs;
     logptrs[x] = &logs[x];
   }
@@ -82,6 +85,15 @@ int main() {
   for (int x = 0 ; x < thread_count ; x++) {
     void * result; 
     pthread_join(thread[x], &result);
-    printf("thread %ld result\n", (long)result);
   }
+  long mine = 0;
+  for (int x = 0 ; x < thread_count ; x++) {
+    long start = 0;
+    for (int y  = 0 ; y < logs[x].thread_count ; y++) {
+      start += logs[x].others[y]->data[logs[x].others[y]->index % logs[x].data_size];
+    }
+    printf("start %ld result\n", start);
+    mine += logs[x].mine;
+  }
+  printf("mine %ld result\n", mine);
 }
