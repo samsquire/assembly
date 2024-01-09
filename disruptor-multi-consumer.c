@@ -80,8 +80,9 @@ void * disruptor_thread(void * arg) {
   
   int next = (data->end + 1) % data->size;
   if (data->mode == WRITER) {
-    // printf("I am writer\n");
+    printf("I am writer %d\n", data->thread_index);
     struct Thread *me = data->sender;
+    printf("%p sender data from writer\n", me->data);
     next = (me->end + 1) % data->size;
     int anyfull = 0;
     while (data->running == 1) {
@@ -111,8 +112,8 @@ void * disruptor_thread(void * arg) {
             long changed = 0; 
             long original = me->realend;
             int tag = (original & TAG_MASK);
-              changed = (((original & END_MASK) >> 32) + 1) % me->size;
-              long new = (data->thread_tag) | (changed << 32);
+              changed = (((original & END_MASK) >> 32)) % me->size;
+              long new = (data->thread_tag) | ((changed + 1) << 32);
               // validate line
               // printf("CHANGE %ld\n", changed);
               // printf("new %ld\n", new);
@@ -129,19 +130,21 @@ void * disruptor_thread(void * arg) {
 
                 original = me->realend;
                 tag = (original & TAG_MASK);
-                changed = (((original & END_MASK) >> 32) + 1) % me->size;
-                new = (data->thread_tag) | (changed << 32);
+                changed = (((original & END_MASK) >> 32)) % me->size;
+                new = (data->thread_tag) | ((changed + 1) << 32);
+
                 for (int x = 0 ; x < data->other_count; x++) {
                   me->data[changed].complete[x] = 0;
                 }
-              
-                // printf("%d Wrote %ld\n", data->thread_index, (me->realend & END_MASK) >> 32);
+                // printf("Failed\n"); 
                 // asm volatile ("sfence" ::: "memory");
               }        
               if (result) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &me->data[changed].start);
-                me->data[changed].written = me->other_count;
-                // __atomic_store_n(&me->data[changed].written, me->other_count, __ATOMIC_SEQ_CST);
+                // me->data[changed].written = me->other_count;
+                __atomic_store_n(&me->sender->data[changed].written, me->other_count, __ATOMIC_SEQ_CST);
+                // printf("Wrote %d, %d\n", me->sender->data[changed].written, me->other_count);
+                // printf("%ld Wrote %d %ld\n", changed, data->thread_index, (me->realend & END_MASK) >> 32);
               }
               // changed = me->end;
               // printf("%d trying to write...\n", data->thread_index);
@@ -151,13 +154,14 @@ void * disruptor_thread(void * arg) {
       } 
        
   } else if (data->mode == READER) {
-    // printf("I am reader\n");
+    printf("I am reader %d\n", data->reader_index);
     struct timespec rem2;
     struct timespec preempt = {
       0,
       TICK };
     struct Thread *sender = data->sender;
     struct Snapshot * rdata = sender->data;
+    printf("%p sender data from reader\n", rdata);
     int cachedEnd = sender->end;
     int size = data->size;
     int index = data->reader_index;
@@ -172,8 +176,12 @@ void * disruptor_thread(void * arg) {
         // nanosleep(&preempt , &rem2);
       } else {
         //for (int x = data->start; x < sender->end ; x++) {
+        // printf("Empty %ld %d %d %d\n", sender->realend, data->start, data->thread_index, data->reader_index); 
           int changed = data->start;
-          if (__atomic_load_n(&rdata[changed].written, __ATOMIC_SEQ_CST) > 0) {
+          // printf("%d ", rdata[0].written);
+          int written = __atomic_load_n(&rdata[changed].written, __ATOMIC_SEQ_CST);
+          // printf("Start %d\n", changed);
+          if (written > 0) {
           // if (data->start % data->other_count == data->multiple) {
             // printf("%d %d\n", sender->start, sender->start % data->other_count == data->multiple);
               clock_gettime(CLOCK_MONOTONIC_RAW, &rdata[changed].end[data->reader_index]);
@@ -208,7 +216,7 @@ int main() {
   printf("Buffer size (power of 2^%d) %ld\n", power, buffer_size);
   int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
-  int writers_count = 2;
+  int writers_count = 1;
   int other_count = 2;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
@@ -225,11 +233,13 @@ int main() {
   // 0, 3, 6
   for (int x = 0 ; x < groups ; x++) {
     int sender = x * group_size; 
+    printf("Sender %d\n", sender);
     int receiver = sender + writers_count; 
     int receiver2 = receiver + 1; 
     int seq[] = {1, 2, 5};
     int tag_index[] = {1, 5, 7};
     for (int n = sender, sender_index = 0; n < sender + writers_count, sender_index < writers_count; n++, sender_index++) {
+      printf("CREATE SENDER THREAD\n");
       cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       CPU_SET(curcpu, sendercpu);
@@ -246,15 +256,18 @@ int main() {
       thread_data[n].end = 0;
       thread_data[n].sender = &thread_data[sender];
       thread_data[n].readers = calloc(other_count, sizeof(struct Thread*));
-      thread_data[n].data = calloc(buffer_size, sizeof(struct Snapshot));
-      for (int k = 0 ; k < buffer_size ; k++) {
-        thread_data[n].data[k].complete = calloc(other_count, sizeof(int));
-        thread_data[n].data[k].end = calloc(other_count, sizeof(struct timespec));
+      if (n == sender) {
+        thread_data[n].data = calloc(buffer_size, sizeof(struct Snapshot));
+        for (int k = 0 ; k < buffer_size ; k++) {
+          thread_data[n].data[k].complete = calloc(other_count, sizeof(int));
+          thread_data[n].data[k].end = calloc(other_count, sizeof(struct timespec));
+          thread_data[n].data[k].written = 0;
+        }
       }
       thread_data[n].other_count = other_count;
     }
 
-    // printf("Created data for %d\n", sender);
+    printf("Created data for %d\n", sender);
     for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
       thread_data[j].thread_index = j;
       thread_data[j].reader_index = receiver_index;
@@ -269,12 +282,12 @@ int main() {
       thread_data[j].cpu_set = receivercpu;
       thread_data[j].running = 1;
       thread_data[j].mode = READER;
-      if (j == receiver) {
+      /*if (j == receiver) {
         thread_data[j].data = calloc(buffer_size, sizeof(struct Snapshot));
         for (int n = 0 ; n < buffer_size ; n++) {
           thread_data[j].data[n].complete = calloc(other_count, sizeof(int));
         }
-      }
+      } */
       thread_data[j].size = buffer_size;
       thread_data[j].sender = &thread_data[sender];
       thread_data[j].start = 0;
@@ -300,7 +313,7 @@ int main() {
     int receiver = sender + writers_count; 
     
     for (int j = receiver, receiver_index = 0; j < receiver + other_count; j++, receiver_index++) {
-      // printf("Creating receiver thread %d\n", j);
+      printf("Creating receiver thread %d\n", j);
       
       int ret;
       
@@ -334,6 +347,7 @@ int main() {
       }
       
     for (int n = sender; n < sender + writers_count; n++) {
+      printf("Creating sender thread %d \n", n);
       pthread_create(&thread[n], &attr[n], &disruptor_thread, &thread_data[n]);
       pthread_setaffinity_np(thread[n], sizeof(thread_data[n].cpu_set), thread_data[n].cpu_set);
     }
