@@ -217,7 +217,7 @@ int main() {
   int groups = 1; /* thread_count / 2 */ 
   printf("Group count %d\n", groups);
   int writers_count = 1;
-  int other_count = 2;
+  int other_count = 1;
   int group_size = writers_count + other_count;
   printf("Readers count %d\n", other_count);
   printf("Writers count %d\n", writers_count);
