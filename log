@@ -1,0 +1,330 @@
+Multithreaded nonblocking lock free MULTIbarrier runtime (https://github.com/samsquire/assembly)
+
+Barrier runtime parameters:
+worker thread count = 2
+total threads = 16
+io threads = 1
+scheduler threads = 1
+external thread count = 2
+external thread ingest buffer size = 1
+intrathread message buffer size = 1
+per thread runtime 1000000ns
+duration 5 seconds
+
+Timer index start 12
+Need 24 buffers required
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 0
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 2
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 4
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 6
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 8
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 10
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 12
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 14
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 16
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 18
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 20
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 22
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 24
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 26
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 28
+Creating thread data for group 0 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 30
+Creating thread data for group 1 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 32
+Creating thread data for group 1 thread 1
+odd 1 0x55d1685fc2f0 0x55d1685fc3a0
+i am 1, other is 0 my thread index is 1
+assigning thread 1 to core 34
+Creating thread data for group 1 thread 2
+even 2 0x55d1685fc450 0x55d1685fc500
+i am 2, other is 3 my thread index is 0
+assigning thread 2 to core 36
+Creating thread data for group 1 thread 3
+odd 3 0x55d1685fc450 0x55d1685fc500
+i am 3, other is 2 my thread index is 1
+assigning thread 3 to core 36
+Creating thread data for group 1 thread 4
+even 4 0x55d1685fc5b0 0x55d1685fc660
+i am 4, other is 5 my thread index is 0
+assigning thread 4 to core 36
+Creating thread data for group 1 thread 5
+odd 5 0x55d1685fc5b0 0x55d1685fc660
+i am 5, other is 4 my thread index is 1
+assigning thread 5 to core 36
+Creating thread data for group 1 thread 6
+even 6 0x55d1685fc710 0x55d1685fc7c0
+i am 6, other is 7 my thread index is 0
+assigning thread 6 to core 36
+Creating thread data for group 1 thread 7
+odd 7 0x55d1685fc710 0x55d1685fc7c0
+i am 7, other is 6 my thread index is 1
+assigning thread 7 to core 36
+Creating thread data for group 1 thread 8
+even 8 0x55d1685fc870 0x55d1685fc920
+i am 8, other is 9 my thread index is 0
+assigning thread 8 to core 36
+Creating thread data for group 1 thread 9
+odd 9 0x55d1685fc870 0x55d1685fc920
+i am 9, other is 8 my thread index is 1
+assigning thread 9 to core 36
+Creating thread data for group 1 thread 10
+even 10 0x55d1685fc9d0 0x55d1685fca80
+i am 10, other is 11 my thread index is 0
+assigning thread 10 to core 36
+Creating thread data for group 1 thread 11
+odd 11 0x55d1685fc9d0 0x55d1685fca80
+i am 11, other is 10 my thread index is 1
+assigning thread 11 to core 36
+Creating thread data for group 1 thread 12
+even 12 0x55d1685fcb30 0x55d1685fcbe0
+i am 12, other is 13 my thread index is 0
+assigning thread 12 to core 36
+Creating thread data for group 1 thread 13
+odd 13 0x55d1685fcb30 0x55d1685fcbe0
+i am 13, other is 12 my thread index is 1
+assigning thread 13 to core 36
+Creating thread data for group 1 thread 14
+even 14 0x55d1685fcc90 0x55d1685fcd40
+i am 14, other is 15 my thread index is 0
+assigning thread 14 to core 36
+Creating thread data for group 1 thread 15
+odd 15 0x55d1685fcc90 0x55d1685fcd40
+i am 15, other is 14 my thread index is 1
+assigning thread 15 to core 36
+Creating thread data for group 2 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 36
+Creating thread data for group 2 thread 2
+even 2 0x55d1685fc450 0x55d1685fc500
+i am 2, other is 3 my thread index is 0
+assigning thread 2 to core 38
+Creating thread data for group 2 thread 4
+even 4 0x55d1685fc5b0 0x55d1685fc660
+i am 4, other is 5 my thread index is 0
+assigning thread 4 to core 38
+Creating thread data for group 2 thread 6
+even 6 0x55d1685fc710 0x55d1685fc7c0
+i am 6, other is 7 my thread index is 0
+assigning thread 6 to core 38
+Creating thread data for group 2 thread 8
+even 8 0x55d1685fc870 0x55d1685fc920
+i am 8, other is 9 my thread index is 0
+assigning thread 8 to core 38
+Creating thread data for group 2 thread 10
+even 10 0x55d1685fc9d0 0x55d1685fca80
+i am 10, other is 11 my thread index is 0
+assigning thread 10 to core 38
+Creating thread data for group 2 thread 12
+even 12 0x55d1685fcb30 0x55d1685fcbe0
+i am 12, other is 13 my thread index is 0
+assigning thread 12 to core 38
+Creating thread data for group 2 thread 14
+even 14 0x55d1685fcc90 0x55d1685fcd40
+i am 14, other is 15 my thread index is 0
+assigning thread 14 to core 38
+Creating thread data for group 2 thread 16
+even 16 0x55d1685fcdf0 0x55d1685fc3a0
+i am 16, other is 1 my thread index is 0
+assigning thread 16 to core 38
+Creating thread data for group 2 thread 18
+even 18 0x55d1685fcf50 0x55d1685fc500
+i am 18, other is 3 my thread index is 0
+assigning thread 18 to core 38
+Creating thread data for group 2 thread 20
+even 20 0x55d1685fd0b0 0x55d1685fc660
+i am 20, other is 5 my thread index is 0
+assigning thread 20 to core 38
+Creating thread data for group 2 thread 22
+even 22 0x55d1685fd210 0x55d1685fc7c0
+i am 22, other is 7 my thread index is 0
+assigning thread 22 to core 38
+Creating thread data for group 2 thread 24
+even 24 0x55d1685fd370 0x55d1685fc920
+i am 24, other is 9 my thread index is 0
+assigning thread 24 to core 38
+Creating thread data for group 2 thread 26
+even 26 0x55d1685fd4d0 0x55d1685fca80
+i am 26, other is 11 my thread index is 0
+assigning thread 26 to core 38
+Creating thread data for group 2 thread 28
+even 28 0x55d1685fd630 0x55d1685fcbe0
+i am 28, other is 13 my thread index is 0
+assigning thread 28 to core 38
+Creating thread data for group 2 thread 30
+even 30 0x55d1685fd790 0x55d1685fcd40
+i am 30, other is 15 my thread index is 0
+assigning thread 30 to core 38
+Creating thread data for group 3 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 38
+Creating thread data for group 3 thread 3
+odd 3 0x55d1685fc450 0x55d1685fc500
+i am 3, other is 2 my thread index is 1
+assigning thread 3 to core 40
+Creating thread data for group 3 thread 6
+even 6 0x55d1685fc710 0x55d1685fc7c0
+i am 6, other is 7 my thread index is 0
+assigning thread 6 to core 40
+Creating thread data for group 3 thread 9
+odd 9 0x55d1685fc870 0x55d1685fc920
+i am 9, other is 8 my thread index is 1
+assigning thread 9 to core 40
+Creating thread data for group 3 thread 12
+even 12 0x55d1685fcb30 0x55d1685fcbe0
+i am 12, other is 13 my thread index is 0
+assigning thread 12 to core 40
+Creating thread data for group 3 thread 15
+odd 15 0x55d1685fcc90 0x55d1685fcd40
+i am 15, other is 14 my thread index is 1
+assigning thread 15 to core 40
+Creating thread data for group 3 thread 18
+even 18 0x55d1685fcf50 0x55d1685fc500
+i am 18, other is 3 my thread index is 0
+assigning thread 18 to core 40
+Creating thread data for group 3 thread 21
+odd 21 0x55d1685fc5b0 0x55d1685fd160
+i am 21, other is 4 my thread index is 1
+assigning thread 21 to core 40
+Creating thread data for group 3 thread 24
+even 24 0x55d1685fd370 0x55d1685fc920
+i am 24, other is 9 my thread index is 0
+assigning thread 24 to core 40
+Creating thread data for group 3 thread 27
+odd 27 0x55d1685fc9d0 0x55d1685fd580
+i am 27, other is 10 my thread index is 1
+assigning thread 27 to core 40
+Creating thread data for group 3 thread 30
+even 30 0x55d1685fd790 0x55d1685fcd40
+i am 30, other is 15 my thread index is 0
+assigning thread 30 to core 40
+Creating thread data for group 3 thread 33
+odd 33 0x55d1685fc2f0 0x55d1685fd9a0
+i am 33, other is 0 my thread index is 1
+assigning thread 33 to core 40
+Creating thread data for group 3 thread 36
+even 36 0x55d1685fdbb0 0x55d1685fc660
+i am 36, other is 5 my thread index is 0
+assigning thread 36 to core 40
+Creating thread data for group 3 thread 39
+odd 39 0x55d1685fc710 0x55d1685fddc0
+i am 39, other is 6 my thread index is 1
+assigning thread 39 to core 40
+Creating thread data for group 3 thread 42
+even 42 0x55d1685fdfd0 0x55d1685fca80
+i am 42, other is 11 my thread index is 0
+assigning thread 42 to core 40
+Creating thread data for group 3 thread 45
+odd 45 0x55d1685fcb30 0x55d1685fe1e0
+i am 45, other is 12 my thread index is 1
+assigning thread 45 to core 40
+Creating thread data for group 4 thread 0
+even 0 0x55d1685fc2f0 0x55d1685fc3a0
+i am 0, other is 1 my thread index is 0
+assigning thread 0 to core 40
+Creating thread data for group 4 thread 4
+even 4 0x55d1685fc5b0 0x55d1685fc660
+i am 4, other is 5 my thread index is 0
+assigning thread 4 to core 42
+Creating thread data for group 4 thread 8
+even 8 0x55d1685fc870 0x55d1685fc920
+i am 8, other is 9 my thread index is 0
+assigning thread 8 to core 42
+Creating thread data for group 4 thread 12
+even 12 0x55d1685fcb30 0x55d1685fcbe0
+i am 12, other is 13 my thread index is 0
+assigning thread 12 to core 42
+Creating thread data for group 4 thread 16
+even 16 0x55d1685fcdf0 0x55d1685fc3a0
+i am 16, other is 1 my thread index is 0
+assigning thread 16 to core 42
+Creating thread data for group 4 thread 20
+even 20 0x55d1685fd0b0 0x55d1685fc660
+i am 20, other is 5 my thread index is 0
+assigning thread 20 to core 42
+Creating thread data for group 4 thread 24
+even 24 0x55d1685fd370 0x55d1685fc920
+i am 24, other is 9 my thread index is 0
+assigning thread 24 to core 42
+Creating thread data for group 4 thread 28
+even 28 0x55d1685fd630 0x55d1685fcbe0
+i am 28, other is 13 my thread index is 0
+assigning thread 28 to core 42
+Creating thread data for group 4 thread 32
+even 32 0x55d1685fd8f0 0x55d1685fc3a0
+i am 32, other is 1 my thread index is 0
+assigning thread 32 to core 42
+Creating thread data for group 4 thread 36
+even 36 0x55d1685fdbb0 0x55d1685fc660
+i am 36, other is 5 my thread index is 0
+assigning thread 36 to core 42
+Creating thread data for group 4 thread 40
+even 40 0x55d1685fde70 0x55d1685fc920
+i am 40, other is 9 my thread index is 0
+assigning thread 40 to core 42
+Creating thread data for group 4 thread 44
+even 44 0x55d1685fe130 0x55d1685fcbe0
+i am 44, other is 13 my thread index is 0
+assigning thread 44 to core 42
+Creating thread data for group 4 thread 48
+even 48 0x55d1685fe3f0 0x55d1685fc3a0
+i am 48, other is 1 my thread index is 0
+assigning thread 48 to core 42
+Creating thread data for group 4 thread 52
+even 52 0x55d1685fe6b0 0x55d1685fc660
+i am 52, other is 5 my thread index is 0
+assigning thread 52 to core 42
+Creating thread data for group 4 thread 56
+even 56 0x55d1685fe970 0x55d1685fc920
+i am 56, other is 9 my 
