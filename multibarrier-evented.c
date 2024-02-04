@@ -1093,7 +1093,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int core_count = 6;
+  int core_count = 3;
   int threads_per_group = 2;
   int group_count = core_count / threads_per_group;
   int thread_count = 2;
