@@ -615,7 +615,7 @@ int receive(struct BarrierTask *data) {
     // if (n == data->thread_index) { continue; }
     struct Data *me = data->mailboxes[n].lower;
     if (data->mailboxes[n].kind == MAILBOX_FOREIGN && me->available == 1) {
-      printf("Foreign mailbox is available for receiving\n");
+      // printf("Foreign mailbox is available for receiving\n");
     } 
     else if (data->mailboxes[n].kind == MAILBOX_FOREIGN && me->available == 0) {
       // printf("Foreign mailbox is NOT available for receiving\n");
@@ -647,10 +647,10 @@ int sendm(struct BarrierTask *data) {
         if (n == data->thread_index) { continue; }
         struct Data *them = data->mailboxes[n].higher;
         
-        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 0) {
-          printf("Foreign mailbox is available for sending\n");
+        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 1) {
+          // printf("Foreign mailbox is available for sending\n");
         } 
-        else if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 1) {
+        else if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 0) {
           // printf("Foreign mailbox is NOT available for sending\n");
           continue;
         }
@@ -664,14 +664,14 @@ int sendm(struct BarrierTask *data) {
           data->mailboxes[n].sent++;
           them->messages[them->messages_count++] = data->message; 
         }
-        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 0) {
+        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && them->available == 1) {
           // available for reading by external thread
-          them->available = 1;
+          them->available = 0;
         }
         asm volatile ("sfence" ::: "memory");
       }
     } else {
-    printf("not sending\n");
+    // printf("not sending\n");
   }
   return 0;
 }
@@ -705,17 +705,20 @@ int barriered_work(struct BarrierTask *data) {
                 // printf("Mailbox is a friend\n");
                 data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower = tmp;
               } else {
-               if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].higher)->available == 1) {
-                 // printf("is available\n"); 
-                tmp = data->thread->all_threads[y].tasks[t].mailboxes[b].higher; 
-                // printf("datakind1 %d %p\n", data->kind, data->thread);
-                // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
-                data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower = tmp;
-                ((struct Data*)data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower)->available = 0;
-                // printf("Mailbox is external, swapped\n");
-               } else {
-                 // printf("not available\n");   
-               }
+
+                 if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].higher)->available == 0) {
+                   // printf("is available\n"); 
+                  tmp = data->thread->all_threads[y].tasks[t].mailboxes[b].higher;
+
+                  // printf("datakind1 %d %p\n", data->kind, data->thread);
+                  // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
+              // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
+                  data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower = tmp;
+                      ((struct Data*)data->thread->all_threads[b].tasks[next_task].mailboxes[y].higher)->available = 1;
+                  // printf("Mailbox is external, swapped\n");
+                 } else {
+                   // printf("not available\n");   
+                }
               }
               // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
             }
@@ -870,7 +873,7 @@ void* timer_thread(void *arg) {
     n++;
     nanosleep(&preempt , &rem2);
     // preempt tasks
-    for (int x = 0 ; x < data->thread_count ; x++) {
+    for (int x = 0 ; x < data->my_thread_count ; x++) {
         int next = (y + 1) % data->threads[x]->task_count;
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
@@ -911,11 +914,11 @@ void* timer_thread(void *arg) {
     }
     int all_empty = 1;
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-      for (int y = 0 ; y < data->my_thread_count ; y++) {
+      for (int y = 0 ; y < 2 ; y++) {
         for (int k = 0 ; k < data->my_thread_count; k++) {
           if (((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count > 0 || ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count > 0) {
             all_empty = 0;
-            printf("%d %ld %ld left\n", k, ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count, ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count);
+            printf("%d %d %d %ld %ld left\n", x, y, k, ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].lower)->messages_count, ((struct Data*)data->threads[x]->tasks[y].mailboxes[k].higher)->messages_count);
             // printf("Someone unfinished\n");
             break;
           }
@@ -933,6 +936,7 @@ void* timer_thread(void *arg) {
   while (data->running) {
     // nanosleep(&req , &rem);
     for (int x = 0 ; x < data->total_thread_count ; x++) {
+      printf("Checking for io thread %d\n", x);
       data->threads[x]->running = 0;
       if (data->threads[x]->type == IO) {
         printf("Stopping io_uring\n");
@@ -940,7 +944,7 @@ void* timer_thread(void *arg) {
       }
     }
     // forcefully deschedule all tasks
-    for (int x = 0 ; x < data->thread_count ; x++) {
+    for (int x = 0 ; x < data->my_thread_count ; x++) {
       for (int y = 0 ; y < data->task_count ; y++) {
         data->threads[x]->tasks[y].scheduled = 0;
       }
@@ -1349,14 +1353,18 @@ int main() {
   thread_data[timer_threadi].running = 1;
   thread_data[timer_threadi].task_count = total_barrier_count;
 
+
+
+
   // thread_data[thread_count].threads = thread_data;
   struct KernelThread **my_thread_data = calloc(total_threads, sizeof(struct KernelThread*)); 
-  for (int n = 0 ; n < group_count * threads_per_group ; n++) {
+  for (int n = 0 ; n < total_threads ; n++) {
     my_thread_data[n] = &thread_data[n]; 
   }
   thread_data[timer_threadi].threads = my_thread_data;
+  thread_data[timer_threadi].total_thread_count = total_threads;
   thread_data[timer_threadi].thread_count = group_count * threads_per_group;
-  thread_data[timer_threadi].my_thread_count = 2;
+  thread_data[timer_threadi].my_thread_count = group_count * threads_per_group;
   thread_data[timer_threadi].thread_index = 0;
 
   printf("Creating scheduler thread %d\n", timer_threadi);
