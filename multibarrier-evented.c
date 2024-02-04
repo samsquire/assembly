@@ -1093,9 +1093,9 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int core_count = 3;
+  int core_count = 2;
   int threads_per_group = 2;
-  int group_count = core_count / threads_per_group;
+  int group_count = 2;
   int thread_count = 2;
   int mailboxes_needed = group_count * thread_count;
   int timer_count = 1;
@@ -1107,7 +1107,10 @@ int main() {
   int total_threads = (group_count * thread_count) + timer_count + io_threads + external_threads;
   printf("Multithreaded nonblocking lock free MULTIbarrier runtime (https://github.com/samsquire/assembly)\n");
   printf("\n");
+  printf("Cores count %d\n", core_count);
   printf("Mailboxes needed %d\n", mailboxes_needed);
+  printf("Group count %d\n", group_count);
+  printf("Threads per group %d\n", threads_per_group);
   printf("Barrier runtime parameters:\n");
   printf("worker thread count = %d\n", thread_count);
   printf("total threads = %d\n", total_threads);
