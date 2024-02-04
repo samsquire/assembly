@@ -153,9 +153,9 @@ struct Mailbox {
 
 struct Data {
   struct Message **messages;
-  long messages_count;
+  long messages_count __attribute__((aligned (128)));
   long messages_limit;
-  int available;
+  int available __attribute__((aligned (128)));
 };
 
 struct Message {
@@ -714,7 +714,7 @@ int barriered_work(struct BarrierTask *data) {
                   // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
               // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
                   data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower = tmp;
-                      ((struct Data*)data->thread->all_threads[b].tasks[next_task].mailboxes[y].higher)->available = 1;
+                  ((struct Data*)data->thread->all_threads[b].tasks[next_task].mailboxes[y].higher)->available = 1;
                   // printf("Mailbox is external, swapped\n");
                  } else {
                    // printf("not available\n");   
@@ -1093,7 +1093,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
   return 0;
 }
 int main() {
-  int core_count = 12;
+  int core_count = 6;
   int threads_per_group = 2;
   int group_count = core_count / threads_per_group;
   int thread_count = 2;
@@ -1434,65 +1434,68 @@ int main() {
   long sends = 0;
   long sents = 0;
   long received = 0;
-  for (int x = 0 ; x < thread_count ; x++) {
-    long v = 0;
-    
-    int other = -1;
-    int me = x;
-    if (x % 2 == 1) {
-      other = abs(x - 1) % total_threads;
-    } else {
-      other = (x + 1) % total_threads;
-    }
-    printf("\n");
-    printf("Total Protected %ld\n", protected_state[me].protected);
-
-    for (int n = 0 ; n < thread_data[me].task_count ; n++) {
-      v += thread_data[me].tasks[n].v;
-    }
-    for (int n = 0 ; n < thread_data[other].task_count ; n++) {
-      v += thread_data[other].tasks[n].v;
-    }
-    printf("Total V %ld\n", v);
-    printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
-    printf("\n");
-    for (int n = 0 ; n < thread_data[x].task_count ; n++) {
-      total += thread_data[x].tasks[n].n;
-      ingests += thread_data[x].tasks[n].ingest_count;
-      sends += thread_data[x].tasks[n].sends;
-      for (int k = 0 ; k < thread_count ; k++) {
-        sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
-        received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
+  for (int k = 0 ; k < group_count ; k++) {
+    for (int d = 0 ; d < threads_per_group ; d++) {
+      int x = (k * threads_per_group) + d;
+      long v = 0;
+      
+      int other = -1;
+      int me = x;
+      if (x % 2 == 1) {
+        other = abs(x - 1) % total_threads;
+      } else {
+        other = (x + 1) % total_threads;
       }
-    }
-    for (int n = 0 ; n < thread_data[x].timestamp_limit ; n++) {
-      struct timespec start = thread_data[x].start[n];
-      struct timespec end = thread_data[x].end[n];
+      printf("\n");
+      printf("Total Protected %ld\n", protected_state[me].protected);
+
+      for (int n = 0 ; n < thread_data[me].task_count ; n++) {
+        v += thread_data[me].tasks[n].v;
+      }
+      for (int n = 0 ; n < thread_data[other].task_count ; n++) {
+        v += thread_data[other].tasks[n].v;
+      }
+      printf("Total V %ld\n", v);
+      printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
+      printf("\n");
+      for (int n = 0 ; n < thread_data[x].task_count ; n++) {
+        total += thread_data[x].tasks[n].n;
+        ingests += thread_data[x].tasks[n].ingest_count;
+        sends += thread_data[x].tasks[n].sends;
+        for (int k = 0 ; k < thread_count ; k++) {
+          sents += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).sent;
+          received += ((struct Mailbox)thread_data[x].tasks[n].mailboxes[k]).received;
+        }
+      }
+      for (int n = 0 ; n < thread_data[x].timestamp_limit ; n++) {
+        struct timespec start = thread_data[x].start[n];
+        struct timespec end = thread_data[x].end[n];
+        const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+        const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+        // printf("elapsed %ld seconds (%ld ms)\n", seconds, seconds2 / 1000000);
+        // printf("%ld iterations\n", thread_data[x].iteration_count);
+      }
+      for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
+        struct timespec start = thread_data[x].task_snapshot[n].task_start;
+        struct timespec end = thread_data[x].task_snapshot[n].task_end;
+        const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
+        const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
+        printf("%d tasks (%d) synchronized in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
+        // printf("%ldns per thread\n", (seconds2 / 2));
+      }
+      // printf("cycles %ld\n", thread_data[x].cycles);
+
+      for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
+        for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
+    for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
+      struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
+      struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
       const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
       const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      // printf("elapsed %ld seconds (%ld ms)\n", seconds, seconds2 / 1000000);
-      // printf("%ld iterations\n", thread_data[x].iteration_count);
-    }
-    for (int n = 0 ; n < thread_data[x].task_timestamp_limit ; n++) {
-      struct timespec start = thread_data[x].task_snapshot[n].task_start;
-      struct timespec end = thread_data[x].task_snapshot[n].task_end;
-      const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-      const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-      printf("%d tasks (%d) synchronized in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, thread_data[x].task_snapshot[n].task, seconds, seconds2 / 1000000, seconds2);
-      // printf("%ldns per thread\n", (seconds2 / 2));
-    }
-    // printf("cycles %ld\n", thread_data[x].cycles);
+      printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, b, seconds, seconds2 / 1000000, seconds2);
 
-    for (int b = 0 ; b < thread_data[x].buffers_count ; b++) {
-      for (int n = 0 ; n < thread_data[x].buffers[b]->count ; n++) {
-	for (int k = 0 ; k < thread_data[x].buffers[b]->buffer[n].ingest_snapshot ; k++) {
-	  struct timespec end = thread_data[x].buffers[b]->buffer[n].snapshots[k].end;
-	  struct timespec start = thread_data[x].buffers[b]->buffer[n].snapshots[k].start;
-	  const uint64_t seconds = (end.tv_sec) - (start.tv_sec);
-	  const uint64_t seconds2 = (end.tv_nsec) - (start.tv_nsec);
-	  printf("%d external ingest latency (%d) in %ld seconds %ld milliseconds %ld nanoseconds\n", 2, b, seconds, seconds2 / 1000000, seconds2);
-
-	}
+    }
+        }
       }
     }
   }

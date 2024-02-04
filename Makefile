@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-luring -lm -O3 -g -fsanitize=address
+CFLAGS=-luring -lm -O3 -g 
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
