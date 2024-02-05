@@ -753,9 +753,9 @@ int barriered_work(struct BarrierTask *data) {
 
 
 
-                    ((struct Data*)_a)->available = 1;
+                    // ((struct Data*)_a)->available = 1;
                     // ((struct Data*)_b)->available = 1;
-                    // ((struct Data*)_c)->available = 1;
+                    ((struct Data*)_c)->available = 1;
                     ((struct Data*)_d)->available = 1;
                   }
                   // printf("Mailbox is external, swapped\n");
