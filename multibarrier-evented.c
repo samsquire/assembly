@@ -149,6 +149,7 @@ struct Mailbox {
   long sent;
   long received;
   int kind;
+  int other;
 };
 
 struct Data {
@@ -709,18 +710,23 @@ int barriered_work(struct BarrierTask *data) {
                 // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
                   void * _a = data->thread->all_threads[y].tasks[t].mailboxes[b].higher;
                   void * _b = data->thread->all_threads[y].tasks[t].mailboxes[b].lower;
-                  void * _c = data->thread->all_threads[b].tasks[next_task].mailboxes[y].higher;
-                  void * _d = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
+                  int other = data->thread->all_threads[y].tasks[t].mailboxes[b].other;
+                  // printf("I am %d they are %d\n", b, other);
+
+                  int otherkind = data->thread->all_threads[other].tasks[next_task].mailboxes[y].kind; 
+                  printf("otherkind is %d\n", otherkind);
+                  void * _c = data->thread->all_threads[other].tasks[next_task].mailboxes[y].higher;
+                  void * _d = data->thread->all_threads[other].tasks[next_task].mailboxes[y].lower;
 
                   // printf("datakind1 %d %p\n", data->kind, data->thread);
                   // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
                   // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
                   // printf("swapping %d/%d with %d/%d\n", y, t, b, next_task);
-                  data->thread->all_threads[y].tasks[t].mailboxes[b].higher = _d;
-                  data->thread->all_threads[y].tasks[t].mailboxes[b].lower = _c;
+                  data->thread->all_threads[y].tasks[t].mailboxes[other].higher = _d;
+                  data->thread->all_threads[y].tasks[t].mailboxes[other].lower = _c;
 
-                  data->thread->all_threads[b].tasks[next_task].mailboxes[y].higher = _b;
-                  data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower = _a;
+                  data->thread->all_threads[other].tasks[next_task].mailboxes[y].higher = _b;
+                  data->thread->all_threads[other].tasks[next_task].mailboxes[y].lower = _a;
             
               } else {
 
@@ -1261,8 +1267,8 @@ int main() {
           // long messages_limit = 20;/*9999999;*/
     
           for (int b = 0 ; b < mailboxes_needed ; b++) {
-            if ( b == x || b == x + 1) {
-              printf("Creating friend mailbox %d\n", b);
+            if ( y == x) {
+              // printf("Creating friend mailbox %d\n", b);
               struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
               struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
               struct Data *data = calloc(2, sizeof(struct Data));
@@ -1270,6 +1276,12 @@ int main() {
               mailboxes[b].lower = &data[0];
               mailboxes[b].higher = &data[1];
               mailboxes[b].kind = MAILBOX_FRIEND;
+              if (y % 2 == 0) {
+                mailboxes[b].other = abs((x + 1) % mailboxes_needed);
+              } else {
+                mailboxes[b].other = abs((x - 1) % mailboxes_needed);
+              }
+              printf("Creating friend mailbox %d other is %d\n", b, mailboxes[b].other);
               data[0].messages = messages;
               data[1].messages = messages2;
               data[0].messages_limit = messages_limit;
@@ -1279,8 +1291,10 @@ int main() {
             }
           }
           for (int b = 0 ; b < mailboxes_needed ; b++) {
-            if (b == x || b == x + 1) { continue; }
-            printf("Creating external mailbox %d\n", b);
+            if ( y == x) {
+              continue; 
+            }
+            // printf("Creating external mailbox %d\n", b);
             struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
             struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
             struct Data *data = calloc(2, sizeof(struct Data));
