@@ -637,8 +637,8 @@ int receive(struct BarrierTask *data) {
       me->available = 0;
     }
     me->messages_count = 0;
-    asm volatile ("sfence" ::: "memory");
   }
+  asm volatile ("sfence" ::: "memory");
 }
 
 int sendm(struct BarrierTask *data) {
@@ -668,8 +668,8 @@ int sendm(struct BarrierTask *data) {
           // available for reading by external thread
           them->available = 0;
         }
-        asm volatile ("sfence" ::: "memory");
       }
+      asm volatile ("sfence" ::: "memory");
     } else {
     // printf("not sending\n");
   }
