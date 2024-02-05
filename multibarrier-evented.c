@@ -713,7 +713,7 @@ int barriered_work(struct BarrierTask *data) {
                   void * _a = data->thread->all_threads[y].tasks[t].mailboxes[b].higher;
                   void * _b = data->thread->all_threads[y].tasks[t].mailboxes[b].lower;
                   int other = data->thread->all_threads[y].tasks[t].mailboxes[b].other;
-                  printf("I am %d they are %d\n", b, other);
+                  // printf("I am %d they are %d\n", b, other);
 
                   int otherkind = data->thread->all_threads[other].tasks[next_task].mailboxes[y].kind; 
                   // printf("otherkind is %d\n", otherkind);
