@@ -722,8 +722,8 @@ int barriered_work(struct BarrierTask *data) {
                   // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
                   // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
                   // printf("swapping %d/%d with %d/%d\n", y, t, b, next_task);
-                  data->thread->all_threads[y].tasks[t].mailboxes[other].higher = _d;
-                  data->thread->all_threads[y].tasks[t].mailboxes[other].lower = _c;
+                  data->thread->all_threads[y].tasks[t].mailboxes[b].higher = _d;
+                  data->thread->all_threads[y].tasks[t].mailboxes[b].lower = _c;
 
                   data->thread->all_threads[other].tasks[next_task].mailboxes[y].higher = _b;
                   data->thread->all_threads[other].tasks[next_task].mailboxes[y].lower = _a;
@@ -1265,9 +1265,11 @@ int main() {
           struct Mailbox *mailboxes = calloc(mailboxes_needed, sizeof(struct Mailbox));
           thread_data[x].tasks[y].mailboxes = mailboxes;
           // long messages_limit = 20;/*9999999;*/
-    
+          
           for (int b = 0 ; b < mailboxes_needed ; b++) {
-            if ( y == x) {
+            // k is group
+            int group_of = b / threads_per_group;
+            if (k == group_of) {
               // printf("Creating friend mailbox %d\n", b);
               struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
               struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
@@ -1276,8 +1278,8 @@ int main() {
               mailboxes[b].lower = &data[0];
               mailboxes[b].higher = &data[1];
               mailboxes[b].kind = MAILBOX_FRIEND;
-              if (y % 2 == 0) {
-                mailboxes[b].other = abs((x + 1) % mailboxes_needed);
+              if (x % 2 == 0) { 
+                mailboxes[b].other = abs((x) % mailboxes_needed);
               } else {
                 mailboxes[b].other = abs((x - 1) % mailboxes_needed);
               }
@@ -1288,13 +1290,15 @@ int main() {
               data[0].messages_count = 0;
               data[1].messages_count = 0;
               data[1].messages_limit = messages_limit;
+
             }
           }
           for (int b = 0 ; b < mailboxes_needed ; b++) {
-            if ( y == x) {
+            int group_of = b / threads_per_group;
+            if (k == group_of) {
               continue; 
             }
-            // printf("Creating external mailbox %d\n", b);
+            printf("Creating external mailbox %d\n", b);
             struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
             struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
             struct Data *data = calloc(2, sizeof(struct Data));
@@ -1376,6 +1380,33 @@ int main() {
         thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
     }
   }
+  printf("Serialising thread_data\n");
+
+  for (int k = 0 ; k < group_count ; k++) {
+    printf("group-%d\n", k); 
+    for (int d = 0 ; d < threads_per_group ; d++) {
+      int x = (k * threads_per_group) + d;
+      printf("\tthread-%d rt-%d\n", d, x);
+      for (int y = 0 ; y < total_barrier_count ; y++) {
+        printf("\t\ttask-%d\n", y);  
+        
+        for (int m = 0 ; m < mailboxes_needed ; m++) {
+          char * mailbox_kind = calloc(100, sizeof(char));
+          memset(mailbox_kind, '\0', 100);
+          if (thread_data[x].tasks[y].mailboxes[m].kind == MAILBOX_FOREIGN) {
+            sprintf(mailbox_kind, "%s", "foreign");
+          } else if (thread_data[x].tasks[y].mailboxes[m].kind == MAILBOX_FRIEND) {
+            sprintf(mailbox_kind, "%s", "friend");
+
+          }
+          printf("\t\t\tmailbox-%d-%s\n", m, mailbox_kind);
+          // thread_data[x].tasks[y].mailboxes = mailboxes;
+        }
+      }
+    }
+  }
+  
+
   printf("io index = %d\n", io_index);
   for (int x = io_index ; x < io_index + io_threads ; x++) {
     struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
