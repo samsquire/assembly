@@ -936,6 +936,7 @@ int barriered_work(struct BarrierTask *data) {
                   {
                     void * _a = data->thread->all_threads[y].tasks[t].mailboxes[b].higher;
                     void * _b = data->thread->all_threads[y].tasks[t].mailboxes[b].lower;
+                    int origy = y;
                     int y = other;
                     void * _c = data->thread->all_threads[other].tasks[t].mailboxes[y].higher;
                     void * _d = data->thread->all_threads[other].tasks[t].mailboxes[y].lower;
@@ -947,8 +948,14 @@ int barriered_work(struct BarrierTask *data) {
                     data->thread->all_threads[y].tasks[next_task].mailboxes[b].higher = _d;
                     data->thread->all_threads[y].tasks[next_task].mailboxes[b].lower = _c;
 
+                    void * _e = data->thread->all_threads[origy].tasks[next_task].mailboxes[b].higher;
+                    void * _f = data->thread->all_threads[origy].tasks[next_task].mailboxes[b].lower;
+
                     data->thread->all_threads[other].tasks[next_task].mailboxes[b].higher = _b;
                     data->thread->all_threads[other].tasks[next_task].mailboxes[b].lower = _a;
+
+                    // data->thread->all_threads[origy].tasks[t].mailboxes[b].lower = _e;
+                    // data->thread->all_threads[origy].tasks[t].mailboxes[b].higher = _f;
                   }
                   // printf("datakind1 %d %p\n", data->kind, data->thread);
                   // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
