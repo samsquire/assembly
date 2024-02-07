@@ -17,5 +17,11 @@ default: $(OBJ) $(IMGS)
 	echo $(CFILES); echo $(OBJ) \;
 	$(CC) -o $@ $^ $(CFLAGS)
 
+check:
+	sort mailbox2 | uniq -c | sort -nr	
+
+checkst:
+	sort mailbox1 | uniq -c | sort -nr	
+
 clean:
 	rm $(OBJ)
