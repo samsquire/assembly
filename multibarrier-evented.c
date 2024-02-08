@@ -749,7 +749,6 @@ int barriered_work(struct BarrierTask *data) {
               if (y == b) { continue; }
               int next_task = abs((t + 1) % (data->thread_count));
               int previous_task = abs((t - 1) % (data->thread_count));
-                  //mswap
                    // printf("is available\n"); 
                  //printf("rti %d %d", y, data->thread->real_thread_index);
                   if (b == data->thread->real_thread_index && data->thread->all_threads[b].tasks[t].mailboxes[y].kind == MAILBOX_FOREIGN) {
@@ -811,10 +810,12 @@ int barriered_work(struct BarrierTask *data) {
                       */
                       // we read other threads writings to us
                   {
+                  //mswap
+                  for (int nn = 0 ; nn < data->thread_count ; nn++) {
                     int LOWER = 0; int HIGHER = 1;
                     int l1 = 0;
                     int l2 = b;
-                    int l3 = t;
+                    int l3 = nn;
                     int l4 = y;
                     struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
                     struct Data* source2 = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], LOWER);
@@ -823,7 +824,7 @@ int barriered_work(struct BarrierTask *data) {
                     // printf("%d bef\n", ((struct Data*)__a->higher)->id); 
                     int t1 = 1;
                     int t2 = y;
-                    int t3 = next_task;
+                    int t3 = nn;
                     int t4 = b;
                     struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
                     struct Data *dest2 = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], HIGHER);
@@ -836,6 +837,7 @@ int barriered_work(struct BarrierTask *data) {
                     // setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source2, HIGHER);
                     // printf("%d aft\n", ((struct Data*)__a->lower)->id); 
                   }
+                }
                       /*
                       printf("afterswap aswap\n"); 
                       for (int nn = 0; nn < data->thread_count; nn++) {
@@ -954,11 +956,12 @@ int barriered_work(struct BarrierTask *data) {
                   int otherkind = data->thread->all_threads[other].tasks[next_task].mailboxes[y].kind; 
                   // printf("otherkind is %d\n", otherkind);
 
-                  {
+                  
+                  for (int nn = 0 ; nn < data->thread_count ; nn++) {
                     int LOWER = 0; int HIGHER = 1;
                     int l1 = 0;
                     int l2 = b;
-                    int l3 = t;
+                    int l3 = nn;
                     int l4 = y;
                     struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
                     struct Data* source2 = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], LOWER);
@@ -967,7 +970,7 @@ int barriered_work(struct BarrierTask *data) {
                     // printf("%d bef\n", ((struct Data*)__a->higher)->id); 
                     int t1 = 1;
                     int t2 = y;
-                    int t3 = next_task;
+                    int t3 = nn;
                     int t4 = b;
                     struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
                     struct Data *dest2 = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], HIGHER);
@@ -997,7 +1000,7 @@ int barriered_work(struct BarrierTask *data) {
        
       
     }
-      /*
+      // mboxinner 
       struct Data ** datas = calloc(200, sizeof(struct Data*)); 
       int datas2_size = 0; 
       for (int k = 0 ; k < data->thread->group_count ; k++) {
@@ -1024,7 +1027,7 @@ int barriered_work(struct BarrierTask *data) {
       } 
       fclose(m2);
       free(datas);
-      */
+      
       asm volatile ("sfence" ::: "memory");
         // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
 
