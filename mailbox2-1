@@ -12,11 +12,11 @@ mailbox 10 1 0 2 1
 mailbox 11 2 0 2 1
 mailbox 7 2 0 1 1
 mailbox 13 2 1 0 0
-mailbox 19 2 1 1 1
+mailbox 14 1 1 0 1
 mailbox 15 2 1 0 1
 mailbox 3 2 0 0 1
 mailbox 17 2 1 1 0
-mailbox 15 2 1 0 1
+mailbox 18 1 1 1 1
 mailbox 19 2 1 1 1
 mailbox 20 1 1 2 0
 mailbox 21 2 1 2 0
