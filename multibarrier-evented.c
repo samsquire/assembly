@@ -763,12 +763,14 @@ int barriered_work(struct BarrierTask *data) {
                   int all_finished = 1;
                   for (int nn = 0 ; nn < data->thread_count; nn++) {
                     int next_task = abs(nn + 1) % data->thread_count;
+                    // did y finish reading from us?
                     if (((struct Data*) data->thread->all_threads[y].tasks[next_task].mailboxes[y].lower)->finished_reading == 0) {
                       all_finished = 0;
                     }
                   }
                   int all_wrote = 1;
                   for (int nn = 0 ; nn < data->thread_count; nn++) {
+                    // did we finish writing to y?
                     if (((struct Data*) data->thread->all_threads[b].tasks[nn].mailboxes[y].higher)->available_receiving == 0) {
                       all_wrote = 0;
                     }
@@ -796,7 +798,7 @@ int barriered_work(struct BarrierTask *data) {
                       printf("Swapend\n");
                       */
                       // we read other threads writings to us
-                  if (all_finished == 1) {
+                  if (all_finished == 1 && all_wrote == 1) {
                   //mswap
                   for (int nn = 0 ; nn < data->thread_count ; nn++) {
                     int next_task = abs(nn + 1) % data->thread_count;
