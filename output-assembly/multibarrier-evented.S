@@ -1547,7 +1547,7 @@ printf (const char *__restrict __fmt, ...)
     334c:	0f 85 b8 fe ff ff    	jne    320a <main+0xbba>
     3352:	48 8b 4c 24 68       	mov    0x68(%rsp),%rcx
     3357:	e9 d5 f9 ff ff       	jmp    2d31 <main+0x6e1>
-    335c:	48 8d 05 6d 3a 00 00 	lea    0x3a6d(%rip),%rax        # 6dd0 <barriered_work_ingest_andwork>
+    335c:	48 8d 05 4d 3a 00 00 	lea    0x3a4d(%rip),%rax        # 6db0 <barriered_work_ingest_andwork>
     3363:	bd 01 00 00 00       	mov    $0x1,%ebp
             thread_data[x].tasks[y].run = barriered_work; 
     3368:	48 89 82 18 01 00 00 	mov    %rax,0x118(%rdx)
@@ -5729,12 +5729,13 @@ int barriered_work(struct BarrierTask *data) {
     661e:	48 83 ec 48          	sub    $0x48,%rsp
   if (data->thread_index == data->task_index) {
     6622:	8b 5f 04             	mov    0x4(%rdi),%ebx
+    6625:	39 9f 30 01 00 00    	cmp    %ebx,0x130(%rdi)
+      receive(data);
+    662b:	48 89 fb             	mov    %rdi,%rbx
 int barriered_work(struct BarrierTask *data) {
-    6625:	48 89 7c 24 10       	mov    %rdi,0x10(%rsp)
+    662e:	48 89 7c 24 10       	mov    %rdi,0x10(%rsp)
   if (data->thread_index == data->task_index) {
-    662a:	39 9f 30 01 00 00    	cmp    %ebx,0x130(%rdi)
-    6630:	74 48                	je     667a <barriered_work+0x6a>
-    6632:	48 89 fb             	mov    %rdi,%rbx
+    6633:	74 45                	je     667a <barriered_work+0x6a>
     receive(data);
     6635:	e8 46 fc ff ff       	call   6280 <receive>
     while (data->scheduled == 1) {
@@ -5764,1046 +5765,1027 @@ int barriered_work(struct BarrierTask *data) {
     6677:	41 5f                	pop    %r15
     6679:	c3                   	ret
       receive(data);
-    667a:	49 89 fd             	mov    %rdi,%r13
-    667d:	e8 fe fb ff ff       	call   6280 <receive>
-        for (int y = 0; y < data->mailbox_thread_count ; y++) {
-    6682:	41 8b 9d 40 01 00 00 	mov    0x140(%r13),%ebx
+    667a:	e8 01 fc ff ff       	call   6280 <receive>
         int t = data->task_index;
-    6689:	49 63 45 04          	movslq 0x4(%r13),%rax
+    667f:	48 63 43 04          	movslq 0x4(%rbx),%rax
+    6683:	48 89 d9             	mov    %rbx,%rcx
         for (int y = 0; y < data->mailbox_thread_count ; y++) {
-    668d:	85 db                	test   %ebx,%ebx
-    668f:	0f 8e d4 02 00 00    	jle    6969 <barriered_work+0x359>
+    6686:	8b 9b 40 01 00 00    	mov    0x140(%rbx),%ebx
+    668c:	85 db                	test   %ebx,%ebx
+    668e:	0f 8e b3 02 00 00    	jle    6947 <barriered_work+0x337>
                   if (b == data->thread->real_thread_index && data->thread->all_threads[b].tasks[t].mailboxes[y].kind == MAILBOX_FOREIGN) {
-    6695:	48 c1 e0 09          	shl    $0x9,%rax
-    6699:	45 31 db             	xor    %r11d,%r11d
-    669c:	49 8b 8d 28 01 00 00 	mov    0x128(%r13),%rcx
+    6694:	48 c1 e0 09          	shl    $0x9,%rax
+    6698:	45 31 e4             	xor    %r12d,%r12d
         for (int y = 0; y < data->mailbox_thread_count ; y++) {
-    66a3:	31 d2                	xor    %edx,%edx
+    669b:	31 d2                	xor    %edx,%edx
                   if (b == data->thread->real_thread_index && data->thread->all_threads[b].tasks[t].mailboxes[y].kind == MAILBOX_FOREIGN) {
-    66a5:	48 c7 44 24 18 00 00 00 00 	movq   $0x0,0x18(%rsp)
-    66ae:	49 89 c4             	mov    %rax,%r12
-    66b1:	4c 89 de             	mov    %r11,%rsi
-    66b4:	89 d8                	mov    %ebx,%eax
+    669d:	48 c7 44 24 18 00 00 00 00 	movq   $0x0,0x18(%rsp)
+    66a6:	49 89 c6             	mov    %rax,%r14
+    66a9:	48 89 c8             	mov    %rcx,%rax
+    66ac:	48 8b 89 28 01 00 00 	mov    0x128(%rcx),%rcx
 int barriered_work(struct BarrierTask *data) {
-    66b6:	45 31 c0             	xor    %r8d,%r8d
-    66b9:	45 31 c9             	xor    %r9d,%r9d
+    66b3:	31 ff                	xor    %edi,%edi
+    66b5:	45 31 c0             	xor    %r8d,%r8d
           for (int b = 0; b < data->mailbox_thread_count ; b++) {
-    66bc:	31 ff                	xor    %edi,%edi
-    66be:	4d 89 e7             	mov    %r12,%r15
-    66c1:	89 d3                	mov    %edx,%ebx
-    66c3:	89 c5                	mov    %eax,%ebp
-    66c5:	eb 1f                	jmp    66e6 <barriered_work+0xd6>
-    66c7:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
-    66d0:	83 c7 01             	add    $0x1,%edi
-    66d3:	49 81 c1 c8 00 00 00 	add    $0xc8,%r9
-    66da:	49 83 c0 38          	add    $0x38,%r8
-    66de:	39 ef                	cmp    %ebp,%edi
-    66e0:	0f 84 da 00 00 00    	je     67c0 <barriered_work+0x1b0>
+    66b8:	31 f6                	xor    %esi,%esi
+    66ba:	41 89 d2             	mov    %edx,%r10d
+    66bd:	48 89 c5             	mov    %rax,%rbp
+    66c0:	eb 1c                	jmp    66de <barriered_work+0xce>
+    66c2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    66c8:	83 c6 01             	add    $0x1,%esi
+    66cb:	49 81 c0 c8 00 00 00 	add    $0xc8,%r8
+    66d2:	48 83 c7 38          	add    $0x38,%rdi
+    66d6:	39 de                	cmp    %ebx,%esi
+    66d8:	0f 84 c2 00 00 00    	je     67a0 <barriered_work+0x190>
               if (y == b) { continue; }
-    66e6:	39 fb                	cmp    %edi,%ebx
-    66e8:	74 e6                	je     66d0 <barriered_work+0xc0>
+    66de:	41 39 f2             	cmp    %esi,%r10d
+    66e1:	74 e5                	je     66c8 <barriered_work+0xb8>
               int next_task = abs((t + 1) % (data->thread_count));
-    66ea:	45 8b 95 34 01 00 00 	mov    0x134(%r13),%r10d
+    66e3:	44 8b bd 34 01 00 00 	mov    0x134(%rbp),%r15d
                   if (b == data->thread->real_thread_index && data->thread->all_threads[b].tasks[t].mailboxes[y].kind == MAILBOX_FOREIGN) {
-    66f1:	39 79 08             	cmp    %edi,0x8(%rcx)
-    66f4:	75 da                	jne    66d0 <barriered_work+0xc0>
-    66f6:	48 8b 41 20          	mov    0x20(%rcx),%rax
-    66fa:	4e 8b 5c 08 38       	mov    0x38(%rax,%r9,1),%r11
-    66ff:	4b 8b 94 3b 70 01 00 00 	mov    0x170(%r11,%r15,1),%rdx
-    6707:	48 01 f2             	add    %rsi,%rdx
-    670a:	83 7a 30 02          	cmpl   $0x2,0x30(%rdx)
-    670e:	75 c0                	jne    66d0 <barriered_work+0xc0>
+    66ea:	39 71 08             	cmp    %esi,0x8(%rcx)
+    66ed:	75 d9                	jne    66c8 <barriered_work+0xb8>
+    66ef:	48 8b 41 20          	mov    0x20(%rcx),%rax
+    66f3:	4e 8b 4c 00 38       	mov    0x38(%rax,%r8,1),%r9
+    66f8:	4b 8b 94 31 70 01 00 00 	mov    0x170(%r9,%r14,1),%rdx
+    6700:	42 83 7c 22 30 02    	cmpl   $0x2,0x30(%rdx,%r12,1)
+    6706:	75 c0                	jne    66c8 <barriered_work+0xb8>
                   for (int nn = 0 ; nn < data->thread_count; nn++) {
-    6710:	45 85 d2             	test   %r10d,%r10d
-    6713:	7e bb                	jle    66d0 <barriered_work+0xc0>
+    6708:	45 85 ff             	test   %r15d,%r15d
+    670b:	7e bb                	jle    66c8 <barriered_work+0xb8>
                     if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].lower)->finished_reading == 0) {
-    6715:	4c 8b 74 24 18       	mov    0x18(%rsp),%r14
-                    if (((struct Data*) data->thread->all_threads[b].tasks[t].mailboxes[y].lower)->finished_reading == 0) {
-    671a:	48 8b 12             	mov    (%rdx),%rdx
-                    if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].lower)->finished_reading == 0) {
-    671d:	4e 8b 64 30 38       	mov    0x38(%rax,%r14,1),%r12
-                    if (((struct Data*) data->thread->all_threads[b].tasks[t].mailboxes[y].lower)->finished_reading == 0) {
-    6722:	8b 92 00 03 00 00    	mov    0x300(%rdx),%edx
-                    if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].lower)->finished_reading == 0) {
-    6728:	4b 8b 84 3c 70 01 00 00 	mov    0x170(%r12,%r15,1),%rax
-                    if (((struct Data*) data->thread->all_threads[b].tasks[t].mailboxes[y].lower)->finished_reading == 0) {
-    6730:	89 14 24             	mov    %edx,(%rsp)
-    6733:	31 d2                	xor    %edx,%edx
-                    if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].lower)->finished_reading == 0) {
-    6735:	4c 01 c0             	add    %r8,%rax
-    6738:	4c 8b 30             	mov    (%rax),%r14
-    673b:	45 8b b6 00 03 00 00 	mov    0x300(%r14),%r14d
-    6742:	45 85 f6             	test   %r14d,%r14d
-    6745:	74 0c                	je     6753 <barriered_work+0x143>
-                    if (((struct Data*) data->thread->all_threads[b].tasks[t].mailboxes[y].lower)->finished_reading == 0) {
-    6747:	44 8b 34 24          	mov    (%rsp),%r14d
-    674b:	31 d2                	xor    %edx,%edx
-    674d:	45 85 f6             	test   %r14d,%r14d
-    6750:	0f 95 c2             	setne  %dl
+    670d:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
+    6712:	4c 8b 5c 10 38       	mov    0x38(%rax,%rdx,1),%r11
+    6717:	4b 8b 94 33 70 01 00 00 	mov    0x170(%r11,%r14,1),%rdx
+    671f:	48 01 fa             	add    %rdi,%rdx
+    6722:	48 8b 02             	mov    (%rdx),%rax
                     if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].higher)->available_receiving == 0) {
-    6753:	48 8b 40 08          	mov    0x8(%rax),%rax
-    6757:	8b 80 80 01 00 00    	mov    0x180(%rax),%eax
-    675d:	85 c0                	test   %eax,%eax
-    675f:	74 08                	je     6769 <barriered_work+0x159>
+    6725:	48 8b 52 08          	mov    0x8(%rdx),%rdx
+                    if (((struct Data*) data->thread->all_threads[y].tasks[t].mailboxes[b].lower)->finished_reading == 0) {
+    6729:	8b 80 00 03 00 00    	mov    0x300(%rax),%eax
+    672f:	8b 92 80 01 00 00    	mov    0x180(%rdx),%edx
+    6735:	83 f8 01             	cmp    $0x1,%eax
+    6738:	19 c0                	sbb    %eax,%eax
+    673a:	83 c0 01             	add    $0x1,%eax
+    673d:	85 d2                	test   %edx,%edx
+    673f:	74 08                	je     6749 <barriered_work+0x139>
                   if (all_finished == 1 && all_wrote == 1) {
-    6761:	85 d2                	test   %edx,%edx
-    6763:	0f 85 29 05 00 00    	jne    6c92 <barriered_work+0x682>
-    6769:	49 63 d2             	movslq %r10d,%rdx
+    6741:	85 c0                	test   %eax,%eax
+    6743:	0f 85 29 05 00 00    	jne    6c72 <barriered_work+0x662>
+    6749:	49 63 d7             	movslq %r15d,%rdx
                   for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    676c:	b8 70 01 00 00       	mov    $0x170,%eax
-    6771:	48 c1 e2 09          	shl    $0x9,%rdx
-    6775:	48 81 c2 70 01 00 00 	add    $0x170,%rdx
-    677c:	eb 11                	jmp    678f <barriered_work+0x17f>
-    677e:	66 90                	xchg   %ax,%ax
+    674c:	b8 70 01 00 00       	mov    $0x170,%eax
+    6751:	48 c1 e2 09          	shl    $0x9,%rdx
+    6755:	48 81 c2 70 01 00 00 	add    $0x170,%rdx
+    675c:	eb 11                	jmp    676f <barriered_work+0x15f>
+    675e:	66 90                	xchg   %ax,%ax
                       for (int nn = 0; nn < data->thread_count; nn++) {
-    6780:	48 05 00 02 00 00    	add    $0x200,%rax
-    6786:	48 39 c2             	cmp    %rax,%rdx
-    6789:	0f 84 41 ff ff ff    	je     66d0 <barriered_work+0xc0>
+    6760:	48 05 00 02 00 00    	add    $0x200,%rax
+    6766:	48 39 c2             	cmp    %rax,%rdx
+    6769:	0f 84 59 ff ff ff    	je     66c8 <barriered_work+0xb8>
                         if (data->thread->all_threads[b].tasks[nn].mailboxes[y].lower == data->thread->all_threads[y].tasks[nn].mailboxes[b].lower) {
-    678f:	4d 8b 14 04          	mov    (%r12,%rax,1),%r10
-    6793:	4d 8b 34 03          	mov    (%r11,%rax,1),%r14
-    6797:	4f 8b 14 02          	mov    (%r10,%r8,1),%r10
-    679b:	4d 39 14 36          	cmp    %r10,(%r14,%rsi,1)
-    679f:	75 df                	jne    6780 <barriered_work+0x170>
-    67a1:	bf 01 00 00 00       	mov    $0x1,%edi
-    67a6:	48 8d 35 7e 1a 00 00 	lea    0x1a7e(%rip),%rsi        # 822b <_IO_stdin_used+0x22b>
-    67ad:	31 c0                	xor    %eax,%eax
-    67af:	e8 ec bc ff ff       	call   24a0 <__printf_chk@plt>
+    676f:	4d 8b 2c 03          	mov    (%r11,%rax,1),%r13
+    6773:	4d 8b 3c 01          	mov    (%r9,%rax,1),%r15
+    6777:	4d 8b 6c 3d 00       	mov    0x0(%r13,%rdi,1),%r13
+    677c:	4f 39 2c 27          	cmp    %r13,(%r15,%r12,1)
+    6780:	75 de                	jne    6760 <barriered_work+0x150>
+    6782:	bf 01 00 00 00       	mov    $0x1,%edi
+    6787:	48 8d 35 9d 1a 00 00 	lea    0x1a9d(%rip),%rsi        # 822b <_IO_stdin_used+0x22b>
+    678e:	31 c0                	xor    %eax,%eax
+    6790:	e8 0b bd ff ff       	call   24a0 <__printf_chk@plt>
                           exit(1);
-    67b4:	bf 01 00 00 00       	mov    $0x1,%edi
-    67b9:	e8 42 bd ff ff       	call   2500 <exit@plt>
-    67be:	66 90                	xchg   %ax,%ax
+    6795:	bf 01 00 00 00       	mov    $0x1,%edi
+    679a:	e8 61 bd ff ff       	call   2500 <exit@plt>
+    679f:	90                   	nop
           for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    67c0:	4c 63 99 c4 00 00 00 	movslq 0xc4(%rcx),%r11
-    67c7:	4d 89 fc             	mov    %r15,%r12
-    67ca:	89 da                	mov    %ebx,%edx
-    67cc:	89 e8                	mov    %ebp,%eax
+    67a0:	4c 63 81 c4 00 00 00 	movslq 0xc4(%rcx),%r8
           int k = data->group;
-    67ce:	45 8b 85 94 01 00 00 	mov    0x194(%r13),%r8d
+    67a7:	8b b5 94 01 00 00    	mov    0x194(%rbp),%esi
+    67ad:	44 89 d2             	mov    %r10d,%edx
+    67b0:	48 89 e8             	mov    %rbp,%rax
           for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    67d5:	45 85 db             	test   %r11d,%r11d
-    67d8:	0f 8e 71 01 00 00    	jle    694f <barriered_work+0x33f>
+    67b3:	45 85 c0             	test   %r8d,%r8d
+    67b6:	0f 8e 73 01 00 00    	jle    692f <barriered_work+0x31f>
             int y = (k * data->thread->threads_per_group) + d;
-    67de:	45 0f af c3          	imul   %r11d,%r8d
-    67e2:	89 5c 24 20          	mov    %ebx,0x20(%rsp)
+    67bc:	41 0f af f0          	imul   %r8d,%esi
               int next_task = abs((t + 1) % (data->thread_count));
-    67e6:	41 8b bd 34 01 00 00 	mov    0x134(%r13),%edi
+    67c0:	8b bd 34 01 00 00    	mov    0x134(%rbp),%edi
             int y = (k * data->thread->threads_per_group) + d;
-    67ed:	89 44 24 24          	mov    %eax,0x24(%rsp)
-    67f1:	48 89 74 24 28       	mov    %rsi,0x28(%rsp)
-    67f6:	4d 63 c0             	movslq %r8d,%r8
-    67f9:	48 89 4c 24 30       	mov    %rcx,0x30(%rsp)
-    67fe:	4f 8d 0c 80          	lea    (%r8,%r8,4),%r9
-    6802:	4c 89 6c 24 38       	mov    %r13,0x38(%rsp)
-    6807:	4f 8d 14 89          	lea    (%r9,%r9,4),%r10
-    680b:	4c 8b 49 20          	mov    0x20(%rcx),%r9
-    680f:	4f 8d 0c d1          	lea    (%r9,%r10,8),%r9
-    6813:	4e 8d 14 c5 00 00 00 00 	lea    0x0(,%r8,8),%r10
-    681b:	4d 29 c2             	sub    %r8,%r10
-    681e:	4d 01 d8             	add    %r11,%r8
-    6821:	4c 89 4c 24 08       	mov    %r9,0x8(%rsp)
-    6826:	4a 8d 2c c5 00 00 00 00 	lea    0x0(,%r8,8),%rbp
-    682e:	49 c1 e2 03          	shl    $0x3,%r10
-    6832:	4c 29 c5             	sub    %r8,%rbp
-    6835:	4d 89 d6             	mov    %r10,%r14
-    6838:	4d 89 c8             	mov    %r9,%r8
-    683b:	48 c1 e5 03          	shl    $0x3,%rbp
-    683f:	90                   	nop
+    67c6:	89 54 24 20          	mov    %edx,0x20(%rsp)
+    67ca:	89 5c 24 24          	mov    %ebx,0x24(%rsp)
+    67ce:	4c 89 64 24 28       	mov    %r12,0x28(%rsp)
+    67d3:	48 63 f6             	movslq %esi,%rsi
+    67d6:	48 89 4c 24 30       	mov    %rcx,0x30(%rsp)
+    67db:	4c 8d 0c b6          	lea    (%rsi,%rsi,4),%r9
+    67df:	48 89 44 24 38       	mov    %rax,0x38(%rsp)
+    67e4:	4f 8d 14 89          	lea    (%r9,%r9,4),%r10
+    67e8:	4c 8b 49 20          	mov    0x20(%rcx),%r9
+    67ec:	4f 8d 0c d1          	lea    (%r9,%r10,8),%r9
+    67f0:	4c 8d 14 f5 00 00 00 00 	lea    0x0(,%rsi,8),%r10
+    67f8:	49 29 f2             	sub    %rsi,%r10
+    67fb:	4c 01 c6             	add    %r8,%rsi
+    67fe:	4c 89 4c 24 08       	mov    %r9,0x8(%rsp)
+    6803:	4d 89 c8             	mov    %r9,%r8
+    6806:	48 8d 2c f5 00 00 00 00 	lea    0x0(,%rsi,8),%rbp
+    680e:	49 c1 e2 03          	shl    $0x3,%r10
+    6812:	48 29 f5             	sub    %rsi,%rbp
+    6815:	4d 89 d5             	mov    %r10,%r13
+    6818:	48 c1 e5 03          	shl    $0x3,%rbp
+    681c:	0f 1f 40 00          	nopl   0x0(%rax)
               int kind = data->thread->all_threads[y].tasks[t].mailboxes[b].kind; 
-    6840:	4d 8b 68 38          	mov    0x38(%r8),%r13
-    6844:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
-    6849:	4c 89 04 24          	mov    %r8,(%rsp)
-    684d:	4c 89 d6             	mov    %r10,%rsi
-    6850:	4f 8b bc 25 70 01 00 00 	mov    0x170(%r13,%r12,1),%r15
-    6858:	eb 1a                	jmp    6874 <barriered_work+0x264>
-    685a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    6820:	4d 8b 60 38          	mov    0x38(%r8),%r12
+    6824:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
+    6829:	4c 89 04 24          	mov    %r8,(%rsp)
+    682d:	4c 89 d6             	mov    %r10,%rsi
+    6830:	4f 8b bc 34 70 01 00 00 	mov    0x170(%r12,%r14,1),%r15
+    6838:	eb 1a                	jmp    6854 <barriered_work+0x244>
+    683a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
             for (int m = 0 ; m < data->thread->threads_per_group ; m++) {
-    6860:	48 83 c6 38          	add    $0x38,%rsi
-    6864:	48 81 c3 c8 00 00 00 	add    $0xc8,%rbx
-    686b:	48 39 f5             	cmp    %rsi,%rbp
-    686e:	0f 84 ac 00 00 00    	je     6920 <barriered_work+0x310>
+    6840:	48 83 c6 38          	add    $0x38,%rsi
+    6844:	48 81 c3 c8 00 00 00 	add    $0xc8,%rbx
+    684b:	48 39 f5             	cmp    %rsi,%rbp
+    684e:	0f 84 ac 00 00 00    	je     6900 <barriered_work+0x2f0>
               if (kind == MAILBOX_FRIEND) {
-    6874:	41 83 7c 37 30 01    	cmpl   $0x1,0x30(%r15,%rsi,1)
-    687a:	75 e4                	jne    6860 <barriered_work+0x250>
+    6854:	41 83 7c 37 30 01    	cmpl   $0x1,0x30(%r15,%rsi,1)
+    685a:	75 e4                	jne    6840 <barriered_work+0x230>
                   int other = data->thread->all_threads[b].tasks[t].mailboxes[y].other;
-    687c:	48 8b 43 38          	mov    0x38(%rbx),%rax
-    6880:	4e 8b 9c 20 70 01 00 00 	mov    0x170(%rax,%r12,1),%r11
-    6888:	4d 01 f3             	add    %r14,%r11
+    685c:	48 8b 43 38          	mov    0x38(%rbx),%rax
+    6860:	4e 8b 9c 30 70 01 00 00 	mov    0x170(%rax,%r14,1),%r11
+    6868:	4d 01 eb             	add    %r13,%r11
                    for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    688b:	85 ff                	test   %edi,%edi
-    688d:	7e d1                	jle    6860 <barriered_work+0x250>
+    686b:	85 ff                	test   %edi,%edi
+    686d:	7e d1                	jle    6840 <barriered_work+0x230>
     return mailbox->lower;
-    688f:	4d 8b 0b             	mov    (%r11),%r9
+    686f:	4d 8b 0b             	mov    (%r11),%r9
     return mailbox->higher;
-    6892:	4d 8b 43 08          	mov    0x8(%r11),%r8
+    6872:	4d 8b 43 08          	mov    0x8(%r11),%r8
                    for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    6896:	31 c9                	xor    %ecx,%ecx
-    6898:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    6876:	31 c9                	xor    %ecx,%ecx
+    6878:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
                     int next_task = abs((nn + 1) % (data->thread_count));
-    68a0:	83 c1 01             	add    $0x1,%ecx
-    68a3:	89 c8                	mov    %ecx,%eax
-    68a5:	99                   	cltd
-    68a6:	f7 ff                	idiv   %edi
+    6880:	83 c1 01             	add    $0x1,%ecx
+    6883:	89 c8                	mov    %ecx,%eax
+    6885:	99                   	cltd
+    6886:	f7 ff                	idiv   %edi
                     struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
-    68a8:	48 63 d2             	movslq %edx,%rdx
-    68ab:	48 c1 e2 09          	shl    $0x9,%rdx
-    68af:	49 8b 84 15 70 01 00 00 	mov    0x170(%r13,%rdx,1),%rax
-    68b7:	4c 89 ca             	mov    %r9,%rdx
-    68ba:	48 01 f0             	add    %rsi,%rax
+    6888:	48 63 d2             	movslq %edx,%rdx
+    688b:	48 c1 e2 09          	shl    $0x9,%rdx
+    688f:	49 8b 84 14 70 01 00 00 	mov    0x170(%r12,%rdx,1),%rax
+    6897:	4c 89 ca             	mov    %r9,%rdx
+    689a:	48 01 f0             	add    %rsi,%rax
     return mailbox->higher;
-    68bd:	f3 0f 6f 00          	movdqu (%rax),%xmm0
-    68c1:	4c 8b 48 08          	mov    0x8(%rax),%r9
+    689d:	f3 0f 6f 00          	movdqu (%rax),%xmm0
+    68a1:	4c 8b 48 08          	mov    0x8(%rax),%r9
     mailbox->lower = data;
-    68c5:	4c 89 00             	mov    %r8,(%rax)
+    68a5:	4c 89 00             	mov    %r8,(%rax)
     return mailbox->lower;
-    68c8:	66 0f c6 c0 01       	shufpd $0x1,%xmm0,%xmm0
+    68a8:	66 0f c6 c0 01       	shufpd $0x1,%xmm0,%xmm0
     mailbox->lower = data;
-    68cd:	41 0f 11 03          	movups %xmm0,(%r11)
+    68ad:	41 0f 11 03          	movups %xmm0,(%r11)
     mailbox->higher = data;
-    68d1:	48 89 50 08          	mov    %rdx,0x8(%rax)
+    68b1:	48 89 50 08          	mov    %rdx,0x8(%rax)
                     ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].lower)->available_reading = 1;
-    68d5:	48 8b 00             	mov    (%rax),%rax
+    68b5:	48 8b 00             	mov    (%rax),%rax
                     ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
-    68d8:	41 c7 81 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%r9)
+    68b8:	41 c7 81 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%r9)
                     ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_sending = 1;
-    68e3:	4d 8b 43 08          	mov    0x8(%r11),%r8
+    68c3:	4d 8b 43 08          	mov    0x8(%r11),%r8
                     ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].lower)->available_reading = 1;
-    68e7:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
+    68c7:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
                     ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].higher)->available_sending = 1;
-    68f1:	c7 82 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%rdx)
+    68d1:	c7 82 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%rdx)
                     ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_sending = 1;
-    68fb:	41 c7 80 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%r8)
+    68db:	41 c7 80 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%r8)
                    for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    6906:	39 cf                	cmp    %ecx,%edi
-    6908:	75 96                	jne    68a0 <barriered_work+0x290>
+    68e6:	39 cf                	cmp    %ecx,%edi
+    68e8:	75 96                	jne    6880 <barriered_work+0x270>
             for (int m = 0 ; m < data->thread->threads_per_group ; m++) {
-    690a:	48 83 c6 38          	add    $0x38,%rsi
-    690e:	48 81 c3 c8 00 00 00 	add    $0xc8,%rbx
-    6915:	48 39 f5             	cmp    %rsi,%rbp
-    6918:	0f 85 56 ff ff ff    	jne    6874 <barriered_work+0x264>
-    691e:	66 90                	xchg   %ax,%ax
-    6920:	4c 8b 04 24          	mov    (%rsp),%r8
+    68ea:	48 83 c6 38          	add    $0x38,%rsi
+    68ee:	48 81 c3 c8 00 00 00 	add    $0xc8,%rbx
+    68f5:	48 39 f5             	cmp    %rsi,%rbp
+    68f8:	0f 85 56 ff ff ff    	jne    6854 <barriered_work+0x244>
+    68fe:	66 90                	xchg   %ax,%ax
+    6900:	4c 8b 04 24          	mov    (%rsp),%r8
           for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    6924:	49 83 c6 38          	add    $0x38,%r14
-    6928:	49 81 c0 c8 00 00 00 	add    $0xc8,%r8
-    692f:	4c 39 f5             	cmp    %r14,%rbp
-    6932:	0f 85 08 ff ff ff    	jne    6840 <barriered_work+0x230>
-    6938:	8b 54 24 20          	mov    0x20(%rsp),%edx
-    693c:	8b 44 24 24          	mov    0x24(%rsp),%eax
-    6940:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
-    6945:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
-    694a:	4c 8b 6c 24 38       	mov    0x38(%rsp),%r13
+    6904:	49 83 c5 38          	add    $0x38,%r13
+    6908:	49 81 c0 c8 00 00 00 	add    $0xc8,%r8
+    690f:	4c 39 ed             	cmp    %r13,%rbp
+    6912:	0f 85 08 ff ff ff    	jne    6820 <barriered_work+0x210>
+    6918:	8b 54 24 20          	mov    0x20(%rsp),%edx
+    691c:	8b 5c 24 24          	mov    0x24(%rsp),%ebx
+    6920:	4c 8b 64 24 28       	mov    0x28(%rsp),%r12
+    6925:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+    692a:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
         for (int y = 0; y < data->mailbox_thread_count ; y++) {
-    694f:	48 81 44 24 18 c8 00 00 00 	addq   $0xc8,0x18(%rsp)
-    6958:	83 c2 01             	add    $0x1,%edx
-    695b:	48 83 c6 38          	add    $0x38,%rsi
-    695f:	39 c2                	cmp    %eax,%edx
-    6961:	0f 85 4f fd ff ff    	jne    66b6 <barriered_work+0xa6>
-    6967:	89 c3                	mov    %eax,%ebx
+    692f:	48 81 44 24 18 c8 00 00 00 	addq   $0xc8,0x18(%rsp)
+    6938:	83 c2 01             	add    $0x1,%edx
+    693b:	49 83 c4 38          	add    $0x38,%r12
+    693f:	39 da                	cmp    %ebx,%edx
+    6941:	0f 85 6c fd ff ff    	jne    66b3 <barriered_work+0xa3>
       struct Data ** datas = calloc(1024, sizeof(struct Data*)); 
-    6969:	be 08 00 00 00       	mov    $0x8,%esi
-    696e:	bf 00 04 00 00       	mov    $0x400,%edi
-    6973:	e8 78 ba ff ff       	call   23f0 <calloc@plt>
-    6978:	49 89 c4             	mov    %rax,%r12
+    6947:	be 08 00 00 00       	mov    $0x8,%esi
+    694c:	bf 00 04 00 00       	mov    $0x400,%edi
+    6951:	e8 9a ba ff ff       	call   23f0 <calloc@plt>
+    6956:	49 89 c4             	mov    %rax,%r12
       for (int k = 0 ; k < data->thread->group_count ; k++) {
-    697b:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    6980:	48 8b 90 28 01 00 00 	mov    0x128(%rax),%rdx
-    6987:	8b 82 c0 00 00 00    	mov    0xc0(%rdx),%eax
-    698d:	89 44 24 18          	mov    %eax,0x18(%rsp)
-    6991:	85 c0                	test   %eax,%eax
-    6993:	0f 8e cb 03 00 00    	jle    6d64 <barriered_work+0x754>
+    6959:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    695e:	48 8b 90 28 01 00 00 	mov    0x128(%rax),%rdx
+    6965:	8b 82 c0 00 00 00    	mov    0xc0(%rdx),%eax
+    696b:	89 44 24 18          	mov    %eax,0x18(%rsp)
+    696f:	85 c0                	test   %eax,%eax
+    6971:	0f 8e cf 03 00 00    	jle    6d46 <barriered_work+0x736>
         for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    6999:	8b 82 c4 00 00 00    	mov    0xc4(%rdx),%eax
-    699f:	44 8d 5b fe          	lea    -0x2(%rbx),%r11d
-    69a3:	31 f6                	xor    %esi,%esi
-    69a5:	48 89 d7             	mov    %rdx,%rdi
-    69a8:	44 8d 6b ff          	lea    -0x1(%rbx),%r13d
-    69ac:	49 83 c3 01          	add    $0x1,%r11
+    6977:	8b 82 c4 00 00 00    	mov    0xc4(%rdx),%eax
+    697d:	44 8d 5b fe          	lea    -0x2(%rbx),%r11d
+    6981:	31 f6                	xor    %esi,%esi
+    6983:	48 89 d7             	mov    %rdx,%rdi
+    6986:	44 8d 6b ff          	lea    -0x1(%rbx),%r13d
+    698a:	49 83 c3 01          	add    $0x1,%r11
       for (int k = 0 ; k < data->thread->group_count ; k++) {
-    69b0:	31 c9                	xor    %ecx,%ecx
+    698e:	31 c9                	xor    %ecx,%ecx
       int datas2_size = 0; 
-    69b2:	31 ed                	xor    %ebp,%ebp
-    69b4:	89 c2                	mov    %eax,%edx
-    69b6:	47 8d 44 2d 00       	lea    0x0(%r13,%r13,1),%r8d
-    69bb:	89 f0                	mov    %esi,%eax
-    69bd:	49 c1 e3 04          	shl    $0x4,%r11
-    69c1:	48 89 fe             	mov    %rdi,%rsi
+    6990:	31 ed                	xor    %ebp,%ebp
+    6992:	89 c2                	mov    %eax,%edx
+    6994:	47 8d 44 2d 00       	lea    0x0(%r13,%r13,1),%r8d
+    6999:	89 f0                	mov    %esi,%eax
+    699b:	49 c1 e3 04          	shl    $0x4,%r11
+    699f:	48 89 fe             	mov    %rdi,%rsi
         for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    69c4:	85 d2                	test   %edx,%edx
-    69c6:	0f 8e f2 00 00 00    	jle    6abe <barriered_work+0x4ae>
-    69cc:	4c 63 c8             	movslq %eax,%r9
+    69a2:	85 d2                	test   %edx,%edx
+    69a4:	0f 8e f4 00 00 00    	jle    6a9e <barriered_work+0x48e>
+    69aa:	4c 63 c8             	movslq %eax,%r9
           for (int n = 0 ; n < data->thread->all_threads[x].task_count ; n++) {
-    69cf:	4c 8b 56 20          	mov    0x20(%rsi),%r10
-    69d3:	89 4c 24 24          	mov    %ecx,0x24(%rsp)
-    69d7:	4b 8d 3c 89          	lea    (%r9,%r9,4),%rdi
-    69db:	89 44 24 20          	mov    %eax,0x20(%rsp)
-    69df:	89 d0                	mov    %edx,%eax
-    69e1:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
-    69e5:	4d 8d 34 fa          	lea    (%r10,%rdi,8),%r14
-    69e9:	48 63 fa             	movslq %edx,%rdi
-    69ec:	48 89 f2             	mov    %rsi,%rdx
-    69ef:	4c 01 cf             	add    %r9,%rdi
-    69f2:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
-    69f6:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
-    69fa:	4d 8d 3c fa          	lea    (%r10,%rdi,8),%r15
-    69fe:	4c 89 7c 24 08       	mov    %r15,0x8(%rsp)
-    6a03:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    6a08:	41 8b 4e 40          	mov    0x40(%r14),%ecx
-    6a0c:	85 c9                	test   %ecx,%ecx
-    6a0e:	0f 8e 8b 00 00 00    	jle    6a9f <barriered_work+0x48f>
-    6a14:	4c 63 c9             	movslq %ecx,%r9
-    6a17:	31 c9                	xor    %ecx,%ecx
-    6a19:	49 c1 e1 09          	shl    $0x9,%r9
+    69ad:	4c 8b 56 20          	mov    0x20(%rsi),%r10
+    69b1:	89 4c 24 24          	mov    %ecx,0x24(%rsp)
+    69b5:	4b 8d 3c 89          	lea    (%r9,%r9,4),%rdi
+    69b9:	89 44 24 20          	mov    %eax,0x20(%rsp)
+    69bd:	89 d0                	mov    %edx,%eax
+    69bf:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
+    69c3:	4d 8d 34 fa          	lea    (%r10,%rdi,8),%r14
+    69c7:	48 63 fa             	movslq %edx,%rdi
+    69ca:	48 89 f2             	mov    %rsi,%rdx
+    69cd:	4c 01 cf             	add    %r9,%rdi
+    69d0:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
+    69d4:	48 8d 3c bf          	lea    (%rdi,%rdi,4),%rdi
+    69d8:	4d 8d 3c fa          	lea    (%r10,%rdi,8),%r15
+    69dc:	4c 89 7c 24 08       	mov    %r15,0x8(%rsp)
+    69e1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    69e8:	41 8b 4e 40          	mov    0x40(%r14),%ecx
+    69ec:	85 c9                	test   %ecx,%ecx
+    69ee:	0f 8e 8b 00 00 00    	jle    6a7f <barriered_work+0x46f>
+    69f4:	4c 63 c9             	movslq %ecx,%r9
+    69f7:	31 c9                	xor    %ecx,%ecx
+    69f9:	49 c1 e1 09          	shl    $0x9,%r9
             for (int kk = 0 ; kk < data->mailbox_thread_count ; kk++) {
-    6a1d:	85 db                	test   %ebx,%ebx
-    6a1f:	0f 8e 8f 03 00 00    	jle    6db4 <barriered_work+0x7a4>
-    6a25:	4d 8b 56 38          	mov    0x38(%r14),%r10
-    6a29:	4c 89 14 24          	mov    %r10,(%rsp)
-    6a2d:	0f 1f 00             	nopl   (%rax)
+    69fd:	85 db                	test   %ebx,%ebx
+    69ff:	0f 8e 91 03 00 00    	jle    6d96 <barriered_work+0x786>
+    6a05:	4d 8b 56 38          	mov    0x38(%r14),%r10
+    6a09:	4c 89 14 24          	mov    %r10,(%rsp)
+    6a0d:	0f 1f 00             	nopl   (%rax)
               datas[datas2_size++] = ((struct Data*) ((struct Mailbox)data->thread->all_threads[x].tasks[n].mailboxes[kk]).lower);
-    6a30:	48 8b 3c 24          	mov    (%rsp),%rdi
-    6a34:	4c 8b bc 0f 70 01 00 00 	mov    0x170(%rdi,%rcx,1),%r15
-    6a3c:	83 fb 01             	cmp    $0x1,%ebx
-    6a3f:	0f 84 43 02 00 00    	je     6c88 <barriered_work+0x678>
-    6a45:	48 63 f5             	movslq %ebp,%rsi
-    6a48:	4c 89 ff             	mov    %r15,%rdi
-    6a4b:	49 8d 34 f4          	lea    (%r12,%rsi,8),%rsi
-    6a4f:	4d 8d 14 33          	lea    (%r11,%rsi,1),%r10
-    6a53:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    6a58:	f3 0f 6f 17          	movdqu (%rdi),%xmm2
-    6a5c:	48 83 c6 10          	add    $0x10,%rsi
-    6a60:	48 83 c7 38          	add    $0x38,%rdi
-    6a64:	0f 11 56 f0          	movups %xmm2,-0x10(%rsi)
+    6a10:	48 8b 3c 24          	mov    (%rsp),%rdi
+    6a14:	4c 8b bc 0f 70 01 00 00 	mov    0x170(%rdi,%rcx,1),%r15
+    6a1c:	83 fb 01             	cmp    $0x1,%ebx
+    6a1f:	0f 84 43 02 00 00    	je     6c68 <barriered_work+0x658>
+    6a25:	48 63 f5             	movslq %ebp,%rsi
+    6a28:	4c 89 ff             	mov    %r15,%rdi
+    6a2b:	49 8d 34 f4          	lea    (%r12,%rsi,8),%rsi
+    6a2f:	4d 8d 14 33          	lea    (%r11,%rsi,1),%r10
+    6a33:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    6a38:	f3 0f 6f 17          	movdqu (%rdi),%xmm2
+    6a3c:	48 83 c6 10          	add    $0x10,%rsi
+    6a40:	48 83 c7 38          	add    $0x38,%rdi
+    6a44:	0f 11 56 f0          	movups %xmm2,-0x10(%rsi)
             for (int kk = 0 ; kk < data->mailbox_thread_count ; kk++) {
-    6a68:	4c 39 d6             	cmp    %r10,%rsi
-    6a6b:	75 eb                	jne    6a58 <barriered_work+0x448>
-    6a6d:	46 8d 54 05 00       	lea    0x0(%rbp,%r8,1),%r10d
-    6a72:	49 63 f5             	movslq %r13d,%rsi
+    6a48:	4c 39 d6             	cmp    %r10,%rsi
+    6a4b:	75 eb                	jne    6a38 <barriered_work+0x428>
+    6a4d:	46 8d 54 05 00       	lea    0x0(%rbp,%r8,1),%r10d
+    6a52:	49 63 f5             	movslq %r13d,%rsi
               datas[datas2_size++] = ((struct Data*) ((struct Mailbox)data->thread->all_threads[x].tasks[n].mailboxes[kk]).lower);
-    6a75:	48 8d 3c f5 00 00 00 00 	lea    0x0(,%rsi,8),%rdi
-    6a7d:	4d 63 d2             	movslq %r10d,%r10
-    6a80:	42 8d 6c 05 02       	lea    0x2(%rbp,%r8,1),%ebp
+    6a55:	48 8d 3c f5 00 00 00 00 	lea    0x0(,%rsi,8),%rdi
+    6a5d:	4d 63 d2             	movslq %r10d,%r10
+    6a60:	42 8d 6c 05 02       	lea    0x2(%rbp,%r8,1),%ebp
           for (int n = 0 ; n < data->thread->all_threads[x].task_count ; n++) {
-    6a85:	48 81 c1 00 02 00 00 	add    $0x200,%rcx
+    6a65:	48 81 c1 00 02 00 00 	add    $0x200,%rcx
               datas[datas2_size++] = ((struct Data*) ((struct Mailbox)data->thread->all_threads[x].tasks[n].mailboxes[kk]).lower);
-    6a8c:	48 29 f7             	sub    %rsi,%rdi
-    6a8f:	f3 41 0f 6f 04 ff    	movdqu (%r15,%rdi,8),%xmm0
-    6a95:	43 0f 11 04 d4       	movups %xmm0,(%r12,%r10,8)
+    6a6c:	48 29 f7             	sub    %rsi,%rdi
+    6a6f:	f3 41 0f 6f 04 ff    	movdqu (%r15,%rdi,8),%xmm0
+    6a75:	43 0f 11 04 d4       	movups %xmm0,(%r12,%r10,8)
           for (int n = 0 ; n < data->thread->all_threads[x].task_count ; n++) {
-    6a9a:	4c 39 c9             	cmp    %r9,%rcx
-    6a9d:	75 91                	jne    6a30 <barriered_work+0x420>
+    6a7a:	4c 39 c9             	cmp    %r9,%rcx
+    6a7d:	75 91                	jne    6a10 <barriered_work+0x400>
         for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-    6a9f:	49 81 c6 c8 00 00 00 	add    $0xc8,%r14
-    6aa6:	4c 39 74 24 08       	cmp    %r14,0x8(%rsp)
-    6aab:	0f 85 57 ff ff ff    	jne    6a08 <barriered_work+0x3f8>
-    6ab1:	48 89 d6             	mov    %rdx,%rsi
-    6ab4:	8b 4c 24 24          	mov    0x24(%rsp),%ecx
-    6ab8:	89 c2                	mov    %eax,%edx
-    6aba:	8b 44 24 20          	mov    0x20(%rsp),%eax
+    6a7f:	49 81 c6 c8 00 00 00 	add    $0xc8,%r14
+    6a86:	4c 39 74 24 08       	cmp    %r14,0x8(%rsp)
+    6a8b:	0f 85 57 ff ff ff    	jne    69e8 <barriered_work+0x3d8>
+    6a91:	48 89 d6             	mov    %rdx,%rsi
+    6a94:	8b 4c 24 24          	mov    0x24(%rsp),%ecx
+    6a98:	89 c2                	mov    %eax,%edx
+    6a9a:	8b 44 24 20          	mov    0x20(%rsp),%eax
       for (int k = 0 ; k < data->thread->group_count ; k++) {
-    6abe:	83 c1 01             	add    $0x1,%ecx
-    6ac1:	01 d0                	add    %edx,%eax
-    6ac3:	39 4c 24 18          	cmp    %ecx,0x18(%rsp)
-    6ac7:	0f 85 f7 fe ff ff    	jne    69c4 <barriered_work+0x3b4>
+    6a9e:	83 c1 01             	add    $0x1,%ecx
+    6aa1:	01 d0                	add    %edx,%eax
+    6aa3:	39 4c 24 18          	cmp    %ecx,0x18(%rsp)
+    6aa7:	0f 85 f5 fe ff ff    	jne    69a2 <barriered_work+0x392>
       char * name = calloc(100, sizeof(char));
-    6acd:	48 89 34 24          	mov    %rsi,(%rsp)
-    6ad1:	bf 64 00 00 00       	mov    $0x64,%edi
-    6ad6:	be 01 00 00 00       	mov    $0x1,%esi
-    6adb:	e8 10 b9 ff ff       	call   23f0 <calloc@plt>
+    6aad:	48 89 34 24          	mov    %rsi,(%rsp)
+    6ab1:	bf 64 00 00 00       	mov    $0x64,%edi
+    6ab6:	be 01 00 00 00       	mov    $0x1,%esi
+    6abb:	e8 30 b9 ff ff       	call   23f0 <calloc@plt>
   return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
-    6ae0:	48 8b 14 24          	mov    (%rsp),%rdx
-    6ae4:	be 01 00 00 00       	mov    $0x1,%esi
-    6ae9:	48 8d 0d 56 17 00 00 	lea    0x1756(%rip),%rcx        # 8246 <_IO_stdin_used+0x246>
-    6af0:	48 89 c3             	mov    %rax,%rbx
-    6af3:	48 89 c7             	mov    %rax,%rdi
-    6af6:	31 c0                	xor    %eax,%eax
-    6af8:	44 8b 42 08          	mov    0x8(%rdx),%r8d
-    6afc:	ba 64 00 00 00       	mov    $0x64,%edx
-    6b01:	e8 7a ba ff ff       	call   2580 <__sprintf_chk@plt>
+    6ac0:	48 8b 14 24          	mov    (%rsp),%rdx
+    6ac4:	be 01 00 00 00       	mov    $0x1,%esi
+    6ac9:	48 8d 0d 76 17 00 00 	lea    0x1776(%rip),%rcx        # 8246 <_IO_stdin_used+0x246>
+    6ad0:	48 89 c3             	mov    %rax,%rbx
+    6ad3:	48 89 c7             	mov    %rax,%rdi
+    6ad6:	31 c0                	xor    %eax,%eax
+    6ad8:	44 8b 42 08          	mov    0x8(%rdx),%r8d
+    6adc:	ba 64 00 00 00       	mov    $0x64,%edx
+    6ae1:	e8 9a ba ff ff       	call   2580 <__sprintf_chk@plt>
       m2 = fopen(name, "w");
-    6b06:	48 89 df             	mov    %rbx,%rdi
-    6b09:	48 8d 35 42 17 00 00 	lea    0x1742(%rip),%rsi        # 8252 <_IO_stdin_used+0x252>
-    6b10:	e8 cb b9 ff ff       	call   24e0 <fopen@plt>
-    6b15:	48 89 c3             	mov    %rax,%rbx
+    6ae6:	48 89 df             	mov    %rbx,%rdi
+    6ae9:	48 8d 35 62 17 00 00 	lea    0x1762(%rip),%rsi        # 8252 <_IO_stdin_used+0x252>
+    6af0:	e8 eb b9 ff ff       	call   24e0 <fopen@plt>
+    6af5:	48 89 c3             	mov    %rax,%rbx
       for (int x = 0 ; x < datas2_size; x++) {
-    6b18:	85 ed                	test   %ebp,%ebp
-    6b1a:	7e 59                	jle    6b75 <barriered_work+0x565>
-    6b1c:	48 63 ed             	movslq %ebp,%rbp
-    6b1f:	4d 89 e5             	mov    %r12,%r13
-    6b22:	4c 8d 35 b3 18 00 00 	lea    0x18b3(%rip),%r14        # 83dc <_IO_stdin_used+0x3dc>
-    6b29:	4d 8d 3c ec          	lea    (%r12,%rbp,8),%r15
+    6af8:	85 ed                	test   %ebp,%ebp
+    6afa:	7e 59                	jle    6b55 <barriered_work+0x545>
+    6afc:	48 63 ed             	movslq %ebp,%rbp
+    6aff:	4d 89 e5             	mov    %r12,%r13
+    6b02:	4c 8d 35 d3 18 00 00 	lea    0x18d3(%rip),%r14        # 83dc <_IO_stdin_used+0x3dc>
+    6b09:	4d 8d 3c ec          	lea    (%r12,%rbp,8),%r15
         char * c = calloc(250, sizeof(char));
-    6b2d:	be 01 00 00 00       	mov    $0x1,%esi
-    6b32:	bf fa 00 00 00       	mov    $0xfa,%edi
+    6b0d:	be 01 00 00 00       	mov    $0x1,%esi
+    6b12:	bf fa 00 00 00       	mov    $0xfa,%edi
       for (int x = 0 ; x < datas2_size; x++) {
-    6b37:	49 83 c5 08          	add    $0x8,%r13
+    6b17:	49 83 c5 08          	add    $0x8,%r13
         char * c = calloc(250, sizeof(char));
-    6b3b:	e8 b0 b8 ff ff       	call   23f0 <calloc@plt>
-    6b40:	4c 89 f1             	mov    %r14,%rcx
-    6b43:	ba fa 00 00 00       	mov    $0xfa,%edx
-    6b48:	be 01 00 00 00       	mov    $0x1,%esi
-    6b4d:	48 89 c5             	mov    %rax,%rbp
+    6b1b:	e8 d0 b8 ff ff       	call   23f0 <calloc@plt>
+    6b20:	4c 89 f1             	mov    %r14,%rcx
+    6b23:	ba fa 00 00 00       	mov    $0xfa,%edx
+    6b28:	be 01 00 00 00       	mov    $0x1,%esi
+    6b2d:	48 89 c5             	mov    %rax,%rbp
         sprintf(c, "mailbox %d\n", datas[x]->id);
-    6b50:	49 8b 45 f8          	mov    -0x8(%r13),%rax
-    6b54:	48 89 ef             	mov    %rbp,%rdi
-    6b57:	44 8b 80 28 03 00 00 	mov    0x328(%rax),%r8d
-    6b5e:	31 c0                	xor    %eax,%eax
-    6b60:	e8 1b ba ff ff       	call   2580 <__sprintf_chk@plt>
+    6b30:	49 8b 45 f8          	mov    -0x8(%r13),%rax
+    6b34:	48 89 ef             	mov    %rbp,%rdi
+    6b37:	44 8b 80 28 03 00 00 	mov    0x328(%rax),%r8d
+    6b3e:	31 c0                	xor    %eax,%eax
+    6b40:	e8 3b ba ff ff       	call   2580 <__sprintf_chk@plt>
   return __fprintf_chk (__stream, __USE_FORTIFY_LEVEL - 1, __fmt,
-    6b65:	48 89 de             	mov    %rbx,%rsi
-    6b68:	48 89 ef             	mov    %rbp,%rdi
-    6b6b:	e8 40 b8 ff ff       	call   23b0 <fputs@plt>
+    6b45:	48 89 de             	mov    %rbx,%rsi
+    6b48:	48 89 ef             	mov    %rbp,%rdi
+    6b4b:	e8 60 b8 ff ff       	call   23b0 <fputs@plt>
       for (int x = 0 ; x < datas2_size; x++) {
-    6b70:	4d 39 fd             	cmp    %r15,%r13
-    6b73:	75 b8                	jne    6b2d <barriered_work+0x51d>
+    6b50:	4d 39 fd             	cmp    %r15,%r13
+    6b53:	75 b8                	jne    6b0d <barriered_work+0x4fd>
       fclose(m2);
-    6b75:	48 89 df             	mov    %rbx,%rdi
-    6b78:	e8 d3 b7 ff ff       	call   2350 <fclose@plt>
+    6b55:	48 89 df             	mov    %rbx,%rdi
+    6b58:	e8 f3 b7 ff ff       	call   2350 <fclose@plt>
       free(datas);
-    6b7d:	4c 89 e7             	mov    %r12,%rdi
-    6b80:	e8 6b b7 ff ff       	call   22f0 <free@plt>
+    6b5d:	4c 89 e7             	mov    %r12,%rdi
+    6b60:	e8 8b b7 ff ff       	call   22f0 <free@plt>
       asm volatile ("sfence" ::: "memory");
-    6b85:	0f ae f8             	sfence
+    6b65:	0f ae f8             	sfence
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
-    6b88:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
-    6b8d:	31 ff                	xor    %edi,%edi
-    6b8f:	48 8b 9d 60 01 00 00 	mov    0x160(%rbp),%rbx
-    6b96:	48 89 de             	mov    %rbx,%rsi
-    6b99:	48 89 1c 24          	mov    %rbx,(%rsp)
-    6b9d:	48 c1 e6 05          	shl    $0x5,%rsi
-    6ba1:	48 03 b5 50 01 00 00 	add    0x150(%rbp),%rsi
-    6ba8:	e8 93 b7 ff ff       	call   2340 <clock_gettime@plt>
+    6b68:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
+    6b6d:	31 ff                	xor    %edi,%edi
+    6b6f:	48 8b 9d 60 01 00 00 	mov    0x160(%rbp),%rbx
+    6b76:	48 89 de             	mov    %rbx,%rsi
+    6b79:	48 89 1c 24          	mov    %rbx,(%rsp)
+    6b7d:	48 c1 e6 05          	shl    $0x5,%rsi
+    6b81:	48 03 b5 50 01 00 00 	add    0x150(%rbp),%rsi
+    6b88:	e8 b3 b7 ff ff       	call   2340 <clock_gettime@plt>
     int modcount = ++data->thread->protected_state->modcount;
-    6bad:	48 8b 85 28 01 00 00 	mov    0x128(%rbp),%rax
-    6bb4:	48 8b 50 48          	mov    0x48(%rax),%rdx
-    6bb8:	8b 5a 10             	mov    0x10(%rdx),%ebx
-    6bbb:	83 c3 01             	add    $0x1,%ebx
+    6b8d:	48 8b 85 28 01 00 00 	mov    0x128(%rbp),%rax
+    6b94:	48 8b 50 48          	mov    0x48(%rax),%rdx
+    6b98:	8b 5a 10             	mov    0x10(%rdx),%ebx
+    6b9b:	83 c3 01             	add    $0x1,%ebx
     while (data->scheduled == 1) {
-    6bbe:	83 bd 4c 01 00 00 01 	cmpl   $0x1,0x14c(%rbp)
+    6b9e:	83 bd 4c 01 00 00 01 	cmpl   $0x1,0x14c(%rbp)
     int modcount = ++data->thread->protected_state->modcount;
-    6bc5:	89 5a 10             	mov    %ebx,0x10(%rdx)
+    6ba5:	89 5a 10             	mov    %ebx,0x10(%rdx)
     while (data->scheduled == 1) {
-    6bc8:	74 0d                	je     6bd7 <barriered_work+0x5c7>
-    6bca:	eb 61                	jmp    6c2d <barriered_work+0x61d>
-    6bcc:	0f 1f 40 00          	nopl   0x0(%rax)
+    6ba8:	74 0d                	je     6bb7 <barriered_work+0x5a7>
+    6baa:	eb 61                	jmp    6c0d <barriered_work+0x5fd>
+    6bac:	0f 1f 40 00          	nopl   0x0(%rax)
     if (modcount != data->thread->protected_state->modcount) {
-    6bd0:	48 8b 85 28 01 00 00 	mov    0x128(%rbp),%rax
+    6bb0:	48 8b 85 28 01 00 00 	mov    0x128(%rbp),%rax
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    6bd7:	48 63 95 30 01 00 00 	movslq 0x130(%rbp),%rdx
-    6bde:	48 8b 40 18          	mov    0x18(%rax),%rax
-    6be2:	48 63 7d 04          	movslq 0x4(%rbp),%rdi
+    6bb7:	48 63 95 30 01 00 00 	movslq 0x130(%rbp),%rdx
+    6bbe:	48 8b 40 18          	mov    0x18(%rax),%rax
+    6bc2:	48 63 7d 04          	movslq 0x4(%rbp),%rdi
       data->n++;
-    6be6:	48 83 85 08 01 00 00 01 	addq   $0x1,0x108(%rbp)
+    6bc6:	48 83 85 08 01 00 00 01 	addq   $0x1,0x108(%rbp)
       data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-    6bee:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
-    6bf2:	48 c1 e7 09          	shl    $0x9,%rdi
-    6bf6:	48 03 78 38          	add    0x38(%rax),%rdi
-    6bfa:	ff 95 20 01 00 00    	call   *0x120(%rbp)
+    6bce:	48 8b 04 d0          	mov    (%rax,%rdx,8),%rax
+    6bd2:	48 c1 e7 09          	shl    $0x9,%rdi
+    6bd6:	48 03 78 38          	add    0x38(%rax),%rdi
+    6bda:	ff 95 20 01 00 00    	call   *0x120(%rbp)
       asm volatile ("sfence" ::: "memory");
-    6c00:	0f ae f8             	sfence
+    6be0:	0f ae f8             	sfence
     while (data->scheduled == 1) {
-    6c03:	83 bd 4c 01 00 00 01 	cmpl   $0x1,0x14c(%rbp)
-    6c0a:	74 c4                	je     6bd0 <barriered_work+0x5c0>
+    6be3:	83 bd 4c 01 00 00 01 	cmpl   $0x1,0x14c(%rbp)
+    6bea:	74 c4                	je     6bb0 <barriered_work+0x5a0>
     if (modcount != data->thread->protected_state->modcount) {
-    6c0c:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    6c11:	48 8b 80 28 01 00 00 	mov    0x128(%rax),%rax
-    6c18:	48 8b 40 48          	mov    0x48(%rax),%rax
-    6c1c:	3b 58 10             	cmp    0x10(%rax),%ebx
-    6c1f:	74 0c                	je     6c2d <barriered_work+0x61d>
+    6bec:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    6bf1:	48 8b 80 28 01 00 00 	mov    0x128(%rax),%rax
+    6bf8:	48 8b 40 48          	mov    0x48(%rax),%rax
+    6bfc:	3b 58 10             	cmp    0x10(%rax),%ebx
+    6bff:	74 0c                	je     6c0d <barriered_work+0x5fd>
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    6c21:	48 8d 3d 2c 16 00 00 	lea    0x162c(%rip),%rdi        # 8254 <_IO_stdin_used+0x254>
-    6c28:	e8 f3 b6 ff ff       	call   2320 <puts@plt>
+    6c01:	48 8d 3d 4c 16 00 00 	lea    0x164c(%rip),%rdi        # 8254 <_IO_stdin_used+0x254>
+    6c08:	e8 13 b7 ff ff       	call   2320 <puts@plt>
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
-    6c2d:	48 8b 5c 24 10       	mov    0x10(%rsp),%rbx
-    6c32:	31 ff                	xor    %edi,%edi
-    6c34:	48 8b 83 60 01 00 00 	mov    0x160(%rbx),%rax
-    6c3b:	48 89 c6             	mov    %rax,%rsi
-    6c3e:	48 89 04 24          	mov    %rax,(%rsp)
-    6c42:	48 c1 e6 05          	shl    $0x5,%rsi
-    6c46:	48 03 b3 50 01 00 00 	add    0x150(%rbx),%rsi
-    6c4d:	48 83 c6 10          	add    $0x10,%rsi
-    6c51:	e8 ea b6 ff ff       	call   2340 <clock_gettime@plt>
+    6c0d:	48 8b 5c 24 10       	mov    0x10(%rsp),%rbx
+    6c12:	31 ff                	xor    %edi,%edi
+    6c14:	48 8b 83 60 01 00 00 	mov    0x160(%rbx),%rax
+    6c1b:	48 89 c6             	mov    %rax,%rsi
+    6c1e:	48 89 04 24          	mov    %rax,(%rsp)
+    6c22:	48 c1 e6 05          	shl    $0x5,%rsi
+    6c26:	48 03 b3 50 01 00 00 	add    0x150(%rbx),%rsi
+    6c2d:	48 83 c6 10          	add    $0x10,%rsi
+    6c31:	e8 0a b7 ff ff       	call   2340 <clock_gettime@plt>
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    6c56:	48 8b 83 60 01 00 00 	mov    0x160(%rbx),%rax
+    6c36:	48 8b 83 60 01 00 00 	mov    0x160(%rbx),%rax
     sendm(data);
-    6c5d:	48 89 df             	mov    %rbx,%rdi
+    6c3d:	48 89 df             	mov    %rbx,%rdi
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    6c60:	48 89 04 24          	mov    %rax,(%rsp)
-    6c64:	48 83 c0 01          	add    $0x1,%rax
-    6c68:	48 99                	cqto
-    6c6a:	48 f7 bb 58 01 00 00 	idivq  0x158(%rbx)
-    6c71:	48 89 93 60 01 00 00 	mov    %rdx,0x160(%rbx)
+    6c40:	48 89 04 24          	mov    %rax,(%rsp)
+    6c44:	48 83 c0 01          	add    $0x1,%rax
+    6c48:	48 99                	cqto
+    6c4a:	48 f7 bb 58 01 00 00 	idivq  0x158(%rbx)
+    6c51:	48 89 93 60 01 00 00 	mov    %rdx,0x160(%rbx)
     sendm(data);
-    6c78:	e8 63 f7 ff ff       	call   63e0 <sendm>
-    6c7d:	e9 e4 f9 ff ff       	jmp    6666 <barriered_work+0x56>
-    6c82:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    6c58:	e8 83 f7 ff ff       	call   63e0 <sendm>
+    6c5d:	e9 04 fa ff ff       	jmp    6666 <barriered_work+0x56>
+    6c62:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
               datas[datas2_size++] = ((struct Data*) ((struct Mailbox)data->thread->all_threads[x].tasks[n].mailboxes[kk]).lower);
-    6c88:	41 89 ea             	mov    %ebp,%r10d
+    6c68:	41 89 ea             	mov    %ebp,%r10d
             for (int kk = 0 ; kk < data->mailbox_thread_count ; kk++) {
-    6c8b:	31 f6                	xor    %esi,%esi
-    6c8d:	e9 e3 fd ff ff       	jmp    6a75 <barriered_work+0x465>
+    6c6b:	31 f6                	xor    %esi,%esi
+    6c6d:	e9 e3 fd ff ff       	jmp    6a55 <barriered_work+0x445>
                   for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    6c92:	4c 89 7c 24 08       	mov    %r15,0x8(%rsp)
-    6c97:	49 8d 83 70 01 00 00 	lea    0x170(%r11),%rax
-    6c9e:	31 d2                	xor    %edx,%edx
-    6ca0:	4c 89 1c 24          	mov    %r11,(%rsp)
-    6ca4:	41 89 d3             	mov    %edx,%r11d
-    6ca7:	89 5c 24 20          	mov    %ebx,0x20(%rsp)
-    6cab:	48 89 c3             	mov    %rax,%rbx
+    6c72:	4c 89 74 24 08       	mov    %r14,0x8(%rsp)
+    6c77:	49 8d 81 70 01 00 00 	lea    0x170(%r9),%rax
+    6c7e:	31 d2                	xor    %edx,%edx
+    6c80:	4c 89 0c 24          	mov    %r9,(%rsp)
+    6c84:	41 89 d1             	mov    %edx,%r9d
+    6c87:	44 89 54 24 20       	mov    %r10d,0x20(%rsp)
+    6c8c:	49 89 c2             	mov    %rax,%r10
                     int next_task = abs(nn + 1) % data->thread_count;
-    6cae:	41 83 c3 01          	add    $0x1,%r11d
+    6c8f:	41 83 c1 01          	add    $0x1,%r9d
                     struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
-    6cb2:	4c 8b 3b             	mov    (%rbx),%r15
+    6c93:	4d 8b 32             	mov    (%r10),%r14
                   for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    6cb5:	48 81 c3 00 02 00 00 	add    $0x200,%rbx
+    6c96:	49 81 c2 00 02 00 00 	add    $0x200,%r10
                     int next_task = abs(nn + 1) % data->thread_count;
-    6cbc:	44 89 d8             	mov    %r11d,%eax
-    6cbf:	99                   	cltd
+    6c9d:	44 89 c8             	mov    %r9d,%eax
+    6ca0:	99                   	cltd
                     struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
-    6cc0:	49 01 f7             	add    %rsi,%r15
+    6ca1:	4d 01 e6             	add    %r12,%r14
                     int next_task = abs(nn + 1) % data->thread_count;
-    6cc3:	41 f7 fa             	idiv   %r10d
+    6ca4:	41 f7 ff             	idiv   %r15d
     return mailbox->lower;
-    6cc6:	4d 8b 37             	mov    (%r15),%r14
+    6ca7:	4d 8b 2e             	mov    (%r14),%r13
                     struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
-    6cc9:	48 63 d2             	movslq %edx,%rdx
-    6ccc:	48 c1 e2 09          	shl    $0x9,%rdx
-    6cd0:	49 8b 84 14 70 01 00 00 	mov    0x170(%r12,%rdx,1),%rax
-    6cd8:	4c 01 c0             	add    %r8,%rax
+    6caa:	48 63 d2             	movslq %edx,%rdx
+    6cad:	48 c1 e2 09          	shl    $0x9,%rdx
+    6cb1:	49 8b 84 13 70 01 00 00 	mov    0x170(%r11,%rdx,1),%rax
+    6cb9:	48 01 f8             	add    %rdi,%rax
     return mailbox->higher;
-    6cdb:	f3 0f 6f 00          	movdqu (%rax),%xmm0
+    6cbc:	f3 0f 6f 00          	movdqu (%rax),%xmm0
                     struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
-    6cdf:	48 89 c2             	mov    %rax,%rdx
+    6cc0:	48 89 c2             	mov    %rax,%rdx
     mailbox->lower = data;
-    6ce2:	49 8b 47 08          	mov    0x8(%r15),%rax
+    6cc3:	49 8b 46 08          	mov    0x8(%r14),%rax
     return mailbox->lower;
-    6ce6:	66 0f 6f c8          	movdqa %xmm0,%xmm1
+    6cc7:	66 0f 6f c8          	movdqa %xmm0,%xmm1
     mailbox->lower = data;
-    6cea:	48 89 02             	mov    %rax,(%rdx)
+    6ccb:	48 89 02             	mov    %rax,(%rdx)
                         ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
-    6ced:	0f 12 d8             	movhlps %xmm0,%xmm3
+    6cce:	0f 12 d8             	movhlps %xmm0,%xmm3
     return mailbox->lower;
-    6cf0:	66 0f c6 c8 01       	shufpd $0x1,%xmm0,%xmm1
+    6cd1:	66 0f c6 c8 01       	shufpd $0x1,%xmm0,%xmm1
     mailbox->lower = data;
-    6cf5:	41 0f 11 0f          	movups %xmm1,(%r15)
+    6cd6:	41 0f 11 0e          	movups %xmm1,(%r14)
                         ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
-    6cf9:	66 48 0f 7e d8       	movq   %xmm3,%rax
+    6cda:	66 48 0f 7e d8       	movq   %xmm3,%rax
     mailbox->higher = data;
-    6cfe:	4c 89 72 08          	mov    %r14,0x8(%rdx)
+    6cdf:	4c 89 6a 08          	mov    %r13,0x8(%rdx)
                          ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_reading = 0;
-    6d02:	4d 8b 7f 08          	mov    0x8(%r15),%r15
-    6d06:	41 c7 87 00 02 00 00 00 00 00 00 	movl   $0x0,0x200(%r15)
+    6ce3:	4d 8b 76 08          	mov    0x8(%r14),%r14
+    6ce7:	41 c7 86 00 02 00 00 00 00 00 00 	movl   $0x0,0x200(%r14)
                         ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
-    6d11:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
+    6cf2:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
                         ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].lower)->available_reading = 1;
-    6d1b:	48 8b 02             	mov    (%rdx),%rax
-    6d1e:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
+    6cfc:	48 8b 02             	mov    (%rdx),%rax
+    6cff:	c7 80 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rax)
                         ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_sending = 1;
-    6d28:	41 c7 87 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%r15)
+    6d09:	41 c7 86 00 01 00 00 01 00 00 00 	movl   $0x1,0x100(%r14)
                         ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_receiving = 0;
-    6d33:	41 c7 87 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%r15)
+    6d14:	41 c7 86 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%r14)
                         ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].higher)->available_receiving = 0;
-    6d3e:	41 c7 86 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%r14)
+    6d1f:	41 c7 85 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%r13)
                   for (int nn = 0 ; nn < data->thread_count ; nn++) {
-    6d49:	45 39 da             	cmp    %r11d,%r10d
-    6d4c:	0f 85 5c ff ff ff    	jne    6cae <barriered_work+0x69e>
-    6d52:	4c 8b 1c 24          	mov    (%rsp),%r11
-    6d56:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    6d5b:	8b 5c 24 20          	mov    0x20(%rsp),%ebx
-    6d5f:	e9 05 fa ff ff       	jmp    6769 <barriered_work+0x159>
+    6d2a:	45 39 cf             	cmp    %r9d,%r15d
+    6d2d:	0f 85 5c ff ff ff    	jne    6c8f <barriered_work+0x67f>
+    6d33:	4c 8b 0c 24          	mov    (%rsp),%r9
+    6d37:	4c 8b 74 24 08       	mov    0x8(%rsp),%r14
+    6d3c:	44 8b 54 24 20       	mov    0x20(%rsp),%r10d
+    6d41:	e9 03 fa ff ff       	jmp    6749 <barriered_work+0x139>
       char * name = calloc(100, sizeof(char));
-    6d64:	be 01 00 00 00       	mov    $0x1,%esi
-    6d69:	bf 64 00 00 00       	mov    $0x64,%edi
-    6d6e:	48 89 14 24          	mov    %rdx,(%rsp)
-    6d72:	e8 79 b6 ff ff       	call   23f0 <calloc@plt>
+    6d46:	be 01 00 00 00       	mov    $0x1,%esi
+    6d4b:	bf 64 00 00 00       	mov    $0x64,%edi
+    6d50:	48 89 14 24          	mov    %rdx,(%rsp)
+    6d54:	e8 97 b6 ff ff       	call   23f0 <calloc@plt>
   return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
-    6d77:	48 8b 14 24          	mov    (%rsp),%rdx
-    6d7b:	be 01 00 00 00       	mov    $0x1,%esi
-    6d80:	48 8d 0d bf 14 00 00 	lea    0x14bf(%rip),%rcx        # 8246 <_IO_stdin_used+0x246>
-    6d87:	48 89 c3             	mov    %rax,%rbx
-    6d8a:	48 89 c7             	mov    %rax,%rdi
-    6d8d:	31 c0                	xor    %eax,%eax
-    6d8f:	44 8b 42 08          	mov    0x8(%rdx),%r8d
-    6d93:	ba 64 00 00 00       	mov    $0x64,%edx
-    6d98:	e8 e3 b7 ff ff       	call   2580 <__sprintf_chk@plt>
+    6d59:	48 8b 14 24          	mov    (%rsp),%rdx
+    6d5d:	be 01 00 00 00       	mov    $0x1,%esi
+    6d62:	48 8d 0d dd 14 00 00 	lea    0x14dd(%rip),%rcx        # 8246 <_IO_stdin_used+0x246>
+    6d69:	48 89 c3             	mov    %rax,%rbx
+    6d6c:	48 89 c7             	mov    %rax,%rdi
+    6d6f:	31 c0                	xor    %eax,%eax
+    6d71:	44 8b 42 08          	mov    0x8(%rdx),%r8d
+    6d75:	ba 64 00 00 00       	mov    $0x64,%edx
+    6d7a:	e8 01 b8 ff ff       	call   2580 <__sprintf_chk@plt>
       m2 = fopen(name, "w");
-    6d9d:	48 89 df             	mov    %rbx,%rdi
-    6da0:	48 8d 35 ab 14 00 00 	lea    0x14ab(%rip),%rsi        # 8252 <_IO_stdin_used+0x252>
-    6da7:	e8 34 b7 ff ff       	call   24e0 <fopen@plt>
-    6dac:	48 89 c3             	mov    %rax,%rbx
+    6d7f:	48 89 df             	mov    %rbx,%rdi
+    6d82:	48 8d 35 c9 14 00 00 	lea    0x14c9(%rip),%rsi        # 8252 <_IO_stdin_used+0x252>
+    6d89:	e8 52 b7 ff ff       	call   24e0 <fopen@plt>
+    6d8e:	48 89 c3             	mov    %rax,%rbx
       for (int x = 0 ; x < datas2_size; x++) {
-    6daf:	e9 c1 fd ff ff       	jmp    6b75 <barriered_work+0x565>
+    6d91:	e9 bf fd ff ff       	jmp    6b55 <barriered_work+0x545>
           for (int n = 0 ; n < data->thread->all_threads[x].task_count ; n++) {
-    6db4:	48 81 c1 00 02 00 00 	add    $0x200,%rcx
-    6dbb:	4c 39 c9             	cmp    %r9,%rcx
-    6dbe:	0f 85 59 fc ff ff    	jne    6a1d <barriered_work+0x40d>
-    6dc4:	e9 d6 fc ff ff       	jmp    6a9f <barriered_work+0x48f>
-    6dc9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6d96:	48 81 c1 00 02 00 00 	add    $0x200,%rcx
+    6d9d:	4c 39 c9             	cmp    %r9,%rcx
+    6da0:	0f 85 57 fc ff ff    	jne    69fd <barriered_work+0x3ed>
+    6da6:	e9 d4 fc ff ff       	jmp    6a7f <barriered_work+0x46f>
+    6dab:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-0000000000006dd0 <barriered_work_ingest_andwork>:
+0000000000006db0 <barriered_work_ingest_andwork>:
 int barriered_work_ingest_andwork(struct BarrierTask *data) {
-    6dd0:	f3 0f 1e fa          	endbr64
-    6dd4:	53                   	push   %rbx
-    6dd5:	48 89 fb             	mov    %rdi,%rbx
+    6db0:	f3 0f 1e fa          	endbr64
+    6db4:	53                   	push   %rbx
+    6db5:	48 89 fb             	mov    %rdi,%rbx
   barriered_work_ingest(data);
-    6dd8:	e8 b3 f0 ff ff       	call   5e90 <barriered_work_ingest>
+    6db8:	e8 d3 f0 ff ff       	call   5e90 <barriered_work_ingest>
   barriered_work(data);
-    6ddd:	48 89 df             	mov    %rbx,%rdi
+    6dbd:	48 89 df             	mov    %rbx,%rdi
 }
-    6de0:	5b                   	pop    %rbx
+    6dc0:	5b                   	pop    %rbx
   barriered_work(data);
-    6de1:	e9 2a f8 ff ff       	jmp    6610 <barriered_work>
-    6de6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+    6dc1:	e9 4a f8 ff ff       	jmp    6610 <barriered_work>
+    6dc6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000006df0 <mailboxkind>:
+0000000000006dd0 <mailboxkind>:
 struct Data * mailboxkind(struct Mailbox * mailbox, int kind) {
+    6dd0:	f3 0f 1e fa          	endbr64
+  if (kind == 0) {
+    6dd4:	85 f6                	test   %esi,%esi
+    6dd6:	74 10                	je     6de8 <mailboxkind+0x18>
+  return NULL;
+    6dd8:	31 c0                	xor    %eax,%eax
+  else if (kind == 1) {
+    6dda:	83 fe 01             	cmp    $0x1,%esi
+    6ddd:	74 01                	je     6de0 <mailboxkind+0x10>
+}
+    6ddf:	c3                   	ret
+    return mailbox->higher;
+    6de0:	48 8b 47 08          	mov    0x8(%rdi),%rax
+}
+    6de4:	c3                   	ret
+    6de5:	0f 1f 00             	nopl   (%rax)
+    return mailbox->lower;
+    6de8:	48 8b 07             	mov    (%rdi),%rax
+    6deb:	c3                   	ret
+    6dec:	0f 1f 40 00          	nopl   0x0(%rax)
+
+0000000000006df0 <setmailboxkind>:
+int setmailboxkind(struct Mailbox * mailbox, struct Data* data, int kind) {
     6df0:	f3 0f 1e fa          	endbr64
   if (kind == 0) {
-    6df4:	85 f6                	test   %esi,%esi
-    6df6:	74 10                	je     6e08 <mailboxkind+0x18>
-  return NULL;
-    6df8:	31 c0                	xor    %eax,%eax
-  else if (kind == 1) {
-    6dfa:	83 fe 01             	cmp    $0x1,%esi
-    6dfd:	74 01                	je     6e00 <mailboxkind+0x10>
-}
-    6dff:	c3                   	ret
-    return mailbox->higher;
-    6e00:	48 8b 47 08          	mov    0x8(%rdi),%rax
-}
-    6e04:	c3                   	ret
-    6e05:	0f 1f 00             	nopl   (%rax)
-    return mailbox->lower;
-    6e08:	48 8b 07             	mov    (%rdi),%rax
-    6e0b:	c3                   	ret
-    6e0c:	0f 1f 40 00          	nopl   0x0(%rax)
-
-0000000000006e10 <setmailboxkind>:
-int setmailboxkind(struct Mailbox * mailbox, struct Data* data, int kind) {
-    6e10:	f3 0f 1e fa          	endbr64
-  if (kind == 0) {
-    6e14:	85 d2                	test   %edx,%edx
-    6e16:	75 08                	jne    6e20 <setmailboxkind+0x10>
+    6df4:	85 d2                	test   %edx,%edx
+    6df6:	75 08                	jne    6e00 <setmailboxkind+0x10>
     mailbox->lower = data;
-    6e18:	48 89 37             	mov    %rsi,(%rdi)
+    6df8:	48 89 37             	mov    %rsi,(%rdi)
 }
-    6e1b:	31 c0                	xor    %eax,%eax
-    6e1d:	c3                   	ret
-    6e1e:	66 90                	xchg   %ax,%ax
+    6dfb:	31 c0                	xor    %eax,%eax
+    6dfd:	c3                   	ret
+    6dfe:	66 90                	xchg   %ax,%ax
   if (kind == 1) {
-    6e20:	83 fa 01             	cmp    $0x1,%edx
-    6e23:	74 13                	je     6e38 <setmailboxkind+0x28>
+    6e00:	83 fa 01             	cmp    $0x1,%edx
+    6e03:	74 13                	je     6e18 <setmailboxkind+0x28>
   if (kind == 2) {
-    6e25:	83 fa 02             	cmp    $0x2,%edx
-    6e28:	75 f1                	jne    6e1b <setmailboxkind+0xb>
+    6e05:	83 fa 02             	cmp    $0x2,%edx
+    6e08:	75 f1                	jne    6dfb <setmailboxkind+0xb>
     mailbox->pending = data;
-    6e2a:	48 89 77 10          	mov    %rsi,0x10(%rdi)
+    6e0a:	48 89 77 10          	mov    %rsi,0x10(%rdi)
 }
-    6e2e:	31 c0                	xor    %eax,%eax
-    6e30:	c3                   	ret
-    6e31:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6e0e:	31 c0                	xor    %eax,%eax
+    6e10:	c3                   	ret
+    6e11:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
     mailbox->higher = data;
-    6e38:	48 89 77 08          	mov    %rsi,0x8(%rdi)
+    6e18:	48 89 77 08          	mov    %rsi,0x8(%rdi)
 }
-    6e3c:	31 c0                	xor    %eax,%eax
-    6e3e:	c3                   	ret
-    6e3f:	90                   	nop
+    6e1c:	31 c0                	xor    %eax,%eax
+    6e1e:	c3                   	ret
+    6e1f:	90                   	nop
 
-0000000000006e40 <barriered_nulltask>:
+0000000000006e20 <barriered_nulltask>:
 int barriered_nulltask(struct BarrierTask *data) {
-    6e40:	f3 0f 1e fa          	endbr64
+    6e20:	f3 0f 1e fa          	endbr64
 }
-    6e44:	31 c0                	xor    %eax,%eax
-    6e46:	c3                   	ret
-    6e47:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    6e24:	31 c0                	xor    %eax,%eax
+    6e26:	c3                   	ret
+    6e27:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
-0000000000006e50 <barriered_steal>:
+0000000000006e30 <barriered_steal>:
 int barriered_steal(struct BarrierTask *data) {
-    6e50:	f3 0f 1e fa          	endbr64
-    6e54:	31 c0                	xor    %eax,%eax
-    6e56:	c3                   	ret
-    6e57:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    6e30:	f3 0f 1e fa          	endbr64
+    6e34:	31 c0                	xor    %eax,%eax
+    6e36:	c3                   	ret
+    6e37:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
 
-0000000000006e60 <after>:
+0000000000006e40 <after>:
 int after(struct timespec left, struct timespec right) {
-    6e60:	f3 0f 1e fa          	endbr64
+    6e40:	f3 0f 1e fa          	endbr64
   return left.tv_sec > right.tv_sec &&
-    6e64:	31 c0                	xor    %eax,%eax
-    6e66:	48 39 d7             	cmp    %rdx,%rdi
-    6e69:	7e 08                	jle    6e73 <after+0x13>
-    6e6b:	31 c0                	xor    %eax,%eax
-    6e6d:	48 39 ce             	cmp    %rcx,%rsi
-    6e70:	0f 9f c0             	setg   %al
+    6e44:	31 c0                	xor    %eax,%eax
+    6e46:	48 39 d7             	cmp    %rdx,%rdi
+    6e49:	7e 08                	jle    6e53 <after+0x13>
+    6e4b:	31 c0                	xor    %eax,%eax
+    6e4d:	48 39 ce             	cmp    %rcx,%rsi
+    6e50:	0f 9f c0             	setg   %al
 }
-    6e73:	c3                   	ret
-    6e74:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-    6e7f:	90                   	nop
+    6e53:	c3                   	ret
+    6e54:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+    6e5f:	90                   	nop
 
-0000000000006e80 <within>:
+0000000000006e60 <within>:
 int within(struct timespec a, struct timespec b, struct timespec c, struct timespec d) {
-    6e80:	f3 0f 1e fa          	endbr64
-    6e84:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
-    6e89:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
+    6e60:	f3 0f 1e fa          	endbr64
+    6e64:	4c 8b 5c 24 08       	mov    0x8(%rsp),%r11
+    6e69:	4c 8b 54 24 10       	mov    0x10(%rsp),%r10
   return 0;
-    6e8e:	31 c0                	xor    %eax,%eax
+    6e6e:	31 c0                	xor    %eax,%eax
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6e90:	48 39 d7             	cmp    %rdx,%rdi
-    6e93:	7f 18                	jg     6ead <within+0x2d>
-    6e95:	4d 39 d8             	cmp    %r11,%r8
-    6e98:	0f 9e c2             	setle  %dl
-    6e9b:	48 39 ce             	cmp    %rcx,%rsi
-    6e9e:	0f 9e c0             	setle  %al
-    6ea1:	21 c2                	and    %eax,%edx
+    6e70:	48 39 d7             	cmp    %rdx,%rdi
+    6e73:	7f 18                	jg     6e8d <within+0x2d>
+    6e75:	4d 39 d8             	cmp    %r11,%r8
+    6e78:	0f 9e c2             	setle  %dl
+    6e7b:	48 39 ce             	cmp    %rcx,%rsi
+    6e7e:	0f 9e c0             	setle  %al
+    6e81:	21 c2                	and    %eax,%edx
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    6ea3:	31 c0                	xor    %eax,%eax
-    6ea5:	4d 39 d1             	cmp    %r10,%r9
-    6ea8:	0f 9e c0             	setle  %al
-    6eab:	21 d0                	and    %edx,%eax
+    6e83:	31 c0                	xor    %eax,%eax
+    6e85:	4d 39 d1             	cmp    %r10,%r9
+    6e88:	0f 9e c0             	setle  %al
+    6e8b:	21 d0                	and    %edx,%eax
 }
-    6ead:	c3                   	ret
-    6eae:	66 90                	xchg   %ax,%ax
+    6e8d:	c3                   	ret
+    6e8e:	66 90                	xchg   %ax,%ax
 
-0000000000006eb0 <overlap>:
+0000000000006e90 <overlap>:
 int overlap(struct Snapshot left, struct Snapshot right) {
-    6eb0:	f3 0f 1e fa          	endbr64
-    6eb4:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
-    6eb9:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
-    6ebe:	4c 8b 4c 24 18       	mov    0x18(%rsp),%r9
-    6ec3:	4c 8b 54 24 20       	mov    0x20(%rsp),%r10
-    6ec8:	4c 8b 44 24 38       	mov    0x38(%rsp),%r8
-    6ecd:	4c 8b 5c 24 40       	mov    0x40(%rsp),%r11
+    6e90:	f3 0f 1e fa          	endbr64
+    6e94:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
+    6e99:	48 8b 74 24 28       	mov    0x28(%rsp),%rsi
+    6e9e:	4c 8b 4c 24 18       	mov    0x18(%rsp),%r9
+    6ea3:	4c 8b 54 24 20       	mov    0x20(%rsp),%r10
+    6ea8:	4c 8b 44 24 38       	mov    0x38(%rsp),%r8
+    6ead:	4c 8b 5c 24 40       	mov    0x40(%rsp),%r11
   if (after(left.start, right.start) && after(right.end, left.end)) {
-    6ed2:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
-    6ed7:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
+    6eb2:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+    6eb7:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
   return left.tv_sec > right.tv_sec &&
-    6edc:	48 39 fe             	cmp    %rdi,%rsi
-    6edf:	7d 2f                	jge    6f10 <overlap+0x60>
-    6ee1:	48 39 ca             	cmp    %rcx,%rdx
-    6ee4:	7d 62                	jge    6f48 <overlap+0x98>
-    6ee6:	4d 39 da             	cmp    %r11,%r10
-    6ee9:	7d 0e                	jge    6ef9 <overlap+0x49>
+    6ebc:	48 39 fe             	cmp    %rdi,%rsi
+    6ebf:	7d 2f                	jge    6ef0 <overlap+0x60>
+    6ec1:	48 39 ca             	cmp    %rcx,%rdx
+    6ec4:	7d 62                	jge    6f28 <overlap+0x98>
+    6ec6:	4d 39 da             	cmp    %r11,%r10
+    6ec9:	7d 0e                	jge    6ed9 <overlap+0x49>
     return 1;
-    6eeb:	b8 01 00 00 00       	mov    $0x1,%eax
+    6ecb:	b8 01 00 00 00       	mov    $0x1,%eax
   return left.tv_sec > right.tv_sec &&
-    6ef0:	4d 39 c1             	cmp    %r8,%r9
-    6ef3:	0f 8c 7f 00 00 00    	jl     6f78 <overlap+0xc8>
+    6ed0:	4d 39 c1             	cmp    %r8,%r9
+    6ed3:	0f 8c 7f 00 00 00    	jl     6f58 <overlap+0xc8>
   return 0;
-    6ef9:	31 c0                	xor    %eax,%eax
+    6ed9:	31 c0                	xor    %eax,%eax
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6efb:	4d 39 c1             	cmp    %r8,%r9
-    6efe:	7f 4c                	jg     6f4c <overlap+0x9c>
+    6edb:	4d 39 c1             	cmp    %r8,%r9
+    6ede:	7f 4c                	jg     6f2c <overlap+0x9c>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    6f00:	31 c0                	xor    %eax,%eax
-    6f02:	4d 39 da             	cmp    %r11,%r10
-    6f05:	0f 9e c0             	setle  %al
-    6f08:	c3                   	ret
-    6f09:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6ee0:	31 c0                	xor    %eax,%eax
+    6ee2:	4d 39 da             	cmp    %r11,%r10
+    6ee5:	0f 9e c0             	setle  %al
+    6ee8:	c3                   	ret
+    6ee9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
   return left.tv_sec > right.tv_sec &&
-    6f10:	7e 4e                	jle    6f60 <overlap+0xb0>
-    6f12:	48 39 ca             	cmp    %rcx,%rdx
-    6f15:	7f 39                	jg     6f50 <overlap+0xa0>
+    6ef0:	7e 4e                	jle    6f40 <overlap+0xb0>
+    6ef2:	48 39 ca             	cmp    %rcx,%rdx
+    6ef5:	7f 39                	jg     6f30 <overlap+0xa0>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6f17:	75 31                	jne    6f4a <overlap+0x9a>
-    6f19:	4d 39 c1             	cmp    %r8,%r9
-    6f1c:	7c 2c                	jl     6f4a <overlap+0x9a>
+    6ef7:	75 31                	jne    6f2a <overlap+0x9a>
+    6ef9:	4d 39 c1             	cmp    %r8,%r9
+    6efc:	7c 2c                	jl     6f2a <overlap+0x9a>
     return 1;
-    6f1e:	b8 01 00 00 00       	mov    $0x1,%eax
+    6efe:	b8 01 00 00 00       	mov    $0x1,%eax
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    6f23:	4d 39 da             	cmp    %r11,%r10
-    6f26:	7d 24                	jge    6f4c <overlap+0x9c>
+    6f03:	4d 39 da             	cmp    %r11,%r10
+    6f06:	7d 24                	jge    6f2c <overlap+0x9c>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6f28:	48 39 ca             	cmp    %rcx,%rdx
-    6f2b:	0f 94 c2             	sete   %dl
-    6f2e:	48 39 fe             	cmp    %rdi,%rsi
-    6f31:	0f 94 c0             	sete   %al
-    6f34:	21 c2                	and    %eax,%edx
-    6f36:	31 c0                	xor    %eax,%eax
-    6f38:	4d 39 c1             	cmp    %r8,%r9
-    6f3b:	0f 94 c0             	sete   %al
-    6f3e:	21 d0                	and    %edx,%eax
-    6f40:	c3                   	ret
-    6f41:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    6f48:	74 af                	je     6ef9 <overlap+0x49>
+    6f08:	48 39 ca             	cmp    %rcx,%rdx
+    6f0b:	0f 94 c2             	sete   %dl
+    6f0e:	48 39 fe             	cmp    %rdi,%rsi
+    6f11:	0f 94 c0             	sete   %al
+    6f14:	21 c2                	and    %eax,%edx
+    6f16:	31 c0                	xor    %eax,%eax
+    6f18:	4d 39 c1             	cmp    %r8,%r9
+    6f1b:	0f 94 c0             	sete   %al
+    6f1e:	21 d0                	and    %edx,%eax
+    6f20:	c3                   	ret
+    6f21:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6f28:	74 af                	je     6ed9 <overlap+0x49>
   return 0;
-    6f4a:	31 c0                	xor    %eax,%eax
+    6f2a:	31 c0                	xor    %eax,%eax
 }
-    6f4c:	c3                   	ret
-    6f4d:	0f 1f 00             	nopl   (%rax)
+    6f2c:	c3                   	ret
+    6f2d:	0f 1f 00             	nopl   (%rax)
   return left.tv_sec > right.tv_sec &&
-    6f50:	4d 39 da             	cmp    %r11,%r10
-    6f53:	7e c4                	jle    6f19 <overlap+0x69>
+    6f30:	4d 39 da             	cmp    %r11,%r10
+    6f33:	7e c4                	jle    6ef9 <overlap+0x69>
     return 1;
-    6f55:	b8 01 00 00 00       	mov    $0x1,%eax
+    6f35:	b8 01 00 00 00       	mov    $0x1,%eax
   return left.tv_sec > right.tv_sec &&
-    6f5a:	4d 39 c1             	cmp    %r8,%r9
-    6f5d:	7e ba                	jle    6f19 <overlap+0x69>
-    6f5f:	c3                   	ret
+    6f3a:	4d 39 c1             	cmp    %r8,%r9
+    6f3d:	7e ba                	jle    6ef9 <overlap+0x69>
+    6f3f:	c3                   	ret
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    6f60:	48 39 ca             	cmp    %rcx,%rdx
-    6f63:	7c 94                	jl     6ef9 <overlap+0x49>
-    6f65:	4d 39 c1             	cmp    %r8,%r9
-    6f68:	7d b4                	jge    6f1e <overlap+0x6e>
-    6f6a:	48 39 ca             	cmp    %rcx,%rdx
-    6f6d:	74 91                	je     6f00 <overlap+0x50>
-    6f6f:	eb d9                	jmp    6f4a <overlap+0x9a>
-    6f71:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    6f78:	c3                   	ret
-    6f79:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6f40:	48 39 ca             	cmp    %rcx,%rdx
+    6f43:	7c 94                	jl     6ed9 <overlap+0x49>
+    6f45:	4d 39 c1             	cmp    %r8,%r9
+    6f48:	7d b4                	jge    6efe <overlap+0x6e>
+    6f4a:	48 39 ca             	cmp    %rcx,%rdx
+    6f4d:	74 91                	je     6ee0 <overlap+0x50>
+    6f4f:	eb d9                	jmp    6f2a <overlap+0x9a>
+    6f51:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    6f58:	c3                   	ret
+    6f59:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
-0000000000006f80 <verify>:
+0000000000006f60 <verify>:
 int verify(struct KernelThread *thread_data, int thread_count) {
-    6f80:	f3 0f 1e fa          	endbr64
+    6f60:	f3 0f 1e fa          	endbr64
   for (int x = 0 ; x < thread_count; x++) {
-    6f84:	85 f6                	test   %esi,%esi
-    6f86:	0f 8e 44 03 00 00    	jle    72d0 <verify+0x350>
+    6f64:	85 f6                	test   %esi,%esi
+    6f66:	0f 8e 44 03 00 00    	jle    72b0 <verify+0x350>
 int verify(struct KernelThread *thread_data, int thread_count) {
-    6f8c:	41 57                	push   %r15
-    6f8e:	41 89 f7             	mov    %esi,%r15d
-    6f91:	41 56                	push   %r14
+    6f6c:	41 57                	push   %r15
+    6f6e:	41 89 f7             	mov    %esi,%r15d
+    6f71:	41 56                	push   %r14
   for (int x = 0 ; x < thread_count; x++) {
-    6f93:	45 31 f6             	xor    %r14d,%r14d
+    6f73:	45 31 f6             	xor    %r14d,%r14d
 int verify(struct KernelThread *thread_data, int thread_count) {
-    6f96:	41 55                	push   %r13
-    6f98:	41 54                	push   %r12
-    6f9a:	55                   	push   %rbp
-    6f9b:	53                   	push   %rbx
-    6f9c:	48 8d 5f 38          	lea    0x38(%rdi),%rbx
-    6fa0:	48 83 ec 58          	sub    $0x58,%rsp
+    6f76:	41 55                	push   %r13
+    6f78:	41 54                	push   %r12
+    6f7a:	55                   	push   %rbp
+    6f7b:	53                   	push   %rbx
+    6f7c:	48 8d 5f 38          	lea    0x38(%rdi),%rbx
+    6f80:	48 83 ec 58          	sub    $0x58,%rsp
   for (int x = 0 ; x < thread_count; x++) {
-    6fa4:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+    6f84:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
     for (int z = 0 ; z < thread_count; z++) {
-    6fa9:	48 89 5c 24 10       	mov    %rbx,0x10(%rsp)
-    6fae:	45 31 e4             	xor    %r12d,%r12d
+    6f89:	48 89 5c 24 10       	mov    %rbx,0x10(%rsp)
+    6f8e:	45 31 e4             	xor    %r12d,%r12d
       if (z != x)  {
-    6fb1:	45 39 e6             	cmp    %r12d,%r14d
-    6fb4:	0f 84 4e 02 00 00    	je     7208 <verify+0x288>
+    6f91:	45 39 e6             	cmp    %r12d,%r14d
+    6f94:	0f 84 4e 02 00 00    	je     71e8 <verify+0x288>
         for (int y = 0 ; y < thread_data[x].task_count ; y++) {
-    6fba:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    6fbf:	8b 50 08             	mov    0x8(%rax),%edx
-    6fc2:	85 d2                	test   %edx,%edx
-    6fc4:	0f 8e 3e 02 00 00    	jle    7208 <verify+0x288>
-    6fca:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
-    6fcf:	31 c9                	xor    %ecx,%ecx
-    6fd1:	44 89 64 24 3c       	mov    %r12d,0x3c(%rsp)
+    6f9a:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    6f9f:	8b 50 08             	mov    0x8(%rax),%edx
+    6fa2:	85 d2                	test   %edx,%edx
+    6fa4:	0f 8e 3e 02 00 00    	jle    71e8 <verify+0x288>
+    6faa:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
+    6faf:	31 c9                	xor    %ecx,%ecx
+    6fb1:	44 89 64 24 3c       	mov    %r12d,0x3c(%rsp)
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-    6fd6:	31 c0                	xor    %eax,%eax
-    6fd8:	44 89 f2             	mov    %r14d,%edx
-    6fdb:	bf 01 00 00 00       	mov    $0x1,%edi
-    6fe0:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
-    6fe5:	48 8d 35 78 12 00 00 	lea    0x1278(%rip),%rsi        # 8264 <_IO_stdin_used+0x264>
-    6fec:	e8 af b4 ff ff       	call   24a0 <__printf_chk@plt>
+    6fb6:	31 c0                	xor    %eax,%eax
+    6fb8:	44 89 f2             	mov    %r14d,%edx
+    6fbb:	bf 01 00 00 00       	mov    $0x1,%edi
+    6fc0:	48 89 4c 24 08       	mov    %rcx,0x8(%rsp)
+    6fc5:	48 8d 35 98 12 00 00 	lea    0x1298(%rip),%rsi        # 8264 <_IO_stdin_used+0x264>
+    6fcc:	e8 cf b4 ff ff       	call   24a0 <__printf_chk@plt>
           for (int k = 0 ; k < thread_data[z].task_count; k++) {
-    6ff1:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    6ff6:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
-    6ffb:	8b 40 08             	mov    0x8(%rax),%eax
-    6ffe:	85 c0                	test   %eax,%eax
-    7000:	0f 8e e6 01 00 00    	jle    71ec <verify+0x26c>
-    7006:	48 89 c8             	mov    %rcx,%rax
+    6fd1:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    6fd6:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
+    6fdb:	8b 40 08             	mov    0x8(%rax),%eax
+    6fde:	85 c0                	test   %eax,%eax
+    6fe0:	0f 8e e6 01 00 00    	jle    71cc <verify+0x26c>
+    6fe6:	48 89 c8             	mov    %rcx,%rax
             printf("%ld %ld\n", thread_data[z].tasks[k].current_snapshot, thread_data[x].tasks[y].current_snapshot);
-    7009:	48 89 4c 24 40       	mov    %rcx,0x40(%rsp)
-    700e:	31 db                	xor    %ebx,%ebx
-    7010:	48 c1 e0 09          	shl    $0x9,%rax
-    7014:	44 89 74 24 48       	mov    %r14d,0x48(%rsp)
-    7019:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
-    701e:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    7023:	44 89 7c 24 4c       	mov    %r15d,0x4c(%rsp)
-    7028:	4c 8b 20             	mov    (%rax),%r12
-    702b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    7030:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
-    7035:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
-    703a:	49 89 de             	mov    %rbx,%r14
-    703d:	48 8d 35 35 12 00 00 	lea    0x1235(%rip),%rsi        # 8279 <_IO_stdin_used+0x279>
-    7044:	49 c1 e6 09          	shl    $0x9,%r14
-    7048:	bf 01 00 00 00       	mov    $0x1,%edi
-    704d:	48 8b 45 00          	mov    0x0(%rbp),%rax
-    7051:	4b 8b 8c 3c 60 01 00 00 	mov    0x160(%r12,%r15,1),%rcx
-    7059:	4c 89 74 24 20       	mov    %r14,0x20(%rsp)
-    705e:	4a 8b 94 30 60 01 00 00 	mov    0x160(%rax,%r14,1),%rdx
-    7066:	31 c0                	xor    %eax,%eax
-    7068:	e8 33 b4 ff ff       	call   24a0 <__printf_chk@plt>
+    6fe9:	48 89 4c 24 40       	mov    %rcx,0x40(%rsp)
+    6fee:	31 db                	xor    %ebx,%ebx
+    6ff0:	48 c1 e0 09          	shl    $0x9,%rax
+    6ff4:	44 89 74 24 48       	mov    %r14d,0x48(%rsp)
+    6ff9:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+    6ffe:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    7003:	44 89 7c 24 4c       	mov    %r15d,0x4c(%rsp)
+    7008:	4c 8b 20             	mov    (%rax),%r12
+    700b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    7010:	48 8b 6c 24 10       	mov    0x10(%rsp),%rbp
+    7015:	4c 8b 7c 24 08       	mov    0x8(%rsp),%r15
+    701a:	49 89 de             	mov    %rbx,%r14
+    701d:	48 8d 35 55 12 00 00 	lea    0x1255(%rip),%rsi        # 8279 <_IO_stdin_used+0x279>
+    7024:	49 c1 e6 09          	shl    $0x9,%r14
+    7028:	bf 01 00 00 00       	mov    $0x1,%edi
+    702d:	48 8b 45 00          	mov    0x0(%rbp),%rax
+    7031:	4b 8b 8c 3c 60 01 00 00 	mov    0x160(%r12,%r15,1),%rcx
+    7039:	4c 89 74 24 20       	mov    %r14,0x20(%rsp)
+    703e:	4a 8b 94 30 60 01 00 00 	mov    0x160(%rax,%r14,1),%rdx
+    7046:	31 c0                	xor    %eax,%eax
+    7048:	e8 53 b4 ff ff       	call   24a0 <__printf_chk@plt>
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    706d:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    7072:	4c 8b 20             	mov    (%rax),%r12
-    7075:	4b 83 bc 3c 60 01 00 00 00 	cmpq   $0x0,0x160(%r12,%r15,1)
-    707e:	0f 8e 47 01 00 00    	jle    71cb <verify+0x24b>
-    7084:	4c 03 75 00          	add    0x0(%rbp),%r14
-    7088:	48 89 5c 24 28       	mov    %rbx,0x28(%rsp)
+    704d:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    7052:	4c 8b 20             	mov    (%rax),%r12
+    7055:	4b 83 bc 3c 60 01 00 00 00 	cmpq   $0x0,0x160(%r12,%r15,1)
+    705e:	0f 8e 47 01 00 00    	jle    71ab <verify+0x24b>
+    7064:	4c 03 75 00          	add    0x0(%rbp),%r14
+    7068:	48 89 5c 24 28       	mov    %rbx,0x28(%rsp)
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    708d:	ba 01 00 00 00       	mov    $0x1,%edx
-    7092:	4d 89 f5             	mov    %r14,%r13
-    7095:	4d 8b b5 60 01 00 00 	mov    0x160(%r13),%r14
-    709c:	4d 85 f6             	test   %r14,%r14
-    709f:	0f 8e 21 01 00 00    	jle    71c6 <verify+0x246>
-    70a5:	0f 1f 00             	nopl   (%rax)
+    706d:	ba 01 00 00 00       	mov    $0x1,%edx
+    7072:	4d 89 f5             	mov    %r14,%r13
+    7075:	4d 8b b5 60 01 00 00 	mov    0x160(%r13),%r14
+    707c:	4d 85 f6             	test   %r14,%r14
+    707f:	0f 8e 21 01 00 00    	jle    71a6 <verify+0x246>
+    7085:	0f 1f 00             	nopl   (%rax)
                 if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
-    70a8:	48 89 d5             	mov    %rdx,%rbp
-    70ab:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-    70b0:	31 db                	xor    %ebx,%ebx
-    70b2:	4d 89 f2             	mov    %r14,%r10
-    70b5:	48 c1 e5 05          	shl    $0x5,%rbp
-    70b9:	48 83 ed 20          	sub    $0x20,%rbp
-    70bd:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
-    70c1:	49 89 ee             	mov    %rbp,%r14
-    70c4:	48 89 dd             	mov    %rbx,%rbp
-    70c7:	48 89 d3             	mov    %rdx,%rbx
-    70ca:	eb 31                	jmp    70fd <verify+0x17d>
+    7088:	48 89 d5             	mov    %rdx,%rbp
+    708b:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+    7090:	31 db                	xor    %ebx,%ebx
+    7092:	4d 89 f2             	mov    %r14,%r10
+    7095:	48 c1 e5 05          	shl    $0x5,%rbp
+    7099:	48 83 ed 20          	sub    $0x20,%rbp
+    709d:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
+    70a1:	49 89 ee             	mov    %rbp,%r14
+    70a4:	48 89 dd             	mov    %rbx,%rbp
+    70a7:	48 89 d3             	mov    %rdx,%rbx
+    70aa:	eb 31                	jmp    70dd <verify+0x17d>
+    70ac:	0f 1f 40 00          	nopl   0x0(%rax)
+  return left.tv_sec > right.tv_sec &&
+    70b0:	4c 39 c2             	cmp    %r8,%rdx
+    70b3:	0f 8d 57 01 00 00    	jge    7210 <verify+0x2b0>
+    70b9:	4c 39 df             	cmp    %r11,%rdi
+    70bc:	7e 05                	jle    70c3 <verify+0x163>
+    70be:	49 39 c1             	cmp    %rax,%r9
+    70c1:	7c 75                	jl     7138 <verify+0x1d8>
+  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
+    70c3:	4c 39 df             	cmp    %r11,%rdi
+    70c6:	0f 8d ab 01 00 00    	jge    7277 <verify+0x317>
     70cc:	0f 1f 40 00          	nopl   0x0(%rax)
-  return left.tv_sec > right.tv_sec &&
-    70d0:	4c 39 c2             	cmp    %r8,%rdx
-    70d3:	0f 8d 57 01 00 00    	jge    7230 <verify+0x2b0>
-    70d9:	4c 39 df             	cmp    %r11,%rdi
-    70dc:	7e 05                	jle    70e3 <verify+0x163>
-    70de:	49 39 c1             	cmp    %rax,%r9
-    70e1:	7c 75                	jl     7158 <verify+0x1d8>
-  if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    70e3:	4c 39 df             	cmp    %r11,%rdi
-    70e6:	0f 8d ab 01 00 00    	jge    7297 <verify+0x317>
-    70ec:	0f 1f 40 00          	nopl   0x0(%rax)
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    70f0:	48 83 c5 01          	add    $0x1,%rbp
-    70f4:	49 39 ea             	cmp    %rbp,%r10
-    70f7:	0f 8e a9 00 00 00    	jle    71a6 <verify+0x226>
+    70d0:	48 83 c5 01          	add    $0x1,%rbp
+    70d4:	49 39 ea             	cmp    %rbp,%r10
+    70d7:	0f 8e a9 00 00 00    	jle    7186 <verify+0x226>
                 if (overlap(thread_data[x].tasks[y].snapshots[n], thread_data[z].tasks[k].snapshots[m]) == 1) {
-    70fd:	49 8b 97 50 01 00 00 	mov    0x150(%r15),%rdx
-    7104:	48 89 e8             	mov    %rbp,%rax
-    7107:	48 c1 e0 05          	shl    $0x5,%rax
-    710b:	49 03 85 50 01 00 00 	add    0x150(%r13),%rax
-    7112:	4c 01 f2             	add    %r14,%rdx
-    7115:	48 8b 08             	mov    (%rax),%rcx
-    7118:	48 8b 78 10          	mov    0x10(%rax),%rdi
-    711c:	48 8b 32             	mov    (%rdx),%rsi
-    711f:	4c 8b 42 08          	mov    0x8(%rdx),%r8
-    7123:	4c 8b 5a 10          	mov    0x10(%rdx),%r11
-    7127:	4c 8b 4a 18          	mov    0x18(%rdx),%r9
-    712b:	48 8b 50 08          	mov    0x8(%rax),%rdx
-    712f:	48 8b 40 18          	mov    0x18(%rax),%rax
+    70dd:	49 8b 97 50 01 00 00 	mov    0x150(%r15),%rdx
+    70e4:	48 89 e8             	mov    %rbp,%rax
+    70e7:	48 c1 e0 05          	shl    $0x5,%rax
+    70eb:	49 03 85 50 01 00 00 	add    0x150(%r13),%rax
+    70f2:	4c 01 f2             	add    %r14,%rdx
+    70f5:	48 8b 08             	mov    (%rax),%rcx
+    70f8:	48 8b 78 10          	mov    0x10(%rax),%rdi
+    70fc:	48 8b 32             	mov    (%rdx),%rsi
+    70ff:	4c 8b 42 08          	mov    0x8(%rdx),%r8
+    7103:	4c 8b 5a 10          	mov    0x10(%rdx),%r11
+    7107:	4c 8b 4a 18          	mov    0x18(%rdx),%r9
+    710b:	48 8b 50 08          	mov    0x8(%rax),%rdx
+    710f:	48 8b 40 18          	mov    0x18(%rax),%rax
   return left.tv_sec > right.tv_sec &&
-    7133:	48 39 f1             	cmp    %rsi,%rcx
-    7136:	7c 98                	jl     70d0 <verify+0x150>
-    7138:	0f 8e 42 01 00 00    	jle    7280 <verify+0x300>
-    713e:	4c 39 c2             	cmp    %r8,%rdx
-    7141:	0f 8f f9 00 00 00    	jg     7240 <verify+0x2c0>
+    7113:	48 39 f1             	cmp    %rsi,%rcx
+    7116:	7c 98                	jl     70b0 <verify+0x150>
+    7118:	0f 8e 42 01 00 00    	jle    7260 <verify+0x300>
+    711e:	4c 39 c2             	cmp    %r8,%rdx
+    7121:	0f 8f f9 00 00 00    	jg     7220 <verify+0x2c0>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    7147:	75 a7                	jne    70f0 <verify+0x170>
-    7149:	4c 39 df             	cmp    %r11,%rdi
-    714c:	7f a2                	jg     70f0 <verify+0x170>
+    7127:	75 a7                	jne    70d0 <verify+0x170>
+    7129:	4c 39 df             	cmp    %r11,%rdi
+    712c:	7f a2                	jg     70d0 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    714e:	49 39 c1             	cmp    %rax,%r9
-    7151:	7c 9d                	jl     70f0 <verify+0x170>
-    7153:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-    7158:	49 89 c1             	mov    %rax,%r9
-    715b:	48 89 f9             	mov    %rdi,%rcx
-    715e:	48 89 f2             	mov    %rsi,%rdx
-    7161:	bf 01 00 00 00       	mov    $0x1,%edi
-    7166:	48 8d 35 c3 14 00 00 	lea    0x14c3(%rip),%rsi        # 8630 <_IO_stdin_used+0x630>
-    716d:	31 c0                	xor    %eax,%eax
+    712e:	49 39 c1             	cmp    %rax,%r9
+    7131:	7c 9d                	jl     70d0 <verify+0x170>
+    7133:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    7138:	49 89 c1             	mov    %rax,%r9
+    713b:	48 89 f9             	mov    %rdi,%rcx
+    713e:	48 89 f2             	mov    %rsi,%rdx
+    7141:	bf 01 00 00 00       	mov    $0x1,%edi
+    7146:	48 8d 35 e3 14 00 00 	lea    0x14e3(%rip),%rsi        # 8630 <_IO_stdin_used+0x630>
+    714d:	31 c0                	xor    %eax,%eax
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    716f:	48 83 c5 01          	add    $0x1,%rbp
-    7173:	e8 28 b3 ff ff       	call   24a0 <__printf_chk@plt>
-    7178:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    717d:	4c 8b 6c 24 20       	mov    0x20(%rsp),%r13
-    7182:	4c 03 28             	add    (%rax),%r13
+    714f:	48 83 c5 01          	add    $0x1,%rbp
+    7153:	e8 48 b3 ff ff       	call   24a0 <__printf_chk@plt>
+    7158:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    715d:	4c 8b 6c 24 20       	mov    0x20(%rsp),%r13
+    7162:	4c 03 28             	add    (%rax),%r13
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    7185:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    7165:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    718a:	4d 8b 95 60 01 00 00 	mov    0x160(%r13),%r10
+    716a:	4d 8b 95 60 01 00 00 	mov    0x160(%r13),%r10
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    7191:	4c 8b 20             	mov    (%rax),%r12
-    7194:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
-    7199:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
+    7171:	4c 8b 20             	mov    (%rax),%r12
+    7174:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+    7179:	4d 8d 3c 04          	lea    (%r12,%rax,1),%r15
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    719d:	49 39 ea             	cmp    %rbp,%r10
-    71a0:	0f 8f 57 ff ff ff    	jg     70fd <verify+0x17d>
+    717d:	49 39 ea             	cmp    %rbp,%r10
+    7180:	0f 8f 57 ff ff ff    	jg     70dd <verify+0x17d>
             for (int n = 0 ; n < thread_data[x].tasks[y].current_snapshot ; n++) {
-    71a6:	48 89 da             	mov    %rbx,%rdx
-    71a9:	49 3b 9f 60 01 00 00 	cmp    0x160(%r15),%rbx
-    71b0:	7d 14                	jge    71c6 <verify+0x246>
+    7186:	48 89 da             	mov    %rbx,%rdx
+    7189:	49 3b 9f 60 01 00 00 	cmp    0x160(%r15),%rbx
+    7190:	7d 14                	jge    71a6 <verify+0x246>
               for (int m = 0 ; m < thread_data[z].tasks[k].current_snapshot ; m++) {
-    71b2:	4d 8b b5 60 01 00 00 	mov    0x160(%r13),%r14
-    71b9:	48 83 c2 01          	add    $0x1,%rdx
-    71bd:	4d 85 f6             	test   %r14,%r14
-    71c0:	0f 8f e2 fe ff ff    	jg     70a8 <verify+0x128>
-    71c6:	48 8b 5c 24 28       	mov    0x28(%rsp),%rbx
+    7192:	4d 8b b5 60 01 00 00 	mov    0x160(%r13),%r14
+    7199:	48 83 c2 01          	add    $0x1,%rdx
+    719d:	4d 85 f6             	test   %r14,%r14
+    71a0:	0f 8f e2 fe ff ff    	jg     7088 <verify+0x128>
+    71a6:	48 8b 5c 24 28       	mov    0x28(%rsp),%rbx
           for (int k = 0 ; k < thread_data[z].task_count; k++) {
-    71cb:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
-    71d0:	48 83 c3 01          	add    $0x1,%rbx
-    71d4:	39 58 08             	cmp    %ebx,0x8(%rax)
-    71d7:	0f 8f 53 fe ff ff    	jg     7030 <verify+0xb0>
-    71dd:	48 8b 4c 24 40       	mov    0x40(%rsp),%rcx
-    71e2:	44 8b 74 24 48       	mov    0x48(%rsp),%r14d
-    71e7:	44 8b 7c 24 4c       	mov    0x4c(%rsp),%r15d
+    71ab:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+    71b0:	48 83 c3 01          	add    $0x1,%rbx
+    71b4:	39 58 08             	cmp    %ebx,0x8(%rax)
+    71b7:	0f 8f 53 fe ff ff    	jg     7010 <verify+0xb0>
+    71bd:	48 8b 4c 24 40       	mov    0x40(%rsp),%rcx
+    71c2:	44 8b 74 24 48       	mov    0x48(%rsp),%r14d
+    71c7:	44 8b 7c 24 4c       	mov    0x4c(%rsp),%r15d
         for (int y = 0 ; y < thread_data[x].task_count ; y++) {
-    71ec:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-    71f1:	48 83 c1 01          	add    $0x1,%rcx
-    71f5:	39 48 08             	cmp    %ecx,0x8(%rax)
-    71f8:	0f 8f d8 fd ff ff    	jg     6fd6 <verify+0x56>
-    71fe:	48 8b 5c 24 30       	mov    0x30(%rsp),%rbx
-    7203:	44 8b 64 24 3c       	mov    0x3c(%rsp),%r12d
+    71cc:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+    71d1:	48 83 c1 01          	add    $0x1,%rcx
+    71d5:	39 48 08             	cmp    %ecx,0x8(%rax)
+    71d8:	0f 8f d8 fd ff ff    	jg     6fb6 <verify+0x56>
+    71de:	48 8b 5c 24 30       	mov    0x30(%rsp),%rbx
+    71e3:	44 8b 64 24 3c       	mov    0x3c(%rsp),%r12d
     for (int z = 0 ; z < thread_count; z++) {
-    7208:	48 81 44 24 10 c8 00 00 00 	addq   $0xc8,0x10(%rsp)
-    7211:	41 8d 44 24 01       	lea    0x1(%r12),%eax
-    7216:	41 39 c7             	cmp    %eax,%r15d
-    7219:	0f 84 86 00 00 00    	je     72a5 <verify+0x325>
-    721f:	41 89 c4             	mov    %eax,%r12d
-    7222:	e9 8a fd ff ff       	jmp    6fb1 <verify+0x31>
-    7227:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+    71e8:	48 81 44 24 10 c8 00 00 00 	addq   $0xc8,0x10(%rsp)
+    71f1:	41 8d 44 24 01       	lea    0x1(%r12),%eax
+    71f6:	41 39 c7             	cmp    %eax,%r15d
+    71f9:	0f 84 86 00 00 00    	je     7285 <verify+0x325>
+    71ff:	41 89 c4             	mov    %eax,%r12d
+    7202:	e9 8a fd ff ff       	jmp    6f91 <verify+0x31>
+    7207:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    7230:	0f 85 ba fe ff ff    	jne    70f0 <verify+0x170>
-    7236:	e9 a8 fe ff ff       	jmp    70e3 <verify+0x163>
-    723b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    7210:	0f 85 ba fe ff ff    	jne    70d0 <verify+0x170>
+    7216:	e9 a8 fe ff ff       	jmp    70c3 <verify+0x163>
+    721b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
   return left.tv_sec > right.tv_sec &&
-    7240:	49 39 c1             	cmp    %rax,%r9
-    7243:	7e 09                	jle    724e <verify+0x2ce>
-    7245:	4c 39 df             	cmp    %r11,%rdi
-    7248:	0f 8c 0a ff ff ff    	jl     7158 <verify+0x1d8>
+    7220:	49 39 c1             	cmp    %rax,%r9
+    7223:	7e 09                	jle    722e <verify+0x2ce>
+    7225:	4c 39 df             	cmp    %r11,%rdi
+    7228:	0f 8c 0a ff ff ff    	jl     7138 <verify+0x1d8>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    724e:	4c 39 df             	cmp    %r11,%rdi
-    7251:	0f 8f 99 fe ff ff    	jg     70f0 <verify+0x170>
+    722e:	4c 39 df             	cmp    %r11,%rdi
+    7231:	0f 8f 99 fe ff ff    	jg     70d0 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    7257:	49 39 c1             	cmp    %rax,%r9
-    725a:	0f 8d f8 fe ff ff    	jge    7158 <verify+0x1d8>
+    7237:	49 39 c1             	cmp    %rax,%r9
+    723a:	0f 8d f8 fe ff ff    	jge    7138 <verify+0x1d8>
   if (a.tv_sec <= b.tv_sec && a.tv_nsec <= b.tv_nsec &&
-    7260:	48 39 f1             	cmp    %rsi,%rcx
-    7263:	0f 85 87 fe ff ff    	jne    70f0 <verify+0x170>
-    7269:	4c 39 c2             	cmp    %r8,%rdx
-    726c:	0f 85 7e fe ff ff    	jne    70f0 <verify+0x170>
-    7272:	4c 39 df             	cmp    %r11,%rdi
-    7275:	0f 84 dd fe ff ff    	je     7158 <verify+0x1d8>
-    727b:	e9 70 fe ff ff       	jmp    70f0 <verify+0x170>
-    7280:	4c 39 c2             	cmp    %r8,%rdx
-    7283:	0f 8c 5a fe ff ff    	jl     70e3 <verify+0x163>
-    7289:	4c 39 df             	cmp    %r11,%rdi
-    728c:	7e c9                	jle    7257 <verify+0x2d7>
-    728e:	4c 39 c2             	cmp    %r8,%rdx
-    7291:	0f 85 59 fe ff ff    	jne    70f0 <verify+0x170>
+    7240:	48 39 f1             	cmp    %rsi,%rcx
+    7243:	0f 85 87 fe ff ff    	jne    70d0 <verify+0x170>
+    7249:	4c 39 c2             	cmp    %r8,%rdx
+    724c:	0f 85 7e fe ff ff    	jne    70d0 <verify+0x170>
+    7252:	4c 39 df             	cmp    %r11,%rdi
+    7255:	0f 84 dd fe ff ff    	je     7138 <verify+0x1d8>
+    725b:	e9 70 fe ff ff       	jmp    70d0 <verify+0x170>
+    7260:	4c 39 c2             	cmp    %r8,%rdx
+    7263:	0f 8c 5a fe ff ff    	jl     70c3 <verify+0x163>
+    7269:	4c 39 df             	cmp    %r11,%rdi
+    726c:	7e c9                	jle    7237 <verify+0x2d7>
+    726e:	4c 39 c2             	cmp    %r8,%rdx
+    7271:	0f 85 59 fe ff ff    	jne    70d0 <verify+0x170>
    c.tv_sec <= d.tv_sec && c.tv_nsec <= d.tv_nsec && d.tv_sec >= c.tv_sec && d.tv_nsec >= c.tv_nsec) {
-    7297:	49 39 c1             	cmp    %rax,%r9
-    729a:	0f 8f 50 fe ff ff    	jg     70f0 <verify+0x170>
-    72a0:	e9 b3 fe ff ff       	jmp    7158 <verify+0x1d8>
+    7277:	49 39 c1             	cmp    %rax,%r9
+    727a:	0f 8f 50 fe ff ff    	jg     70d0 <verify+0x170>
+    7280:	e9 b3 fe ff ff       	jmp    7138 <verify+0x1d8>
   for (int x = 0 ; x < thread_count; x++) {
-    72a5:	48 81 44 24 18 c8 00 00 00 	addq   $0xc8,0x18(%rsp)
-    72ae:	41 8d 46 01          	lea    0x1(%r14),%eax
-    72b2:	45 39 e6             	cmp    %r12d,%r14d
-    72b5:	74 08                	je     72bf <verify+0x33f>
-    72b7:	41 89 c6             	mov    %eax,%r14d
-    72ba:	e9 ea fc ff ff       	jmp    6fa9 <verify+0x29>
+    7285:	48 81 44 24 18 c8 00 00 00 	addq   $0xc8,0x18(%rsp)
+    728e:	41 8d 46 01          	lea    0x1(%r14),%eax
+    7292:	45 39 e6             	cmp    %r12d,%r14d
+    7295:	74 08                	je     729f <verify+0x33f>
+    7297:	41 89 c6             	mov    %eax,%r14d
+    729a:	e9 ea fc ff ff       	jmp    6f89 <verify+0x29>
 }
-    72bf:	48 83 c4 58          	add    $0x58,%rsp
-    72c3:	31 c0                	xor    %eax,%eax
-    72c5:	5b                   	pop    %rbx
-    72c6:	5d                   	pop    %rbp
-    72c7:	41 5c                	pop    %r12
-    72c9:	41 5d                	pop    %r13
-    72cb:	41 5e                	pop    %r14
-    72cd:	41 5f                	pop    %r15
-    72cf:	c3                   	ret
-    72d0:	31 c0                	xor    %eax,%eax
-    72d2:	c3                   	ret
+    729f:	48 83 c4 58          	add    $0x58,%rsp
+    72a3:	31 c0                	xor    %eax,%eax
+    72a5:	5b                   	pop    %rbx
+    72a6:	5d                   	pop    %rbp
+    72a7:	41 5c                	pop    %r12
+    72a9:	41 5d                	pop    %r13
+    72ab:	41 5e                	pop    %r14
+    72ad:	41 5f                	pop    %r15
+    72af:	c3                   	ret
+    72b0:	31 c0                	xor    %eax,%eax
+    72b2:	c3                   	ret
 
 Disassembly of section .fini:
 
-00000000000072d4 <_fini>:
-    72d4:	f3 0f 1e fa          	endbr64
-    72d8:	48 83 ec 08          	sub    $0x8,%rsp
-    72dc:	48 83 c4 08          	add    $0x8,%rsp
-    72e0:	c3                   	ret
+00000000000072b4 <_fini>:
+    72b4:	f3 0f 1e fa          	endbr64
+    72b8:	48 83 ec 08          	sub    $0x8,%rsp
+    72bc:	48 83 c4 08          	add    $0x8,%rsp
+    72c0:	c3                   	ret
