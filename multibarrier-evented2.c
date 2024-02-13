@@ -690,35 +690,6 @@ int receive(struct BarrierTask *data) {
   asm volatile ("sfence" ::: "memory");
 }
 
-int swaph(struct BarrierTask *data) {
-
-  for (int n = 0 ; n < data->mailbox_thread_count; n++) {
-    if (n == data->thread->real_thread_index) { continue; }
-    
-    struct Mailbox them = data->mailboxes[n];
-    if (them.pending_higher != NULL) {
-      them.higher = them.pending_higher;
-      them.pending_higher = NULL;
-    }
-
-  }
-  asm volatile ("sfence" ::: "memory");
-}
-int swapl(struct BarrierTask *data) {
-
-  for (int n = 0 ; n < data->mailbox_thread_count; n++) {
-    if (n == data->thread->real_thread_index) { continue; }
-    
-    struct Mailbox them = data->mailboxes[n];
-    if (them.pending_lower != NULL) {
-      them.higher = them.pending_lower;
-      them.pending_higher = NULL;
-    }
-
-  }
-  asm volatile ("sfence" ::: "memory");
-}
-
 int sendm(struct BarrierTask *data) {
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
