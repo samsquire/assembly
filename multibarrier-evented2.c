@@ -149,7 +149,8 @@ struct Request {
 struct Mailbox {
   void *lower;
   void *higher;
-  void *pending;
+  void *pending_lower;
+  void *pending_higher;
   void ** stack;
   void *my_lower;
   void *my_higher;
@@ -659,7 +660,10 @@ int receive(struct BarrierTask *data) {
       continue;
     }
     // printf("startreceive %d %d\n", n, data->thread->real_thread_index); 
-    for (int x = 0 ; x < me->messages_count ; x++) {
+    int min = me->messages_limit;
+    for (; me->messages_count > 0 ; ) {
+      int x = me->messages_count - 1;
+      me->messages_count--;
       data->sends++;
       data->n++;
       me->received++;
@@ -676,12 +680,41 @@ int receive(struct BarrierTask *data) {
         exit(1);
       }
     }
-    me->messages_count = 0;
+    // me->messages_count = 0;
       // mailbox is available for sending again
       me->available_reading = 0;
       me->finished_reading = 1;
       me->available_sending = 1;
   // printf("endreceive %d %d\n", n, data->thread->real_thread_index); 
+  }
+  asm volatile ("sfence" ::: "memory");
+}
+
+int swaph(struct BarrierTask *data) {
+
+  for (int n = 0 ; n < data->mailbox_thread_count; n++) {
+    if (n == data->thread->real_thread_index) { continue; }
+    
+    struct Mailbox them = data->mailboxes[n];
+    if (them.pending_higher != NULL) {
+      them.higher = them.pending_higher;
+      them.pending_higher = NULL;
+    }
+
+  }
+  asm volatile ("sfence" ::: "memory");
+}
+int swapl(struct BarrierTask *data) {
+
+  for (int n = 0 ; n < data->mailbox_thread_count; n++) {
+    if (n == data->thread->real_thread_index) { continue; }
+    
+    struct Mailbox them = data->mailboxes[n];
+    if (them.pending_lower != NULL) {
+      them.higher = them.pending_lower;
+      them.pending_higher = NULL;
+    }
+
   }
   asm volatile ("sfence" ::: "memory");
 }
@@ -746,7 +779,10 @@ int setmailboxkind(struct Mailbox * mailbox, struct Data* data, int kind) {
     mailbox->higher = data;
   }
   if (kind == 2) {
-    mailbox->pending = data;
+    mailbox->pending_lower = data;
+  }
+  if (kind == 3) {
+    mailbox->pending_higher = data;
   }
   return 0;
 }
@@ -758,8 +794,8 @@ int barriered_work(struct BarrierTask *data) {
         int t = data->task_index;
   // we are synchronized
   if (data->thread_index == data->task_index) {
+    receive(data);
   // printf("Thread is %d\n", data->thread->real_thread_index);
-      receive(data);
       void * tmp; 
       // swap this all thread's write buffer with the next task
         if (data->thread->real_thread_index == 0) {
@@ -801,11 +837,10 @@ int barriered_work(struct BarrierTask *data) {
                     int lookup = min + max;
               
                     // printf("lookup %d %d %d\n", lookup, b, y); 
-                    // pthread_mutex_lock(&data->thread->swapmutex[y]);   
                     for (int nn = 0; nn < data->thread_count; nn++) {
                       int next_task = abs((nn + 1) % data->thread_count);
                       // printf("%d to %d\n", nn, next_task);
-                      int LOWER = 0; int HIGHER = 1; int PENDING = 2;
+                      int LOWER = 0; int HIGHER = 1;
                       // b=5 y=3
                       // b=3 y=5
                       int l1 = 0;
@@ -814,9 +849,6 @@ int barriered_work(struct BarrierTask *data) {
                       int l4 = y;
                       struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
                       struct Data* source2 = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], LOWER);
-                      if (source2->messages_count != 0) { 
-                        break;
-                      }
                       struct Mailbox* __a = &data->thread->all_threads[l2].tasks[l3].mailboxes[l4];
                       // printf("%d bef\n", ((struct Data*)__a->higher)->id); 
                       // y=5 b=3
@@ -826,26 +858,24 @@ int barriered_work(struct BarrierTask *data) {
                       int t3 = next_task;
                       int t4 = b;
                       struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
-                      if (dest->messages_count != 0) { 
-                        continue;
-                      }
                       struct Data *dest2 = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], HIGHER);
                       // source higher to dest lower for reading
-                      setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source, LOWER);
     
                       // need to replace lower of source with dest
-                      setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest2, LOWER);
+                        setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source, LOWER);
+                        setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source2, HIGHER);
+                        setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest2, LOWER);
+                        setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest, HIGHER);
+
                       for (int jj = 0 ; jj < data->thread_count; jj++) {
                         data->thread->all_threads[l2].tasks[jj].swap = 1;
                         data->thread->all_threads[t2].tasks[jj].swap = 1;
                       }
-                      setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest, HIGHER);
-                      setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source2, HIGHER);
                       // printf("%d aft\n", ((struct Data*)__a->lower)->id); 
                           // printf("%p\n", ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher));
                           // printf("%d\n", ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_reading);
-                           ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_reading = 0;
-                           ((struct Data*) data->thread->all_threads[t2].tasks[l3].mailboxes[t4].higher)->available_reading = 0;
+                           // ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_reading = 0;
+                           // ((struct Data*) data->thread->all_threads[t2].tasks[l3].mailboxes[t4].higher)->available_reading = 0;
                            ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_receiving = 1;
                            ((struct Data*) data->thread->all_threads[t2].tasks[l3].mailboxes[t4].higher)->available_receiving = 1;
 
@@ -1124,16 +1154,14 @@ int barriered_work(struct BarrierTask *data) {
     }
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    sendm(data);
+    // sendm(data);
   } else {
     receive(data);
-  
     
     while (data->scheduled == 1) {
       data->n++;
       asm volatile ("sfence" ::: "memory");
     }
-  
     sendm(data);
   }
   if (t == data->thread_count - 1) {
@@ -1669,7 +1697,8 @@ int main() {
 
               mailboxes[b].lower = &data[0];
               mailboxes[b].higher = &data[1];
-              mailboxes[b].pending = NULL;
+              mailboxes[b].pending_lower = NULL;
+              mailboxes[b].pending_higher = NULL;
               data[0].finished_reading = 1;
               data[1].finished_reading = 1;
               mailboxes[b].kind = MAILBOX_FRIEND;
@@ -1714,7 +1743,8 @@ int main() {
             mailboxes[b].lower = &data[0];
             mailboxes[b].my_lower = &data[0];
             mailboxes[b].higher = &data[1];
-            mailboxes[b].pending = NULL;
+            mailboxes[b].pending_lower = NULL;
+            mailboxes[b].pending_higher = NULL;
             data[0].finished_reading = 1;
             data[1].finished_reading = 1;
             mailboxes[b].my_higher = &data[1];
