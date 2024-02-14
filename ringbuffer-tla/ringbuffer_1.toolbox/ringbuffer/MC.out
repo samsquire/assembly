@@ -2,7 +2,7 @@
 TLC2 Version 2.18 of Day Month 20?? (rev: 290c673)
 @!@!@ENDMSG 2262 @!@!@
 @!@!@STARTMSG 2187:0 @!@!@
-Running breadth-first search Model-Checking with fp 15 and seed -8609043985692944317 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 21876] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 126 and seed -1836063067547185595 with 6 workers on 6 cores with 2414MB heap and 5427MB offheap memory [pid: 26700] (Windows 10 10.0 amd64, AdoptOpenJDK 14.0.1 x86_64, OffHeapDiskFPSet, DiskStateQueue).
 @!@!@ENDMSG 2187 @!@!@
 @!@!@STARTMSG 2220:0 @!@!@
 Starting SANY...
@@ -25,13 +25,13 @@ Semantic processing of module MC
 SANY finished.
 @!@!@ENDMSG 2219 @!@!@
 @!@!@STARTMSG 2185:0 @!@!@
-Starting... (2023-12-13 23:33:20)
+Starting... (2023-12-15 15:11:25)
 @!@!@ENDMSG 2185 @!@!@
 @!@!@STARTMSG 2189:0 @!@!@
 Computing initial states...
 @!@!@ENDMSG 2189 @!@!@
 @!@!@STARTMSG 2190:0 @!@!@
-Finished computing initial states: 1 distinct state generated at 2023-12-13 23:33:21.
+Finished computing initial states: 1 distinct state generated at 2023-12-15 15:11:32.
 @!@!@ENDMSG 2190 @!@!@
 @!@!@STARTMSG 2193:0 @!@!@
 Model checking completed. No error has been found.
@@ -40,7 +40,7 @@ Model checking completed. No error has been found.
   calculated (optimistic):  val = 9.9E-11
 @!@!@ENDMSG 2193 @!@!@
 @!@!@STARTMSG 2201:0 @!@!@
-The coverage statistics at 2023-12-13 23:33:23
+The coverage statistics at 2023-12-15 15:11:35
 @!@!@ENDMSG 2201 @!@!@
 @!@!@STARTMSG 2773:0 @!@!@
 <Init line 127, col 1 to line 127, col 4 of module ringbuffer>: 1:1
@@ -70,7 +70,7 @@ The coverage statistics at 2023-12-13 23:33:23
   ||line 144, col 27 to line 144, col 33 of module ringbuffer: 1
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<WriterCheck line 146, col 1 to line 146, col 17 of module ringbuffer>: 9030:25652
+<WriterCheck line 146, col 1 to line 146, col 17 of module ringbuffer>: 9078:25652
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 146, col 25 to line 146, col 48 of module ringbuffer: 116408
@@ -112,7 +112,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 154, col 25 to line 154, col 51 of module ringbuffer: 25652
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<ReaderCheck line 156, col 1 to line 156, col 17 of module ringbuffer>: 6719:25616
+<ReaderCheck line 156, col 1 to line 156, col 17 of module ringbuffer>: 6732:25616
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 156, col 25 to line 156, col 48 of module ringbuffer: 116372
@@ -145,7 +145,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 164, col 25 to line 164, col 51 of module ringbuffer: 25616
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<ReaderChecked line 166, col 1 to line 166, col 19 of module ringbuffer>: 6752:13996
+<ReaderChecked line 166, col 1 to line 166, col 19 of module ringbuffer>: 6496:13996
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 166, col 27 to line 166, col 52 of module ringbuffer: 104752
@@ -166,7 +166,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 170, col 27 to line 170, col 62 of module ringbuffer: 13996
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<ReaderNotEmpty line 172, col 1 to line 172, col 20 of module ringbuffer>: 3079:6188
+<ReaderNotEmpty line 172, col 1 to line 172, col 20 of module ringbuffer>: 3113:6188
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 172, col 28 to line 172, col 54 of module ringbuffer: 96944
@@ -187,7 +187,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 176, col 28 to line 176, col 41 of module ringbuffer: 6188
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<ReaderEmpty line 178, col 1 to line 178, col 17 of module ringbuffer>: 2931:7808
+<ReaderEmpty line 178, col 1 to line 178, col 17 of module ringbuffer>: 2813:7808
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 178, col 25 to line 178, col 48 of module ringbuffer: 98564
@@ -205,7 +205,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 181, col 25 to line 181, col 51 of module ringbuffer: 7808
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<WriterWrite line 183, col 1 to line 183, col 17 of module ringbuffer>: 1151:7316
+<WriterWrite line 183, col 1 to line 183, col 17 of module ringbuffer>: 1317:7316
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 183, col 25 to line 183, col 48 of module ringbuffer: 98072
@@ -232,7 +232,7 @@ The coverage statistics at 2023-12-13 23:33:23
   line 193, col 25 to line 193, col 38 of module ringbuffer: 7316
 @!@!@ENDMSG 2221 @!@!@
 @!@!@STARTMSG 2772:0 @!@!@
-<WriterFull line 195, col 1 to line 195, col 16 of module ringbuffer>: 589:4180
+<WriterFull line 195, col 1 to line 195, col 16 of module ringbuffer>: 702:4180
 @!@!@ENDMSG 2772 @!@!@
 @!@!@STARTMSG 2221:0 @!@!@
   line 195, col 24 to line 195, col 46 of module ringbuffer: 94936
@@ -253,7 +253,7 @@ The coverage statistics at 2023-12-13 23:33:23
 End of statistics.
 @!@!@ENDMSG 2202 @!@!@
 @!@!@STARTMSG 2200:0 @!@!@
-Progress(92) at 2023-12-13 23:33:23: 90,757 states generated (948,679 s/min), 30,252 distinct states found (316,222 ds/min), 0 states left on queue.
+Progress(92) at 2023-12-15 15:11:35: 90,757 states generated (259,887 s/min), 30,252 distinct states found (86,628 ds/min), 0 states left on queue.
 @!@!@ENDMSG 2200 @!@!@
 @!@!@STARTMSG 2199:0 @!@!@
 90757 states generated, 30252 distinct states found, 0 states left on queue.
@@ -265,5 +265,5 @@ The depth of the complete state graph search is 92.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 2).
 @!@!@ENDMSG 2268 @!@!@
 @!@!@STARTMSG 2186:0 @!@!@
-Finished in 5756ms at (2023-12-13 23:33:23)
+Finished in 21120ms at (2023-12-15 15:11:35)
 @!@!@ENDMSG 2186 @!@!@
