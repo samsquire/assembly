@@ -16,6 +16,8 @@ This repository has:
 |disruptor-multi-consumer.c|2 producer threads and 2 consumer threads. I have attempted to make this thread safe but I need to think on it longer.|
 |multibarrier.c|6 threads that all wait for eachother, mass synchronization|
 |multibarrier-prearrive-nv.c|The same multibarrier with 6 threads wait wait for eachother|
+|multibarrier-evented.c|A starbarrier, fast thread communication between thread pairs and then slower topology for forking tasks. Uses mutexes.|
+|multibarrier-evented2.c|Doesn't use mutexes.|
 # multithreaded nonblocking barrier-runtime
 # nonblocking-prearrive
 
@@ -36,7 +38,7 @@ Total sents 409855901
 Total receives 40985590
 ```
 
-With 12 threads for 30 seconds, 10 threads all incrementing a long can do all the following: 910 million additions, 409 million interthread sends, 2.6 million external thread ingests and 2.1 million critical sections a second.
+With 12 threads for 30 seconds, 10 threads all incrementing a long can do all the following: 910 million additions, 40 million interthread sends, 2.6 million external thread ingests and 2.1 million critical sections a second.
 
 On a Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz, 1608 Mhz, 6 Core(s), 12 Logical Processor(s) CPU on Windows 11 Intel NUC inside an Lubuntu virtual machine.
 
