@@ -147,8 +147,8 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower;
-  void *higher;
+  void *lower __attribute__((aligned (128)));
+  void *higher __attribute__((aligned (128)));
   void *pending_lower;
   void *pending_higher;
   void ** stack;
@@ -156,7 +156,7 @@ struct Mailbox {
   void *my_higher;
   int kind;
   int other;
-  long counter;
+  long counter __attribute__((aligned (128)));
 };
 
 struct Data {
@@ -693,7 +693,7 @@ int receive(struct BarrierTask *data) {
 }
 
 int sendm(struct BarrierTask *data) {
-      int limit = 100;
+      int limit = 2;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
         
@@ -1306,7 +1306,7 @@ void* timer_thread(void *arg) {
   while (drained == 0) {
     // preempt tasks
     for (int x = 0 ; x < data->thread_count ; x++) {
-        int next = (y + 1) % data->threads[x]->task_count;
+        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
     }
