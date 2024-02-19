@@ -3100,7 +3100,7 @@ void* timer_thread(void *arg) {
     466e:	41 8b 47 44          	mov    0x44(%r15),%eax
     4672:	89 c3                	mov    %eax,%ebx
     4674:	85 c0                	test   %eax,%eax
-    4676:	0f 84 97 00 00 00    	je     4713 <timer_thread+0x103>
+    4676:	0f 84 9a 00 00 00    	je     4716 <timer_thread+0x106>
   int n = 0;
     467c:	45 31 f6             	xor    %r14d,%r14d
   int y = 0;
@@ -3122,76 +3122,78 @@ void* timer_thread(void *arg) {
     469e:	8d 7b 01             	lea    0x1(%rbx),%edi
     for (int x = 0 ; x < data->my_thread_count ; x++) {
     46a1:	85 c0                	test   %eax,%eax
-    46a3:	7e 47                	jle    46ec <timer_thread+0xdc>
+    46a3:	7e 4a                	jle    46ef <timer_thread+0xdf>
     46a5:	49 8b 4f 18          	mov    0x18(%r15),%rcx
         data->threads[x]->tasks[y].scheduled = 0;
     46a9:	4c 63 c3             	movslq %ebx,%r8
     46ac:	49 c1 e0 09          	shl    $0x9,%r8
     46b0:	4c 8d 0c c1          	lea    (%rcx,%rax,8),%r9
     46b4:	0f 1f 40 00          	nopl   0x0(%rax)
-        int next = (y + 1) % data->threads[x]->task_count;
+        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
     46b8:	48 8b 19             	mov    (%rcx),%rbx
     46bb:	89 f8                	mov    %edi,%eax
     for (int x = 0 ; x < data->my_thread_count ; x++) {
     46bd:	48 83 c1 08          	add    $0x8,%rcx
-        int next = (y + 1) % data->threads[x]->task_count;
+        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
     46c1:	99                   	cltd
     46c2:	f7 7b 40             	idivl  0x40(%rbx)
         data->threads[x]->tasks[next].scheduled = 1;
     46c5:	48 8b 73 38          	mov    0x38(%rbx),%rsi
-    46c9:	48 63 d2             	movslq %edx,%rdx
-    46cc:	48 c1 e2 09          	shl    $0x9,%rdx
-    46d0:	c7 84 16 4c 01 00 00 01 00 00 00 	movl   $0x1,0x14c(%rsi,%rdx,1)
+        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
+    46c9:	83 ea 01             	sub    $0x1,%edx
+        data->threads[x]->tasks[next].scheduled = 1;
+    46cc:	48 63 d2             	movslq %edx,%rdx
+    46cf:	48 c1 e2 09          	shl    $0x9,%rdx
+    46d3:	c7 84 16 4c 01 00 00 01 00 00 00 	movl   $0x1,0x14c(%rsi,%rdx,1)
         data->threads[x]->tasks[y].scheduled = 0;
-    46db:	42 c7 84 06 4c 01 00 00 00 00 00 00 	movl   $0x0,0x14c(%rsi,%r8,1)
+    46de:	42 c7 84 06 4c 01 00 00 00 00 00 00 	movl   $0x0,0x14c(%rsi,%r8,1)
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-    46e7:	49 39 c9             	cmp    %rcx,%r9
-    46ea:	75 cc                	jne    46b8 <timer_thread+0xa8>
+    46ea:	49 39 c9             	cmp    %rcx,%r9
+    46ed:	75 c9                	jne    46b8 <timer_thread+0xa8>
     asm volatile ("mfence" ::: "memory");
-    46ec:	0f ae f0             	mfence
+    46ef:	0f ae f0             	mfence
     if (y >= data->threads[0]->task_count) {
-    46ef:	49 8b 47 18          	mov    0x18(%r15),%rax
+    46f2:	49 8b 47 18          	mov    0x18(%r15),%rax
   while (data->running && n < times) {
-    46f3:	41 8b 4f 44          	mov    0x44(%r15),%ecx
+    46f6:	41 8b 4f 44          	mov    0x44(%r15),%ecx
     y++;
-    46f7:	89 fb                	mov    %edi,%ebx
+    46fa:	89 fb                	mov    %edi,%ebx
     if (y >= data->threads[0]->task_count) {
-    46f9:	48 8b 00             	mov    (%rax),%rax
+    46fc:	48 8b 00             	mov    (%rax),%rax
     y++;
-    46fc:	39 78 40             	cmp    %edi,0x40(%rax)
-    46ff:	0f 4e dd             	cmovle %ebp,%ebx
+    46ff:	39 78 40             	cmp    %edi,0x40(%rax)
+    4702:	0f 4e dd             	cmovle %ebp,%ebx
   while (data->running && n < times) {
-    4702:	85 c9                	test   %ecx,%ecx
-    4704:	74 0d                	je     4713 <timer_thread+0x103>
-    4706:	41 81 fe 88 13 00 00 	cmp    $0x1388,%r14d
-    470d:	0f 85 78 ff ff ff    	jne    468b <timer_thread+0x7b>
-    4713:	48 8d 3d 1e 39 00 00 	lea    0x391e(%rip),%rdi        # 8038 <_IO_stdin_used+0x38>
-    471a:	e8 11 dc ff ff       	call   2330 <puts@plt>
+    4705:	85 c9                	test   %ecx,%ecx
+    4707:	74 0d                	je     4716 <timer_thread+0x106>
+    4709:	41 81 fe 88 13 00 00 	cmp    $0x1388,%r14d
+    4710:	0f 85 75 ff ff ff    	jne    468b <timer_thread+0x7b>
+    4716:	48 8d 3d 1b 39 00 00 	lea    0x391b(%rip),%rdi        # 8038 <_IO_stdin_used+0x38>
+    471d:	e8 0e dc ff ff       	call   2330 <puts@plt>
   for (int x = 0 ; x < data->my_thread_count ; x++) {
-    471f:	49 63 57 30          	movslq 0x30(%r15),%rdx
-    4723:	85 d2                	test   %edx,%edx
-    4725:	7e 6e                	jle    4795 <timer_thread+0x185>
+    4722:	49 63 57 30          	movslq 0x30(%r15),%rdx
+    4726:	85 d2                	test   %edx,%edx
+    4728:	7e 6b                	jle    4795 <timer_thread+0x185>
     for (int y = 0 ; y < data->task_count ; y++) {
-    4727:	49 63 47 40          	movslq 0x40(%r15),%rax
-    472b:	85 c0                	test   %eax,%eax
-    472d:	7e 66                	jle    4795 <timer_thread+0x185>
-    472f:	48 c1 e0 09          	shl    $0x9,%rax
+    472a:	49 63 47 40          	movslq 0x40(%r15),%rax
+    472e:	85 c0                	test   %eax,%eax
+    4730:	7e 63                	jle    4795 <timer_thread+0x185>
+    4732:	48 c1 e0 09          	shl    $0x9,%rax
       data->threads[x]->tasks[y].sending = 0;
-    4733:	4d 8b 47 18          	mov    0x18(%r15),%r8
-    4737:	48 8d 3c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rdi
-    473f:	31 c9                	xor    %ecx,%ecx
-    4741:	48 89 c6             	mov    %rax,%rsi
-    4744:	49 8b 04 08          	mov    (%r8,%rcx,1),%rax
-    4748:	48 8b 40 38          	mov    0x38(%rax),%rax
-    474c:	48 8d 14 06          	lea    (%rsi,%rax,1),%rdx
-    4750:	f7 c6 00 02 00 00    	test   $0x200,%esi
-    4756:	74 18                	je     4770 <timer_thread+0x160>
-    4758:	c7 80 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%rax)
+    4736:	4d 8b 47 18          	mov    0x18(%r15),%r8
+    473a:	48 8d 3c d5 00 00 00 00 	lea    0x0(,%rdx,8),%rdi
+    4742:	31 c9                	xor    %ecx,%ecx
+    4744:	48 89 c6             	mov    %rax,%rsi
+    4747:	49 8b 04 08          	mov    (%r8,%rcx,1),%rax
+    474b:	48 8b 40 38          	mov    0x38(%rax),%rax
+    474f:	48 8d 14 06          	lea    (%rsi,%rax,1),%rdx
+    4753:	f7 c6 00 02 00 00    	test   $0x200,%esi
+    4759:	74 15                	je     4770 <timer_thread+0x160>
+    475b:	c7 80 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%rax)
     for (int y = 0 ; y < data->task_count ; y++) {
-    4762:	48 05 00 02 00 00    	add    $0x200,%rax
-    4768:	48 39 c2             	cmp    %rax,%rdx
-    476b:	74 1f                	je     478c <timer_thread+0x17c>
-    476d:	0f 1f 00             	nopl   (%rax)
+    4765:	48 05 00 02 00 00    	add    $0x200,%rax
+    476b:	48 39 c2             	cmp    %rax,%rdx
+    476e:	74 1c                	je     478c <timer_thread+0x17c>
       data->threads[x]->tasks[y].sending = 0;
     4770:	c7 80 80 01 00 00 00 00 00 00 	movl   $0x0,0x180(%rax)
     for (int y = 0 ; y < data->task_count ; y++) {
@@ -3204,7 +3206,7 @@ void* timer_thread(void *arg) {
   for (int x = 0 ; x < data->my_thread_count ; x++) {
     478c:	48 83 c1 08          	add    $0x8,%rcx
     4790:	48 39 cf             	cmp    %rcx,%rdi
-    4793:	75 af                	jne    4744 <timer_thread+0x134>
+    4793:	75 b2                	jne    4747 <timer_thread+0x137>
   asm volatile ("mfence" ::: "memory");
     4795:	0f ae f0             	mfence
   struct timespec drain = {

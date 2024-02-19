@@ -1259,7 +1259,7 @@ void* timer_thread(void *arg) {
     nanosleep(&preempt , &rem2);
     // preempt tasks
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-        int next = (y + 1) % data->threads[x]->task_count;
+        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
     }
