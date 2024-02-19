@@ -998,8 +998,7 @@ int barriered_work(struct BarrierTask *data) {
       
           int k = data->group;
 
-          for (int d = 0 ; d < data->thread->threads_per_group ; d++) {
-            int y = (k * data->thread->threads_per_group) + d;
+            int y = (k * data->thread->threads_per_group) + data->thread_index;
             // printf("checking y%d\n", y); 
             int g = data->group;
             for (int m = 0 ; m < data->thread->threads_per_group ; m++) {
@@ -1089,7 +1088,6 @@ int barriered_work(struct BarrierTask *data) {
          }
        
       
-    }
       // mboxinner 
       /*
       struct Data ** datas = calloc(1024, sizeof(struct Data*)); 
