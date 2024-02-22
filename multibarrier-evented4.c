@@ -693,16 +693,13 @@ int receive(struct BarrierTask *data) {
 }
 
 int sendm(struct BarrierTask *data) {
-      int limit = 2;
+      int limit = 5;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
         
         
         struct Data *them = data->mailboxes[n].higher;
         data->mailboxes[n].counter++;
-        if (data->mailboxes[n].counter > limit) {
-          data->mailboxes[n].counter = 0;
-        }
         if (data->mailboxes[n].counter < limit) {
           continue;
         }
