@@ -147,8 +147,8 @@ struct Request {
 };
 
 struct Mailbox {
-  void *lower;
-  void *higher;
+  void *lower __attribute__((aligned (128)));
+  void *higher __attribute__((aligned (128)));
   void *pending_lower;
   void *pending_higher;
   void ** stack;
@@ -156,6 +156,7 @@ struct Mailbox {
   void *my_higher;
   int kind;
   int other;
+  long counter __attribute__((aligned (128)));
 };
 
 struct Data {
@@ -259,6 +260,7 @@ struct KernelThread {
   int threads_per_group;
   pthread_mutex_t *swapmutex;
   pthread_mutex_t *mswapmutex;
+  int have_foreign;
 };
 
 struct ProtectedState {
@@ -691,11 +693,17 @@ int receive(struct BarrierTask *data) {
 }
 
 int sendm(struct BarrierTask *data) {
+      int limit = 10;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
+        int send = 0;
         if (n == data->thread->real_thread_index) { continue; }
-
+        
         
         struct Data *them = data->mailboxes[n].higher;
+        data->mailboxes[n].counter++;
+        if (data->mailboxes[n].counter < limit) {
+          continue;
+        }
         if (them->messages_count > 0) {
           // printf("there's unprocessed messages in this mailbox!\n");
           continue;
@@ -724,6 +732,11 @@ int sendm(struct BarrierTask *data) {
           them->available_reading = 1;
           // them->available_swapping = 1;
           them->available_receiving = 1;
+        }
+        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && data->mailboxes[n].counter >= limit) {
+          data->mailboxes[n].counter = 0;
+          data->thread->have_foreign = 1;
+          // printf("swapping\n");
         }
       }
       asm volatile ("sfence" ::: "memory");
@@ -758,6 +771,102 @@ int setmailboxkind(struct Mailbox * mailbox, struct Data* data, int kind) {
   return 0;
 }
 
+int fswap(struct BarrierTask *data) {
+
+      int t = data->task_index;
+      int k = data->group;
+
+        int y = (k * data->thread->threads_per_group) + data->thread_index;
+        // printf("checking y%d\n", y); 
+        int g = data->group;
+        for (int m = 0 ; m < data->thread->threads_per_group ; m++) {
+          
+          int b = (g * data->thread->threads_per_group) + m;
+
+          // printf("y = %d b = %d\n", y, b);
+          // printf("from %d to %d\n", data->all_thread_count, data->mailbox_thread_count);
+          int next_task = abs((t + 1) % (data->thread_count));
+          int previous_task = abs((t - 1) % (data->thread_count));
+          // printf("thread count %d\n", data->thread_count);
+          /*printf("%d -> %d %d %d\n", y, b, t, next_task);
+          printf("pointer %p\n", &data->thread->all_threads[y]);
+          printf("pointer2 %p\n", data->thread->all_threads[y].tasks);
+          printf("pointer3 %p\n", &data->thread->all_threads[y].tasks[t]);
+          printf("pointer4 %p\n", &data->thread->all_threads[y].tasks[t].mailboxes);
+          printf("pointer5 %p\n", &data->thread->all_threads[y].tasks[t].mailboxes[b]);
+          */
+          int kind = data->thread->all_threads[y].tasks[t].mailboxes[b].kind; 
+          // printf("kind %d\n", kind);
+          if (kind == MAILBOX_FRIEND) {
+             // printf("friend %d/%d with %d/%d\n", y, t, b, next_task);
+            // printf("Mailbox is a friend\n");
+            // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
+              int other = data->thread->all_threads[b].tasks[t].mailboxes[y].other;
+              // printf("I am %d they are %d\n", b, other);
+              int otherkind = data->thread->all_threads[other].tasks[next_task].mailboxes[y].kind; 
+              // printf("otherkind is %d\n", otherkind);
+
+              
+              // fswap
+               for (int nn = 0 ; nn < data->thread_count; nn++) {
+                int next_task = abs((nn + 1) % (data->thread_count));
+                int LOWER = 0; int HIGHER = 1; int PENDING = 2;
+                int l1 = 0;
+                int l2 = b;
+                int l3 = nn;
+                int l4 = y;
+                struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
+                struct Data* source2 = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], LOWER);
+                  if (source2->messages_count != 0) { 
+                    break;
+                  }
+
+                struct Mailbox* __a = &data->thread->all_threads[l2].tasks[l3].mailboxes[l4];
+                // printf("%d bef\n", ((struct Data*)__a->higher)->id); 
+                int t1 = 1;
+                int t2 = y;
+                int t3 = next_task;
+                int t4 = b;
+                struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
+                  if (dest->messages_count != 0) { 
+                    continue;
+                  }
+                struct Data *dest2 = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], HIGHER);
+                // source higher to dest lower for reading
+                setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source, LOWER);
+                // need to replace lower of source with dest
+                setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest2, LOWER);
+
+                setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest, HIGHER);
+                setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source2, HIGHER);
+                /*
+                ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
+                ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].lower)->available_reading = 1;
+                ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].higher)->available_sending = 1;
+
+                ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_sending = 1;
+                */
+                // printf("swapped riend %d\n", data->thread->real_thread_index);
+                // printf("%d aft\n", ((struct Data*)__a->lower)->id); 
+              }
+              // break;
+              // printf("datakind1 %d %p\n", data->kind, data->thread);
+              // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
+              // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
+              // printf("swapping %d/%d with %d/%d\n", y, t, b, next_task);
+              // printf("swapped friend\n");
+        
+          } else {
+              }
+              // printf("Mailbox is external, swapped\n");
+
+          
+          // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
+              
+     }
+  return 0;
+}
+
 int barriered_work(struct BarrierTask *data) {
   // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
   // printf("%d %d Arrived at task %d\n", data->thread->real_thread_index, data->thread_index, data->task_index);
@@ -769,6 +878,8 @@ int barriered_work(struct BarrierTask *data) {
   // printf("Thread is %d\n", data->thread->real_thread_index);
       void * tmp; 
       // swap this all thread's write buffer with the next task
+        if (data->thread->have_foreign == 1) {
+          data->thread->have_foreign = 0;
         for (int y = 0; y < data->mailbox_thread_count ; y++) {
               int next_task = abs((t + 1) % (data->thread_count));
               int previous_task = abs((t - 1) % (data->thread_count));
@@ -977,98 +1088,9 @@ int barriered_work(struct BarrierTask *data) {
           }
 
         }
+      }
       
-          int k = data->group;
-
-            int y = (k * data->thread->threads_per_group) + data->thread_index;
-            // printf("checking y%d\n", y); 
-            int g = data->group;
-            for (int m = 0 ; m < data->thread->threads_per_group ; m++) {
-              
-              int b = (g * data->thread->threads_per_group) + m;
-
-              // printf("y = %d b = %d\n", y, b);
-              // printf("from %d to %d\n", data->all_thread_count, data->mailbox_thread_count);
-              int next_task = abs((t + 1) % (data->thread_count));
-              int previous_task = abs((t - 1) % (data->thread_count));
-              // printf("thread count %d\n", data->thread_count);
-              /*printf("%d -> %d %d %d\n", y, b, t, next_task);
-              printf("pointer %p\n", &data->thread->all_threads[y]);
-              printf("pointer2 %p\n", data->thread->all_threads[y].tasks);
-              printf("pointer3 %p\n", &data->thread->all_threads[y].tasks[t]);
-              printf("pointer4 %p\n", &data->thread->all_threads[y].tasks[t].mailboxes);
-              printf("pointer5 %p\n", &data->thread->all_threads[y].tasks[t].mailboxes[b]);
-              */
-              int kind = data->thread->all_threads[y].tasks[t].mailboxes[b].kind; 
-              // printf("kind %d\n", kind);
-              if (kind == MAILBOX_FRIEND) {
-                 // printf("friend %d/%d with %d/%d\n", y, t, b, next_task);
-                // printf("Mailbox is a friend\n");
-                // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
-                  int other = data->thread->all_threads[b].tasks[t].mailboxes[y].other;
-                  // printf("I am %d they are %d\n", b, other);
-                  int otherkind = data->thread->all_threads[other].tasks[next_task].mailboxes[y].kind; 
-                  // printf("otherkind is %d\n", otherkind);
-
-                  
-                  // fswap
-                   for (int nn = 0 ; nn < data->thread_count; nn++) {
-                    int next_task = abs((nn + 1) % (data->thread_count));
-                    int LOWER = 0; int HIGHER = 1; int PENDING = 2;
-                    int l1 = 0;
-                    int l2 = b;
-                    int l3 = nn;
-                    int l4 = y;
-                    struct Data* source = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], HIGHER);
-                    struct Data* source2 = mailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], LOWER);
-                      if (source2->messages_count != 0) { 
-                        break;
-                      }
-
-                    struct Mailbox* __a = &data->thread->all_threads[l2].tasks[l3].mailboxes[l4];
-                    // printf("%d bef\n", ((struct Data*)__a->higher)->id); 
-                    int t1 = 1;
-                    int t2 = y;
-                    int t3 = next_task;
-                    int t4 = b;
-                    struct Data *dest = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], LOWER);
-                      if (dest->messages_count != 0) { 
-                        continue;
-                      }
-                    struct Data *dest2 = mailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], HIGHER);
-                    // source higher to dest lower for reading
-                    setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source, LOWER);
-                    // need to replace lower of source with dest
-                    setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest2, LOWER);
-
-                    setmailboxkind(&data->thread->all_threads[l2].tasks[l3].mailboxes[l4], dest, HIGHER);
-                    setmailboxkind(&data->thread->all_threads[t2].tasks[t3].mailboxes[t4], source2, HIGHER);
-                    /*
-                    ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].lower)->available_reading = 1;
-                    ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].lower)->available_reading = 1;
-                    ((struct Data*) data->thread->all_threads[t2].tasks[t3].mailboxes[t4].higher)->available_sending = 1;
-
-                    ((struct Data*) data->thread->all_threads[l2].tasks[l3].mailboxes[l4].higher)->available_sending = 1;
-                    */
-                    // printf("swapped riend %d\n", data->thread->real_thread_index);
-                    // printf("%d aft\n", ((struct Data*)__a->lower)->id); 
-                  }
-                  // break;
-                  // printf("datakind1 %d %p\n", data->kind, data->thread);
-                  // printf("lower %p\n", data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower);
-                  // data->thread->all_threads[y].tasks[t].mailboxes[b].higher = data->thread->all_threads[b].tasks[next_task].mailboxes[y].lower;
-                  // printf("swapping %d/%d with %d/%d\n", y, t, b, next_task);
-                  // printf("swapped friend\n");
-            
-              } else {
-                  }
-                  // printf("Mailbox is external, swapped\n");
-
-              
-              // data->thread->threads[y].tasks[t].mailboxes[b].higher = data->thread->threads[b].tasks[next_task].mailboxes[y].lower;
-                  
-         }
-       
+      fswap(data); 
       
       // mboxinner 
       /*
@@ -1120,10 +1142,10 @@ int barriered_work(struct BarrierTask *data) {
     }
     clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
     data->current_snapshot = ((data->current_snapshot + 1) % data->snapshot_count);
-    // sendm(data);
+    sendm(data);
   } else {
+    fswap(data);  
     receive(data);
-    
     while (data->scheduled == 1) {
       data->n++;
       asm volatile ("sfence" ::: "memory");
@@ -1257,7 +1279,7 @@ void* timer_thread(void *arg) {
     nanosleep(&preempt , &rem2);
     // preempt tasks
     for (int x = 0 ; x < data->my_thread_count ; x++) {
-        int next = (y + 1) % data->threads[x]->task_count - 1; // ignore reset task
+        int next = (y + 1) % data->threads[x]->task_count - 1;
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
     }
@@ -1362,7 +1384,7 @@ void * external_thread(void *arg) {
   struct timespec rem;
 
   while (data->running == 1) {
-    // nanosleep(&req , &rem);
+    nanosleep(&req , &rem);
     int created = 0;
     // printf("External thread wakeup...\n");
     for (int b = 0; b < data->buffers_count; b++) {
