@@ -693,7 +693,7 @@ int receive(struct BarrierTask *data) {
 }
 
 int sendm(struct BarrierTask *data) {
-      int limit = 5;
+      int limit = 10;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
         
@@ -1506,7 +1506,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 int main() {
   int core_count = 1;
   int threads_per_group = 2;
-  int group_count = 3;
+  int group_count = 1;
   int thread_count = 2;
   int mailboxes_needed = group_count * thread_count;
   int timer_count = 1;
