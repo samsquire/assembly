@@ -156,6 +156,7 @@ struct Mailbox {
   void *my_higher;
   int kind;
   int other;
+  long counter;
 };
 
 struct Data {
@@ -278,6 +279,7 @@ struct KernelThread {
   struct Group ** all_groups;
   int group;
   struct Global * global;
+  int have_foreign;
 };
 
 struct ProtectedState {
@@ -710,11 +712,17 @@ int receive(struct BarrierTask *data) {
 }
 
 int sendm(struct BarrierTask *data) {
+
+      int limit = 1;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
 
         
         struct Data *them = data->mailboxes[n].higher;
+        data->mailboxes[n].counter++;
+        if (data->mailboxes[n].counter < limit) {
+          continue;
+        }
         if (them->messages_count > 0) {
           // printf("there's unprocessed messages in this mailbox!\n");
           continue;
@@ -743,6 +751,11 @@ int sendm(struct BarrierTask *data) {
           them->available_reading = 1;
           // them->available_swapping = 1;
           them->available_receiving = 1;
+        }
+        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && data->mailboxes[n].counter >= limit) {
+          data->mailboxes[n].counter = 0;
+          data->thread->have_foreign = 1;
+          // printf("swapping\n");
         }
       }
       asm volatile ("sfence" ::: "memory");
@@ -911,6 +924,7 @@ int barriered_work(struct BarrierTask *data) {
       receive(data);
     // printf("Thread is %d\n", data->thread->real_thread_index);
         void * tmp; 
+        if (data->thread->have_foreign == 1) {
         // swap this all thread's write buffer with the next task
           for (int y = 0; y < data->mailbox_thread_count ; y++) {
                 int next_task = abs((t + 1) % (data->thread_count));
@@ -1120,7 +1134,7 @@ int barriered_work(struct BarrierTask *data) {
             }
 
           }
-        
+        } // have-foreign 
         fswap(data); 
         
         // mboxinner 
