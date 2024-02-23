@@ -876,13 +876,13 @@ int barriered_work(struct BarrierTask *data) {
     // printf("%d %d\n", data->thread->group_data->arrived, data->thread->group_data->seq);
     // printf("%d\n", data->arrived);
     if (data->thread->global->request_group_sync == -1 && data->thread->group == 0 && data->arrived % 100000 == 0) {
-      printf("%d Starting group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
+      // printf("%d Starting group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
       data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
     } else
     if (data->thread->global->request_group_sync != -1) {
       data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
       
-      printf("%d In group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
+      // printf("%d In group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
     }
     // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
     // printf("%d %d Arrived at task %d\n", data->thread->real_thread_index, data->thread_index, data->task_index);
@@ -1209,6 +1209,7 @@ void* barriered_thread(void *arg) {
         }
         int arrived = 0; 
         int prearrive = 0; 
+        /*
         int grouparrived = 0;
         int groupprearrived = 0;
         for (int thread = 0 ; thread < data->thread_count; thread++) {
@@ -1236,6 +1237,7 @@ void* barriered_thread(void *arg) {
               groupprearrived++;
             }
         }
+        */
         // printf("%d %d\n", grouparrived, groupprearrived);
         if (prearrive == 0 || prearrive == data->thread_count) {
           if (waiting == 1) {
