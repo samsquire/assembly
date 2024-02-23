@@ -235,6 +235,7 @@ struct Group {
 
 struct Global {
   int request_group_sync;
+  int request_thread_sync;
   struct ProtectedState *protected_state;
 };
 
@@ -873,22 +874,33 @@ int fswap(struct BarrierTask *data) {
 }
 
 int barriered_work(struct BarrierTask *data) {
+  struct timespec preempt = {
+    0,
+    TICK };
+  struct timespec rem = {
+    0,
+    TICK };
   if (data->thread->global->request_group_sync == -1 || data->thread->global->request_group_sync == data->thread->group) {
     // printf("%d %d\n", data->thread->group_data->arrived, data->thread->group_data->seq);
     // printf("%d\n", data->arrived);
-    if (data->thread->global->request_group_sync == -1 && data->thread->group == 0 && data->arrived % 100000 == 0) {
+    if (data->thread_index == 0 && data->thread->global->request_group_sync == -1 && data->thread->group == 0 && data->arrived % 100000 == 0) {
       // printf("%d Starting group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
-      data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
+      data->thread->global->request_thread_sync = 0;
+      data->thread->global->request_group_sync = 0;
     } else
-    if (data->thread->global->request_group_sync != -1) {
-      data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
+    if (data->thread_index == data->thread->global->request_thread_sync && data->thread->global->request_group_sync == data->thread->group && data->thread->global->request_group_sync != -1) {
+      // printf("%d In group sync %d from %d\n", data->thread->group, data->thread_index, data->thread->global->request_group_sync);
       struct ProtectedState *protected = data->thread->global->protected_state;
       int modcount = ++protected->modcount;
       protected->protected++;
+      nanosleep(&preempt , &rem);
       if (protected->modcount != modcount) {
         printf("Race condition in group sync\n");
       }
-      // printf("%d In group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
+      data->thread->global->request_thread_sync = (data->thread_index + 1) % data->thread_count;
+      if (data->thread_index == 1) {
+        data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
+      }
     }
     // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
     // printf("%d %d Arrived at task %d\n", data->thread->real_thread_index, data->thread_index, data->task_index);
