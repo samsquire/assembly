@@ -235,6 +235,7 @@ struct Group {
 
 struct Global {
   int request_group_sync;
+  struct ProtectedState *protected_state;
 };
 
 #define KERNEL_THREAD 95
@@ -881,7 +882,12 @@ int barriered_work(struct BarrierTask *data) {
     } else
     if (data->thread->global->request_group_sync != -1) {
       data->thread->global->request_group_sync = (data->thread->group + 1) % data->thread->group_count;
-      
+      struct ProtectedState *protected = data->thread->global->protected_state;
+      int modcount = ++protected->modcount;
+      protected->protected++;
+      if (protected->modcount != modcount) {
+        printf("Race condition in group sync\n");
+      }
       // printf("%d In group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
     }
     // printf("In barrier work task %d %d\n", data->thread_index, data->task_index);
@@ -1555,15 +1561,15 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 }
 int main() {
   int core_count = 1;
-  int threads_per_group = 2;
-  int group_count = 3;
+  int threads_per_group = 2; // cannot be changed
+  int group_count = 3; // can be changed
   int thread_count = 2;
   int mailboxes_needed = group_count * thread_count;
   int timer_count = 1;
   int io_threads = 1;
-  int external_threads = 2;
-  int buffer_size = 1;
-  long messages_limit = 1;
+  int external_threads = 2; // can be changed
+  int buffer_size = 1; // can be changed, used by external thread
+  long messages_limit = 1; // used by intragroup and foreign group messaging
   int buffers_per_thread = 1;
   int total_threads = (group_count * threads_per_group) + timer_count + io_threads + external_threads;
   printf("Multithreaded nonblocking lock free MULTIbarrier runtime (https://github.com/samsquire/assembly)\n");
@@ -1586,6 +1592,7 @@ int main() {
 
   int dataid = 0;
 
+  struct ProtectedState *global_protected_state = calloc(1, sizeof(struct ProtectedState));
   struct ProtectedState *protected_state = calloc(group_count, sizeof(struct ProtectedState));
   struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
   
@@ -1630,6 +1637,7 @@ int main() {
   struct Group **all_groups = calloc(100, sizeof(struct Group*));
   struct Global *global = calloc(1, sizeof(struct Global));
   global->request_group_sync = -1;
+  global->protected_state = global_protected_state;
   for (int k = 0 ; k < group_count ; k++) {
     struct Group * group_data = calloc(1, sizeof(struct Group));
     struct KernelThread ** group_threads = calloc(100, sizeof(struct KernelThread*));
