@@ -4208,7 +4208,7 @@ Disassembly of section .text:
     6770:	f3 0f 1e fa          	endbr64
     6774:	8b 87 40 01 00 00    	mov    0x140(%rdi),%eax
     677a:	85 c0                	test   %eax,%eax
-    677c:	0f 8e 96 02 00 00    	jle    6a18 <sendm+0x2a8>
+    677c:	0f 8e 7e 02 00 00    	jle    6a00 <sendm+0x290>
     6782:	41 57                	push   %r15
     6784:	41 56                	push   %r14
     6786:	41 55                	push   %r13
@@ -4223,52 +4223,54 @@ Disassembly of section .text:
     67a0:	48 89 5c 24 c8       	mov    %rbx,-0x38(%rsp)
     67a5:	0f 1f 00             	nopl   (%rax)
     67a8:	45 39 ef             	cmp    %r13d,%r15d
-    67ab:	0f 84 97 00 00 00    	je     6848 <sendm+0xd8>
-    67b1:	4c 89 e8             	mov    %r13,%rax
-    67b4:	48 c1 e0 08          	shl    $0x8,%rax
-    67b8:	48 03 85 70 01 00 00 	add    0x170(%rbp),%rax
-    67bf:	48 8b 98 b8 00 00 00 	mov    0xb8(%rax),%rbx
-    67c6:	83 b8 b0 00 00 00 02 	cmpl   $0x2,0xb0(%rax)
-    67cd:	48 8b 88 80 00 00 00 	mov    0x80(%rax),%rcx
-    67d4:	40 0f 94 c7          	sete   %dil
-    67d8:	48 8d 53 01          	lea    0x1(%rbx),%rdx
-    67dc:	48 89 90 b8 00 00 00 	mov    %rdx,0xb8(%rax)
-    67e3:	48 85 d2             	test   %rdx,%rdx
-    67e6:	7f 05                	jg     67ed <sendm+0x7d>
-    67e8:	40 84 ff             	test   %dil,%dil
-    67eb:	75 5b                	jne    6848 <sendm+0xd8>
-    67ed:	48 8b b1 80 00 00 00 	mov    0x80(%rcx),%rsi
-    67f4:	48 85 f6             	test   %rsi,%rsi
-    67f7:	7f 4f                	jg     6848 <sendm+0xd8>
-    67f9:	44 8b 81 00 01 00 00 	mov    0x100(%rcx),%r8d
-    6800:	41 83 f8 01          	cmp    $0x1,%r8d
-    6804:	74 0e                	je     6814 <sendm+0xa4>
-    6806:	83 b9 08 04 00 00 02 	cmpl   $0x2,0x408(%rcx)
-    680d:	75 05                	jne    6814 <sendm+0xa4>
-    680f:	45 85 c0             	test   %r8d,%r8d
-    6812:	74 34                	je     6848 <sendm+0xd8>
-    6814:	83 bd 88 01 00 00 01 	cmpl   $0x1,0x188(%rbp)
-    681b:	74 4b                	je     6868 <sendm+0xf8>
-    681d:	48 85 d2             	test   %rdx,%rdx
-    6820:	7e 26                	jle    6848 <sendm+0xd8>
-    6822:	40 84 ff             	test   %dil,%dil
-    6825:	74 21                	je     6848 <sendm+0xd8>
-    6827:	48 c7 80 b8 00 00 00 00 00 00 00 	movq   $0x0,0xb8(%rax)
-    6832:	48 8b 44 24 c8       	mov    -0x38(%rsp),%rax
-    6837:	c7 80 f8 00 00 00 01 00 00 00 	movl   $0x1,0xf8(%rax)
-    6841:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    6848:	49 83 c5 01          	add    $0x1,%r13
-    684c:	4d 39 ec             	cmp    %r13,%r12
-    684f:	0f 85 53 ff ff ff    	jne    67a8 <sendm+0x38>
-    6855:	31 c0                	xor    %eax,%eax
-    6857:	5b                   	pop    %rbx
-    6858:	5d                   	pop    %rbp
-    6859:	41 5c                	pop    %r12
-    685b:	41 5d                	pop    %r13
-    685d:	41 5e                	pop    %r14
-    685f:	41 5f                	pop    %r15
-    6861:	c3                   	ret
-    6862:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    67ab:	74 7b                	je     6828 <sendm+0xb8>
+    67ad:	4c 89 e8             	mov    %r13,%rax
+    67b0:	48 c1 e0 08          	shl    $0x8,%rax
+    67b4:	48 03 85 70 01 00 00 	add    0x170(%rbp),%rax
+    67bb:	48 8b 98 b8 00 00 00 	mov    0xb8(%rax),%rbx
+    67c2:	83 b8 b0 00 00 00 02 	cmpl   $0x2,0xb0(%rax)
+    67c9:	48 8b 88 80 00 00 00 	mov    0x80(%rax),%rcx
+    67d0:	40 0f 94 c7          	sete   %dil
+    67d4:	48 8d 53 01          	lea    0x1(%rbx),%rdx
+    67d8:	48 89 90 b8 00 00 00 	mov    %rdx,0xb8(%rax)
+    67df:	48 83 fa 04          	cmp    $0x4,%rdx
+    67e3:	7f 05                	jg     67ea <sendm+0x7a>
+    67e5:	40 84 ff             	test   %dil,%dil
+    67e8:	75 3e                	jne    6828 <sendm+0xb8>
+    67ea:	48 8b b1 80 00 00 00 	mov    0x80(%rcx),%rsi
+    67f1:	48 85 f6             	test   %rsi,%rsi
+    67f4:	7f 32                	jg     6828 <sendm+0xb8>
+    67f6:	44 8b 81 00 01 00 00 	mov    0x100(%rcx),%r8d
+    67fd:	41 83 f8 01          	cmp    $0x1,%r8d
+    6801:	74 0e                	je     6811 <sendm+0xa1>
+    6803:	83 b9 08 04 00 00 02 	cmpl   $0x2,0x408(%rcx)
+    680a:	75 05                	jne    6811 <sendm+0xa1>
+    680c:	45 85 c0             	test   %r8d,%r8d
+    680f:	74 17                	je     6828 <sendm+0xb8>
+    6811:	83 bd 88 01 00 00 01 	cmpl   $0x1,0x188(%rbp)
+    6818:	74 4e                	je     6868 <sendm+0xf8>
+    681a:	48 83 fa 04          	cmp    $0x4,%rdx
+    681e:	7e 08                	jle    6828 <sendm+0xb8>
+    6820:	40 84 ff             	test   %dil,%dil
+    6823:	75 23                	jne    6848 <sendm+0xd8>
+    6825:	0f 1f 00             	nopl   (%rax)
+    6828:	49 83 c5 01          	add    $0x1,%r13
+    682c:	4d 39 ec             	cmp    %r13,%r12
+    682f:	0f 85 73 ff ff ff    	jne    67a8 <sendm+0x38>
+    6835:	31 c0                	xor    %eax,%eax
+    6837:	5b                   	pop    %rbx
+    6838:	5d                   	pop    %rbp
+    6839:	41 5c                	pop    %r12
+    683b:	41 5d                	pop    %r13
+    683d:	41 5e                	pop    %r14
+    683f:	41 5f                	pop    %r15
+    6841:	c3                   	ret
+    6842:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    6848:	48 c7 80 b8 00 00 00 00 00 00 00 	movq   $0x0,0xb8(%rax)
+    6853:	48 8b 44 24 c8       	mov    -0x38(%rsp),%rax
+    6858:	c7 80 f8 00 00 00 01 00 00 00 	movl   $0x1,0xf8(%rax)
+    6862:	eb c4                	jmp    6828 <sendm+0xb8>
+    6864:	0f 1f 40 00          	nopl   0x0(%rax)
     6868:	4c 63 99 88 00 00 00 	movslq 0x88(%rcx),%r11
     686f:	4c 39 de             	cmp    %r11,%rsi
     6872:	0f 8d c2 00 00 00    	jge    693a <sendm+0x1ca>
@@ -4281,7 +4283,7 @@ Disassembly of section .text:
     6894:	4d 8d 46 ff          	lea    -0x1(%r14),%r8
     6898:	48 89 5c 24 e0       	mov    %rbx,-0x20(%rsp)
     689d:	49 83 f8 02          	cmp    $0x2,%r8
-    68a1:	0f 86 51 01 00 00    	jbe    69f8 <sendm+0x288>
+    68a1:	0f 86 39 01 00 00    	jbe    69e0 <sendm+0x270>
     68a7:	48 8d 1c f5 00 00 00 00 	lea    0x0(,%rsi,8),%rbx
     68af:	4e 8d 0c dd 00 00 00 00 	lea    0x0(,%r11,8),%r9
     68b7:	48 89 5c 24 e8       	mov    %rbx,-0x18(%rsp)
@@ -4315,7 +4317,7 @@ Disassembly of section .text:
     693a:	c7 81 00 01 00 00 00 00 00 00 	movl   $0x0,0x100(%rcx)
     6944:	c7 81 00 02 00 00 01 00 00 00 	movl   $0x1,0x200(%rcx)
     694e:	c7 81 80 01 00 00 01 00 00 00 	movl   $0x1,0x180(%rcx)
-    6958:	e9 c0 fe ff ff       	jmp    681d <sendm+0xad>
+    6958:	e9 bd fe ff ff       	jmp    681a <sendm+0xaa>
     695d:	0f 1f 00             	nopl   (%rax)
     6960:	4c 89 f3             	mov    %r14,%rbx
     6963:	4c 8b 44 24 d0       	mov    -0x30(%rsp),%r8
@@ -4329,7 +4331,7 @@ Disassembly of section .text:
     6987:	48 89 5c 24 f0       	mov    %rbx,-0x10(%rsp)
     698c:	48 8b 5c 24 e8       	mov    -0x18(%rsp),%rbx
     6991:	83 e3 10             	and    $0x10,%ebx
-    6994:	75 4a                	jne    69e0 <sendm+0x270>
+    6994:	75 72                	jne    6a08 <sendm+0x298>
     6996:	48 8b 5c 24 f0       	mov    -0x10(%rsp),%rbx
     699b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
     69a0:	41 0f 11 00          	movups %xmm0,(%r8)
@@ -4346,21 +4348,21 @@ Disassembly of section .text:
     69cd:	4f 89 0c c2          	mov    %r9,(%r10,%r8,8)
     69d1:	e9 3a ff ff ff       	jmp    6910 <sendm+0x1a0>
     69d6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-    69e0:	48 8b 5c 24 f0       	mov    -0x10(%rsp),%rbx
-    69e5:	41 0f 11 00          	movups %xmm0,(%r8)
-    69e9:	49 83 c0 10          	add    $0x10,%r8
-    69ed:	49 39 d8             	cmp    %rbx,%r8
-    69f0:	75 ae                	jne    69a0 <sendm+0x230>
-    69f2:	eb be                	jmp    69b2 <sendm+0x242>
-    69f4:	0f 1f 40 00          	nopl   0x0(%rax)
-    69f8:	48 8d 34 f5 00 00 00 00 	lea    0x0(,%rsi,8),%rsi
-    6a00:	4e 8d 0c dd 00 00 00 00 	lea    0x0(,%r11,8),%r9
-    6a08:	48 89 74 24 e8       	mov    %rsi,-0x18(%rsp)
-    6a0d:	e9 d4 fe ff ff       	jmp    68e6 <sendm+0x176>
-    6a12:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    6a18:	31 c0                	xor    %eax,%eax
-    6a1a:	c3                   	ret
-    6a1b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    69e0:	48 8d 34 f5 00 00 00 00 	lea    0x0(,%rsi,8),%rsi
+    69e8:	4e 8d 0c dd 00 00 00 00 	lea    0x0(,%r11,8),%r9
+    69f0:	48 89 74 24 e8       	mov    %rsi,-0x18(%rsp)
+    69f5:	e9 ec fe ff ff       	jmp    68e6 <sendm+0x176>
+    69fa:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+    6a00:	31 c0                	xor    %eax,%eax
+    6a02:	c3                   	ret
+    6a03:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+    6a08:	48 8b 5c 24 f0       	mov    -0x10(%rsp),%rbx
+    6a0d:	41 0f 11 00          	movups %xmm0,(%r8)
+    6a11:	49 83 c0 10          	add    $0x10,%r8
+    6a15:	49 39 d8             	cmp    %rbx,%r8
+    6a18:	75 86                	jne    69a0 <sendm+0x230>
+    6a1a:	eb 96                	jmp    69b2 <sendm+0x242>
+    6a1c:	0f 1f 40 00          	nopl   0x0(%rax)
 
 0000000000006a20 <mailboxkind>:
     6a20:	f3 0f 1e fa          	endbr64

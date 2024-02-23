@@ -713,7 +713,7 @@ int receive(struct BarrierTask *data) {
 
 int sendm(struct BarrierTask *data) {
 
-      int limit = 1;
+      int limit = 5;
       for (int n = 0 ; n < data->mailbox_thread_count; n++) {
         if (n == data->thread->real_thread_index) { continue; }
 
