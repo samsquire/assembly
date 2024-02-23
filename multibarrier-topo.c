@@ -1209,7 +1209,6 @@ void* barriered_thread(void *arg) {
         }
         int arrived = 0; 
         int prearrive = 0; 
-        /*
         int grouparrived = 0;
         int groupprearrived = 0;
         for (int thread = 0 ; thread < data->thread_count; thread++) {
@@ -1221,6 +1220,7 @@ void* barriered_thread(void *arg) {
             prearrive++;
           }
         }
+        /*
         for (int gt = 0; gt < data->group_count ; gt++) { 
           if (gt == data->group) { continue; }
           int previous = gt;
