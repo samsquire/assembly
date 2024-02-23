@@ -658,7 +658,7 @@ int barriered_work_ingest(struct BarrierTask *data) {
         data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
         data->thread->buffers[b]->buffer[x].available = 0;
         ingested++;
-        asm volatile ("sfence" ::: "memory");
+        asm volatile ("" ::: "memory");
       } else {
       }
     }
@@ -708,7 +708,7 @@ int receive(struct BarrierTask *data) {
       me->available_sending = 1;
   // printf("endreceive %d %d\n", n, data->thread->real_thread_index); 
   }
-  asm volatile ("sfence" ::: "memory");
+  asm volatile ("" ::: "memory");
 }
 
 int sendm(struct BarrierTask *data) {
@@ -720,7 +720,7 @@ int sendm(struct BarrierTask *data) {
         
         struct Data *them = data->mailboxes[n].higher;
         data->mailboxes[n].counter++;
-        if (data->mailboxes[n].counter < limit) {
+        if (data->mailboxes[n].kind == MAILBOX_FOREIGN && data->mailboxes[n].counter < limit) {
           continue;
         }
         if (them->messages_count > 0) {
@@ -758,7 +758,7 @@ int sendm(struct BarrierTask *data) {
           // printf("swapping\n");
         }
       }
-      asm volatile ("sfence" ::: "memory");
+      asm volatile ("" ::: "memory");
   return 0;
 }
 
@@ -897,7 +897,7 @@ int barriered_work(struct BarrierTask *data) {
     // printf("%d %d\n", data->thread->group_data->arrived, data->thread->group_data->seq);
     // printf("%d\n", data->arrived);
     if (data->thread_index == 0 && data->thread->global->request_group_sync == -1 && data->thread->group == 0 && data->arrived % 100000 == 0) {
-      // printf("%d Starting group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
+      // printf("%d Starting ask group sync from %d\n", data->thread->group, data->thread->global->request_group_sync);
       data->thread->global->request_thread_sync = 0;
       data->thread->global->request_group_sync = 0;
     } else
@@ -1168,7 +1168,7 @@ int barriered_work(struct BarrierTask *data) {
         */ 
 
         receive(data);
-        asm volatile ("sfence" ::: "memory");
+        asm volatile ("" ::: "memory");
           // printf("move my %d lower to next %d lower\n",data->task_index, next_task);
 
 
@@ -1179,7 +1179,7 @@ int barriered_work(struct BarrierTask *data) {
       while (data->scheduled == 1) {
         data->n++;
         data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
-        asm volatile ("sfence" ::: "memory");
+        asm volatile ("" ::: "memory");
       } 
     
       if (modcount != data->thread->protected_state->modcount) {
@@ -1193,7 +1193,7 @@ int barriered_work(struct BarrierTask *data) {
       
       while (data->scheduled == 1) {
         data->n++;
-        asm volatile ("sfence" ::: "memory");
+        asm volatile ("" ::: "memory");
       }
       sendm(data);
     }
@@ -1203,7 +1203,7 @@ int barriered_work(struct BarrierTask *data) {
         }
     }
     data->swap = 0;
-    asm volatile ("sfence" ::: "memory");
+    asm volatile ("" ::: "memory");
     
     return 0;
     } else {
@@ -1300,7 +1300,7 @@ void* barriered_thread(void *arg) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->end[data->timestamp_count]);
             data->timestamp_count = data->timestamp_count + 1;
           }
-          asm volatile ("sfence" ::: "memory");
+          asm volatile ("" ::: "memory");
           if (waiting == 0) {
             data->task_snapshot[data->task_timestamp_count].task = t;
             clock_gettime(CLOCK_MONOTONIC_RAW, &data->task_snapshot[data->task_timestamp_count].task_start);
@@ -1353,7 +1353,7 @@ void* timer_thread(void *arg) {
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
     }
-    asm volatile ("mfence" ::: "memory");
+    asm volatile ("" ::: "memory");
     y++;
     if (y >= data->threads[0]->task_count) {
       y = 0;
@@ -1367,7 +1367,7 @@ void* timer_thread(void *arg) {
       data->threads[x]->tasks[y].sending = 0;
     }
   }
-  asm volatile ("mfence" ::: "memory");
+  asm volatile ("" ::: "memory");
 
   int drained = 0;  
   struct timespec drainrem;
@@ -1382,7 +1382,7 @@ void* timer_thread(void *arg) {
         data->threads[x]->tasks[next].scheduled = 1;
         data->threads[x]->tasks[y].scheduled = 0;
     }
-    asm volatile ("mfence" ::: "memory");
+    asm volatile ("" ::: "memory");
     y++;
     if (y >= data->threads[0]->task_count) {
       y = 0;
@@ -1437,7 +1437,7 @@ void* timer_thread(void *arg) {
         data->threads[x]->tasks[y].scheduled = 0;
       }
     }
-    asm volatile ("mfence" ::: "memory");
+    asm volatile ("" ::: "memory");
     printf("Slept \n");
     data->running = 0;
   }
@@ -1464,12 +1464,12 @@ void * external_thread(void *arg) {
 					data->buffers[b]->buffer[x].data = "Hello world";
 					clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers[b]->buffer[x].snapshots[data->buffers[b]->buffer[x].ingest_snapshot].start);
 					data->buffers[b]->buffer[x].available = 1;
-          asm volatile ("sfence" ::: "memory");
 					created++;
 				}
      }
     }
     // printf("Created %d items\n", created);
+    asm volatile ("" ::: "memory");
   }
   return 0; 
 }
@@ -1515,7 +1515,7 @@ int barriered_reset(struct BarrierTask *data) {
     // printf("Finished group %d\n", data->thread->global->request_group_sync); 
     data->thread->global->request_group_sync = -1;
   }
-  asm volatile ("sfence" ::: "memory");
+  asm volatile ("" ::: "memory");
   return 0;
 }
 
