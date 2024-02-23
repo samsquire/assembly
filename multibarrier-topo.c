@@ -1211,6 +1211,7 @@ void* barriered_thread(void *arg) {
         int prearrive = 0; 
         int grouparrived = 0;
         int groupprearrived = 0;
+        
         for (int thread = 0 ; thread < data->thread_count; thread++) {
           // printf("thread %d does %d %d %d == %d\n", data->thread_index, t, previous, data->threads[thread]->tasks[previous].arrived, data->tasks[t].arrived);
           if (data->threads[thread]->tasks[previous].arrived == data->tasks[t].arrived) {
