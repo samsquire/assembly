@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-luring -lm -O3
+CFLAGS=-luring -lm -O3 -g
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
