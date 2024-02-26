@@ -327,6 +327,12 @@ struct Write {
 struct SendUserData {
   int kind;
   void * data;
+  struct epoll_event *event;
+};
+
+struct ReadyWriting {
+  int client_socket;
+  struct epoll_event *event;
 };
 
 int minf(int a, int b) {
@@ -457,6 +463,7 @@ int add_write_request(struct KernelThread *data, struct Buffers *buffers, struct
     req->event_type = EVENT_TYPE_WRITE;
     write->client_socket = req->client_socket;
     write->request = req;
+    printf("sending write\n");
     buffersend(data, &data->iomailboxes[data->other_io], IO_WRITE, write);
     return 0;
 }
@@ -636,6 +643,17 @@ void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *bu
 
   return 0;
 }
+int wait_for_new_client(struct KernelThread *data, int nonblocking) {
+  // printf("%s: waiting for new client\n", data->identity);
+  void * _newclient;
+  struct Buffer* newclient = bufferrecv("clientwait", data, &data->iomailboxes[data->my_io], IO_NEW_CLIENT, &_newclient, nonblocking);
+  if (newclient == NULL) {
+    return -1;
+  }
+  struct NewClientMessage *newclientmsg = newclient->data;
+  // printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
+  return newclientmsg->socket;
+}
 
 void* io_thread(void *arg) {
   int port = 6363;
@@ -709,7 +727,6 @@ void* io_thread(void *arg) {
           printf("Received stop event\n");
           break;
         }
-        printf("Received wait finished\n");
         struct Request *req = (struct Request *) cqe->user_data;
         if (ret < 0)
             fatal_error("io_uring_wait_cqe");
@@ -721,13 +738,14 @@ void* io_thread(void *arg) {
 
         switch (req->event_type) {
             case EVENT_TYPE_ACCEPT:
+                printf("Accepted connection socket %d\n", cqe->res);
                 add_accept_request(sock, &client_addr, &client_addr_len, &ring);
                 struct NewClientMessage *newclientmsg = calloc(1, sizeof(struct NewClientMessage));
                 newclientmsg->socket = cqe->res;
                 buffersend(data, &data->iomailboxes[data->other_io], IO_NEW_CLIENT, newclientmsg);
                 printf("%s: sending newclientmessage\n", data->identity);
                 add_read_request(data, &data->iomailboxes[data->other_io], cqe->res, &ring);
-                free(req);
+                // free(req);
                 break;
             case EVENT_TYPE_READ:
                 if (!cqe->res) {
@@ -747,7 +765,7 @@ void* io_thread(void *arg) {
                 break;
         }
         /* Mark this request as processed */
-        io_uring_cqe_seen(&ring, cqe);
+          io_uring_cqe_seen(&ring, cqe);
         struct io_uring_sqe *sqe= io_uring_get_sqe(&ring);
           io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
           io_uring_sqe_set_data(sqe, &data->_eventfd); 
@@ -778,14 +796,9 @@ void* io_thread(void *arg) {
     int sock = msg->socket;
       
     struct io_uring_cqe *cqe;
-    struct epoll_event ev;
 
-    printf("%s: waiting for new client\n", data->identity);
-    void * _newclient;
-    struct Buffer* newclient = bufferrecv("clientwait", data, &data->iomailboxes[data->my_io], IO_NEW_CLIENT, &_newclient, 0);
-    struct NewClientMessage *newclientmsg = newclient->data;
-    printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
-
+    int new_client_socket = wait_for_new_client(data, 0);
+    printf("initial client %d\n", new_client_socket);
 
     /*if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sock,
 				   &ev) == -1) {
@@ -793,8 +806,9 @@ void* io_thread(void *arg) {
 			   exit(EXIT_FAILURE);
 			   }
     */
-    ev.events = EPOLLOUT;
-    ev.data.fd = newclientmsg->socket;
+    struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
+    ev->events = EPOLLOUT;
+    ev->data.fd = new_client_socket;
 
     eventfd_t dummy;
     struct iovec *iov = calloc(1, sizeof(struct iovec));
@@ -802,26 +816,55 @@ void* io_thread(void *arg) {
     iov->iov_len = 10;
     struct SendUserData *eventfdstop = calloc(1, sizeof(struct SendUserData));
     eventfdstop->kind = 3; 
-    struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
-    readywriting->kind = 4; 
     struct SendUserData *removed = calloc(1, sizeof(struct SendUserData));
     removed->kind = 7; 
 
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-          io_uring_prep_epoll_ctl(sqe, epollfd, newclientmsg->socket, EPOLL_CTL_ADD, &ev);
+          io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
+
+          struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
+          readywriting->kind = 4; 
+          struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
+          rr->client_socket = new_client_socket; 
+          readywriting->data = rr; 
+          readywriting->event = ev; 
           io_uring_sqe_set_data(sqe, readywriting); 
           io_uring_submit(&ring);
 
           io_uring_prep_readv(sqe, epollfd, iov, 1, 0);
-          io_uring_sqe_set_data(sqe, readywriting); 
+          io_uring_sqe_set_data(sqe, eventfdstop); 
           io_uring_submit(&ring);
 
+    int clients = 1;
     while (data->running == 1) {
         // printf("Looping send server...\n"); 
+        int new_client_socket = wait_for_new_client(data, 1);
+        // printf("newclien %d\n", new_client_socket);
+        if (new_client_socket != -1) {
+          printf("got new client %d\n", new_client_socket);
+          struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
+          ev->events = EPOLLOUT;
+          ev->data.fd = new_client_socket;
+
+          struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
+          readywriting->kind = 4; 
+          readywriting->event = ev;
+          struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
+          rr->client_socket = new_client_socket; 
+          readywriting->data = rr; 
+          struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+          io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
+          io_uring_sqe_set_data(sqe, readywriting); 
+          io_uring_submit(&ring);
+          clients++;
+        }
+        // printf("Waiting...\n");
+        if (clients == 0) { continue; }
         int ret = io_uring_wait_cqe(&ring, &cqe);
+        printf("After wait...");
         printf("kind %d\n", ((struct SendUserData*) cqe->user_data)->kind);
 
-        if (((struct SendUserData*) cqe->user_data)->kind == eventfdstop->kind) {
+        if (((struct SendUserData*) cqe->user_data)->kind == 3) {
           io_uring_cqe_seen(&ring, cqe);
           printf("Received stop event\n");
           break;
@@ -829,34 +872,61 @@ void* io_thread(void *arg) {
         // printf("Received send wait finished\n");
         // struct epoll_event *events = (struct epoll_event*) cqe->user_data;
         // printf("%x\n", cqe->flags);
-        if (((struct SendUserData*) cqe->user_data)->kind == readywriting->kind) {
+        if (((struct SendUserData*) cqe->user_data)->kind == 4) {
           void * _send;
-          
+          // printf("readywriting\n"); 
+          struct SendUserData *readywriting = ((struct SendUserData*) cqe->user_data);
+          struct ReadyWriting *rr = readywriting->data;
           struct Buffer *send = bufferrecv("write", data, &data->iomailboxes[data->my_io], IO_WRITE, &_send, 1);
-          if (send == NULL) {
+          if (send != NULL) {
+            printf("data is to write\n");
+            struct Write *write = send->data;
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+            struct Request *req = write->request;
+            req->event_type = EVENT_TYPE_WRITE;
+            io_uring_prep_writev(sqe, rr->client_socket, req->iov, req->iovec_count, 0);
+            
+            struct SendUserData *finishedwrite = calloc(1, sizeof(struct SendUserData));
+            finishedwrite->kind = 5; 
+            finishedwrite->data = req;
+            finishedwrite->event = readywriting->event;
+            io_uring_sqe_set_data(sqe, finishedwrite);
+            io_uring_submit(&ring);
+            io_uring_cqe_seen(&ring, cqe);
+            printf("submitted write\n");
+            {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+              io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
+              io_uring_sqe_set_data(sqe, eventfdstop); 
+              io_uring_submit(&ring);
+            }
             continue;
+          } else {
+            // io_uring_cqe_seen(&ring, cqe);
+            
+            // printf("no data to write for socket %d\n", rr->client_socket);
           }
-          struct Write *write = send->data;
-          struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-          struct Request *req = write->request;
-          req->event_type = EVENT_TYPE_WRITE;
-          io_uring_prep_writev(sqe, req->client_socket, req->iov, req->iovec_count, 0);
-          
-          struct SendUserData *finishedwrite = calloc(1, sizeof(struct SendUserData));
-          readywriting->kind = 5; 
-          readywriting->data = req;
-          io_uring_sqe_set_data(sqe, finishedwrite);
+          int ss = rr->client_socket;
+          /*
+          io_uring_prep_epoll_ctl(sqe, epollfd, ss, EPOLL_CTL_ADD, ev);
+
+          struct SendUserData *readywriting2 = calloc(1, sizeof(struct SendUserData));
+          readywriting2->kind = 4; 
+          struct ReadyWriting *rrp = calloc(1, sizeof(struct ReadyWriting));
+          rrp->client_socket = new_client_socket; 
+          readywriting2->data = rrp; 
+          io_uring_sqe_set_data(sqe, readywriting2); 
           io_uring_submit(&ring);
-          printf("submitted write\n");
+          io_uring_cqe_seen(&ring, cqe);
+          */
         }
         if (((struct SendUserData*) cqe->user_data)->kind == 5) { 
           printf("events %ld\n", (long) cqe->user_data);
           printf("something happened\n");
-          io_uring_cqe_seen(&ring, cqe);
           struct Request *req = ((struct SendUserData *) cqe->user_data)->data;
           if (ret < 0)
               fatal_error("io_uring_wait_cqe");
-          printf("%d", cqe->res);
+          printf("res %d\n", cqe->res);
           if (cqe->res < 0) {
               fprintf(stderr, "Async request failed: %s for event: %d\n",
                       strerror(-cqe->res), req->event_type);
@@ -871,29 +941,37 @@ void* io_thread(void *arg) {
                   }
                   // handle_client_request(req, &ring);
                   free(req->iov[0].iov_base);
-                  free(req);
+                  // free(req);
                   break;
               case EVENT_TYPE_WRITE:
                   for (int i = 0; i < req->iovec_count; i++) {
                       free(req->iov[i].iov_base);
                   }
-                  close(req->client_socket);
-                  free(req);
-                  io_uring_prep_epoll_ctl(sqe, epollfd, newclientmsg->socket, EPOLL_CTL_DEL, &ev);
+                  printf("Freed request %d\n", req->client_socket);
+                  clients--;
+                  io_uring_prep_epoll_ctl(sqe, epollfd, req->client_socket, EPOLL_CTL_DEL, readywriting->event);
                   io_uring_sqe_set_data(sqe, removed); 
                   io_uring_submit(&ring);
+                  close(req->client_socket);
+                  free(req);
                   break;
           }
+            io_uring_cqe_seen(&ring, cqe);
           }
           /* Mark this request as processed */
-          io_uring_cqe_seen(&ring, cqe);
 
+          if (((struct SendUserData*) cqe->user_data)->kind == 7) { 
+            io_uring_cqe_seen(&ring, cqe);
+            printf("removal\n");
+          }
           struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+
 
           io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
           io_uring_sqe_set_data(sqe, eventfdstop); 
           io_uring_submit(&ring);
       }
+      printf("sendloopbroken\n");
   }
   
   printf("Finished io thread\n");
@@ -2342,7 +2420,7 @@ int main() {
     thread_data[x].iomailboxes = iomailboxes; 
     printf("%d myring %d other is %d\n", x, myring, otherring);
     thread_data[x].ring = rings[myring]; 
-    int myeventfd = eventfd(counter++, EFD_NONBLOCK);
+    int myeventfd = eventfd(0, EFD_NONBLOCK);
     thread_data[x]._eventfd = myeventfd; 
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
     for (int n = 0 ; n < thread_count ; n++) {
