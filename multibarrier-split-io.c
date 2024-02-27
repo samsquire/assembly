@@ -71,7 +71,7 @@ SOFTWARE.
 #define IO 2
 #define EXTERNAL 3
 
-#define DURATION 25
+#define DURATION 10000
 #define TICK 1000000L
 
 #define QUEUE_DEPTH             256
@@ -98,7 +98,7 @@ SOFTWARE.
 #define IO_NEW_SOCKET 0
 #define IO_NEW_SOCKET_REPLY 1
 #define IO_NEW_CLIENT 2
-#define IO_WRITE 2
+#define IO_WRITE 3
 
 struct Coroutine {
   char * pos; // %rip
@@ -143,17 +143,19 @@ struct Buffers {
 };
 struct Buffer {
   void * data; 
-  int available __attribute__((aligned (128)));
+  int available;
   struct Snapshot *snapshots;
   int snapshot_limit;
   int ingest_snapshot;
   int kind;
+  int filter;
 };
 
 struct Request {
     int event_type;
     int iovec_count;
     int client_socket;
+    int sockettoken;
     struct iovec iov[];
 };
 
@@ -271,6 +273,8 @@ struct KernelThread {
   struct Buffers **iobuffers;
   struct io_uring *ring;
   int _eventfd;
+  int dataeventfd;
+  int otherdataeventfd;
   struct timespec *start;
   struct timespec *end;
   long iteration_count;
@@ -297,6 +301,7 @@ struct KernelThread {
   int other_io;
   int my_io;
   char * identity;
+  int sockettoken;
 };
 
 struct ProtectedState {
@@ -318,21 +323,25 @@ struct NewSocketReply {
 };
 struct NewClientMessage {
   int socket;
+  int sockettoken;
 };
 struct Write {
   struct Request *request;
   int client_socket;
+  int sockettoken;
 };
 
 struct SendUserData {
   int kind;
   void * data;
   struct epoll_event *event;
+  int sockettoken;
 };
 
 struct ReadyWriting {
   int client_socket;
   struct epoll_event *event;
+  int sockettoken;
 };
 
 int minf(int a, int b) {
@@ -347,6 +356,7 @@ int maxf(int a, int b) {
 }
 
 int buffersend(struct KernelThread *data, struct Buffers *buffers, int kind, void * send);
+int buffersend_filter(struct KernelThread *data, struct Buffers *buffers, int kind, void * send, int filter);
 void fatal_error(const char *syscall) {
     perror(syscall);
     exit(1);
@@ -462,13 +472,18 @@ int add_write_request(struct KernelThread *data, struct Buffers *buffers, struct
     struct Write *write = calloc(1, sizeof(struct Write));
     req->event_type = EVENT_TYPE_WRITE;
     write->client_socket = req->client_socket;
+    write->sockettoken = req->sockettoken;
+    if (write->client_socket == -1) {
+      printf("add_write_request error socket no");
+      exit(1);
+    }
     write->request = req;
-    printf("sending write\n");
-    buffersend(data, &data->iomailboxes[data->other_io], IO_WRITE, write);
+    // printf("writesend sending write to %d token %d\n", req->client_socket, req->sockettoken);
+    buffersend_filter(data, &data->iomailboxes[data->other_io], IO_WRITE, write, write->sockettoken);
     return 0;
 }
 
-int add_read_request(struct KernelThread *data, struct Buffers *buffers, int client_socket, struct io_uring *ring) {
+int add_read_request(struct KernelThread *data, struct Buffers *buffers, int client_socket, int sockettoken, struct io_uring *ring) {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
         
@@ -477,6 +492,7 @@ int add_read_request(struct KernelThread *data, struct Buffers *buffers, int cli
     req->iov[0].iov_len = READ_SZ;
     req->event_type = EVENT_TYPE_READ;
     req->client_socket = client_socket;
+    req->sockettoken = sockettoken;
     memset(req->iov[0].iov_base, 0, READ_SZ);
     /* Linux kernel 5.5 has support for readv, but not for recv() or read() */
     io_uring_prep_readv(sqe, client_socket, &req->iov[0], 1, 0);
@@ -484,25 +500,30 @@ int add_read_request(struct KernelThread *data, struct Buffers *buffers, int cli
     io_uring_submit(ring);
     return 0;
 }
-void _send_static_string_content(struct KernelThread *data, struct Buffers *buffers, const char *str, int client_socket, struct io_uring *ring) {
+void _send_static_string_content(struct KernelThread *data, struct Buffers *buffers, const char *str, int client_socket, int sockettoken, struct io_uring *ring) {
     struct Request *req = zh_malloc(sizeof(*req) + sizeof(struct iovec));
     unsigned long slen = strlen(str);
     req->iovec_count = 1;
     req->client_socket = client_socket;
+    req->sockettoken = sockettoken;
+    if (req->client_socket == -1) {
+      printf("send static client socket -1\n");
+      exit(1);
+    }
     req->iov[0].iov_base = zh_malloc(slen);
     req->iov[0].iov_len = slen;
     memcpy(req->iov[0].iov_base, str, slen);
-    printf("%s\n", str);
+    // printf("%s\n", str);
     add_write_request(data, buffers, req, ring);
 }
-void handle_unimplemented_method(struct KernelThread *data, struct Buffers *buffers, int client_socket, struct io_uring *ring) {
-    _send_static_string_content(data, buffers, unimplemented_content, client_socket, ring);
+void handle_unimplemented_method(struct KernelThread *data, struct Buffers *buffers, int client_socket, int sockettoken, struct io_uring *ring) {
+    _send_static_string_content(data, buffers, unimplemented_content, client_socket, sockettoken, ring);
 }
-void handle_http_404(struct KernelThread *data, struct Buffers *buffers, int client_socket, struct io_uring *ring) {
-    _send_static_string_content(data, buffers, http_404_content, client_socket, ring);
+void handle_http_404(struct KernelThread *data, struct Buffers *buffers, int client_socket, int sockettoken, struct io_uring *ring) {
+    _send_static_string_content(data, buffers, http_404_content, client_socket, sockettoken, ring);
 }
 
-void handle_get_method(struct KernelThread *data, struct Buffers *buffers, char *path, int client_socket, struct io_uring *ring) {
+void handle_get_method(struct KernelThread *data, struct Buffers *buffers, char *path, int client_socket, int sockettoken, struct io_uring *ring) {
     char final_path[1024];
 
     /*
@@ -522,8 +543,8 @@ void handle_get_method(struct KernelThread *data, struct Buffers *buffers, char 
      * like type (regular file, directory, etc), size, etc. */
     struct stat path_stat;
     if (stat(final_path, &path_stat) == -1) {
-        printf("404 Not Found: %s (%s)\n", final_path, path);
-        handle_http_404(data, buffers, client_socket, ring);
+        // printf("404 Not Found: %s (%s)\n", final_path, path);
+        handle_http_404(data, buffers, client_socket, sockettoken, ring);
     }
     else {
         /* Check if this is a normal/regular file and not a directory or something else */
@@ -531,19 +552,20 @@ void handle_get_method(struct KernelThread *data, struct Buffers *buffers, char 
             struct Request *req = zh_malloc(sizeof(*req) + (sizeof(struct iovec) * 6));
             req->iovec_count = 6;
             req->client_socket = client_socket;
+            req->sockettoken = sockettoken;
             send_headers(data, buffers, final_path, path_stat.st_size, req->iov);
             copy_file_contents(final_path, path_stat.st_size, &req->iov[5]);
-            printf("200 %s %ld bytes\n", final_path, path_stat.st_size);
+            // printf("200 %s %ld bytes\n", final_path, path_stat.st_size);
             add_write_request(data, buffers, req, ring);
         }
         else {
-            handle_http_404(data, buffers, client_socket, ring);
-            printf("404 Not Found: %s\n", final_path);
+            handle_http_404(data, buffers, client_socket, sockettoken, ring);
+            // printf("404 Not Found: %s\n", final_path);
         }
     }
 }
 
-void handle_http_method(struct KernelThread *data, struct Buffers *buffers, char *method_buffer, int client_socket, struct io_uring *ring) {
+void handle_http_method(struct KernelThread *data, struct Buffers *buffers, char *method_buffer, int client_socket, int sockettoken, struct io_uring *ring) {
     char *method, *path, *saveptr;
 
     method = strtok_r(method_buffer, " ", &saveptr);
@@ -551,10 +573,10 @@ void handle_http_method(struct KernelThread *data, struct Buffers *buffers, char
     path = strtok_r(NULL, " ", &saveptr);
 
     if (strcmp(method, "get") == 0) {
-        handle_get_method(data, buffers, path, client_socket, ring);
+        handle_get_method(data, buffers, path, client_socket, sockettoken, ring);
     }
     else {
-        handle_unimplemented_method(data, buffers, client_socket, ring);
+        handle_unimplemented_method(data, buffers, client_socket, sockettoken, ring);
     }
 }
 
@@ -576,7 +598,7 @@ int handle_client_request(struct KernelThread *data, struct Buffers *buffers, st
         fprintf(stderr, "Malformed request\n");
         exit(1);
     }
-    handle_http_method(data, buffers, http_request, req->client_socket, ring);
+    handle_http_method(data, buffers, http_request, req->client_socket, req->sockettoken, ring);
     return 0;
 }
 
@@ -599,7 +621,7 @@ int buffersend(struct KernelThread *data, struct Buffers *buffers, int kind, voi
       for (int x = 0 ; x < buffers->count ; x++) {
         // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
         if (buffers->buffer[x].available == 0) {
-          printf("%s Send %d\n", data->identity, buffers->buffer[x].kind);
+          // printf("%s Send %d\n", data->identity, kind);
           // clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
           // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
           buffers->buffer[x].data = send;
@@ -613,15 +635,37 @@ int buffersend(struct KernelThread *data, struct Buffers *buffers, int kind, voi
 
   return 0;
 }
+int buffersend_filter(struct KernelThread *data, struct Buffers *buffers, int kind, void * send, int filter) {
 
-void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking) {
+  while (data->running == 1) {
+      asm volatile ("" ::: "memory");
+      for (int x = 0 ; x < buffers->count ; x++) {
+        // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+        if (buffers->buffer[x].available == 0) {
+          // printf("%s Send %d\n", data->identity, kind);
+          // clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
+          // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
+          buffers->buffer[x].data = send;
+          buffers->buffer[x].kind = kind;
+          buffers->buffer[x].filter = filter;
+          buffers->buffer[x].available = 1;
+          return 0;
+        } else {
+        }
+  }
+  }
+
+  return 0;
+}
+
+void * bufferrecv_filter(char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking, int filter) {
 
   while (data->running == 1) {
       for (int x = 0 ; x < buffers->count ; x++) {
-        // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+        // printf("Checking buffer %d\n", x);
         if (buffers->buffer[x].available == 1) {
-          printf("%s: %s Recv %d\n", data->identity, recvkind, buffers->buffer[x].kind);
-          if (buffers->buffer[x].kind == kind) {
+          // printf("%s: %s Recv %d %d filter %d wanted %d\n", data->identity, recvkind, kind, buffers->buffer[x].kind, buffers->buffer[x].filter, filter);
+          if (buffers->buffer[x].kind == kind && buffers->buffer[x].filter == filter) {
             // clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
             // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
 
@@ -631,10 +675,9 @@ void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *bu
             reply->kind = buffers->buffer[x].kind;
             // *send = reply;
             buffers->buffer[x].available = 0;
-            asm volatile ("" ::: "memory");
+            asm volatile ("mfence" ::: "memory");
             return reply;
           }
-          break;
         } else {
         }
      } 
@@ -643,16 +686,44 @@ void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *bu
 
   return 0;
 }
-int wait_for_new_client(struct KernelThread *data, int nonblocking) {
+void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking) {
+
+  while (data->running == 1) {
+      for (int x = 0 ; x < buffers->count ; x++) {
+        // printf("Checking buffer %d\n", data->thread->buffers->buffer[x].available);
+        if (buffers->buffer[x].available == 1) {
+          if (buffers->buffer[x].kind == kind) {
+            // printf("%s: %s Recv %d\n", data->identity, recvkind, buffers->buffer[x].kind);
+            // clock_gettime(CLOCK_MONOTONIC_RAW, &data->thread->buffers[b]->buffer[x].snapshots[data->thread->buffers[b]->buffer[x].ingest_snapshot].end);
+            // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
+
+            // we copy the pointer data
+            struct Buffer * reply = calloc(1, sizeof(struct Buffer));
+            reply->data = buffers->buffer[x].data;
+            reply->kind = buffers->buffer[x].kind;
+            // *send = reply;
+            buffers->buffer[x].available = 0;
+            asm volatile ("sfence" ::: "memory");
+            return reply;
+          }
+        } else {
+        }
+     } 
+     if (nonblocking == 1) { return NULL; }
+  }
+
+  return 0;
+}
+struct NewClientMessage * wait_for_new_client(struct KernelThread *data, int nonblocking) {
   // printf("%s: waiting for new client\n", data->identity);
   void * _newclient;
   struct Buffer* newclient = bufferrecv("clientwait", data, &data->iomailboxes[data->my_io], IO_NEW_CLIENT, &_newclient, nonblocking);
   if (newclient == NULL) {
-    return -1;
+    return NULL;
   }
   struct NewClientMessage *newclientmsg = newclient->data;
   // printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
-  return newclientmsg->socket;
+  return newclientmsg;
 }
 
 void* io_thread(void *arg) {
@@ -661,9 +732,10 @@ void* io_thread(void *arg) {
   
   struct io_uring ring = *data->ring;
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-  io_uring_register_eventfd(data->ring, 0);
+  io_uring_register_eventfd(data->ring, data->_eventfd);
 
   if (data->io_mode == IO_MODE_RECV) {
+    
     int sock;
     struct sockaddr_in srv_addr;
 
@@ -713,14 +785,14 @@ void* io_thread(void *arg) {
 
     eventfd_t dummy;
     struct iovec *iov = calloc(1, sizeof(struct iovec));
-    iov->iov_base = zh_malloc(10);
-    iov->iov_len = 10;
+    iov->iov_base = zh_malloc(1000);
+    iov->iov_len = 1000;
     struct io_uring_sqe *sqe= io_uring_get_sqe(&ring);
           io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
           io_uring_sqe_set_data(sqe, &data->_eventfd); 
     io_uring_submit(&ring);
     while (data->running == 1) {
-        printf("Looping read server...\n"); 
+        // printf("Looping read server...\n"); 
         int ret = io_uring_wait_cqe(&ring, &cqe);
         if (cqe->user_data == 1) {
           io_uring_cqe_seen(&ring, cqe);
@@ -733,35 +805,35 @@ void* io_thread(void *arg) {
         if (cqe->res < 0) {
             fprintf(stderr, "Async request failed: %s for event: %d\n",
                     strerror(-cqe->res), req->event_type);
-            exit(1);
+            io_uring_cqe_seen(&ring, cqe);
+            continue;
         }
 
         switch (req->event_type) {
             case EVENT_TYPE_ACCEPT:
-                printf("Accepted connection socket %d\n", cqe->res);
+                // printf("Accepted connection socket %d\n", cqe->res);
                 add_accept_request(sock, &client_addr, &client_addr_len, &ring);
                 struct NewClientMessage *newclientmsg = calloc(1, sizeof(struct NewClientMessage));
                 newclientmsg->socket = cqe->res;
+                data->sockettoken++;
+                newclientmsg->sockettoken = data->sockettoken;
                 buffersend(data, &data->iomailboxes[data->other_io], IO_NEW_CLIENT, newclientmsg);
-                printf("%s: sending newclientmessage\n", data->identity);
-                add_read_request(data, &data->iomailboxes[data->other_io], cqe->res, &ring);
+                // printf("%s: sending newclientmessage\n", data->identity);
+                add_read_request(data, &data->iomailboxes[data->other_io], cqe->res, data->sockettoken, &ring);
+                // printf("WRITING TO OTHER FD %d\n", data->otherdataeventfd);
                 // free(req);
                 break;
             case EVENT_TYPE_READ:
+
                 if (!cqe->res) {
                     fprintf(stderr, "Empty request!\n");
+                    // add_read_request(data, &data->iomailboxes[data->other_io], cqe->res, data->sockettoken, &ring);
                     break;
                 }
                 handle_client_request(data, &data->iomailboxes[data->other_io], req, &ring);
-                free(req->iov[0].iov_base);
-                free(req);
-                break;
-            case EVENT_TYPE_WRITE:
-                for (int i = 0; i < req->iovec_count; i++) {
-                    free(req->iov[i].iov_base);
-                }
-                close(req->client_socket);
-                free(req);
+                eventfd_write(data->otherdataeventfd, 0);
+                // free(req->iov[0].iov_base);
+                // free(req);
                 break;
         }
         /* Mark this request as processed */
@@ -797,7 +869,11 @@ void* io_thread(void *arg) {
       
     struct io_uring_cqe *cqe;
 
-    int new_client_socket = wait_for_new_client(data, 0);
+    struct NewClientMessage *newclient_message = wait_for_new_client(data, 0);
+    int new_client_socket = newclient_message->socket;
+    if (new_client_socket == -1) {
+      exit(1); 
+    }
     printf("initial client %d\n", new_client_socket);
 
     /*if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sock,
@@ -819,6 +895,8 @@ void* io_thread(void *arg) {
     struct SendUserData *removed = calloc(1, sizeof(struct SendUserData));
     removed->kind = 7; 
 
+    io_uring_register_eventfd(data->ring, data->dataeventfd);
+   
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
           io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
 
@@ -826,43 +904,63 @@ void* io_thread(void *arg) {
           readywriting->kind = 4; 
           struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
           rr->client_socket = new_client_socket; 
+          rr->sockettoken = newclient_message->sockettoken; 
           readywriting->data = rr; 
           readywriting->event = ev; 
           io_uring_sqe_set_data(sqe, readywriting); 
           io_uring_submit(&ring);
 
-          io_uring_prep_readv(sqe, epollfd, iov, 1, 0);
-          io_uring_sqe_set_data(sqe, eventfdstop); 
-          io_uring_submit(&ring);
+
+
+    struct SendUserData *dataavailable = calloc(1, sizeof(struct SendUserData));
+    dataavailable->kind = 8; 
+    printf("MY DATA EVENT FD %d\n", data->dataeventfd);
+    {
+    struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+    io_uring_prep_readv(sqe, data->dataeventfd, iov, 1, 0);
+    io_uring_sqe_set_data(sqe, dataavailable); 
+    io_uring_submit(&ring);
+    }
 
     int clients = 1;
     while (data->running == 1) {
         // printf("Looping send server...\n"); 
-        int new_client_socket = wait_for_new_client(data, 1);
+        
+        int new_client_socket = 0;
+        struct NewClientMessage *ncm = NULL;
+        while (data->running == 1 && ((ncm = wait_for_new_client(data, 1)) != NULL) && (new_client_socket = ncm->socket)) {
         // printf("newclien %d\n", new_client_socket);
-        if (new_client_socket != -1) {
-          printf("got new client %d\n", new_client_socket);
-          struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
-          ev->events = EPOLLOUT;
-          ev->data.fd = new_client_socket;
+          if (new_client_socket != -1) {
+            struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
+            ev->events = EPOLLOUT;
+            ev->data.fd = new_client_socket;
 
-          struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
-          readywriting->kind = 4; 
-          readywriting->event = ev;
-          struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
-          rr->client_socket = new_client_socket; 
-          readywriting->data = rr; 
-          struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-          io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
-          io_uring_sqe_set_data(sqe, readywriting); 
-          io_uring_submit(&ring);
-          clients++;
+            struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
+            readywriting->kind = 4; 
+            readywriting->event = ev;
+            readywriting->sockettoken = ncm->sockettoken;
+            struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
+            rr->client_socket = new_client_socket; 
+            rr->sockettoken = ncm->sockettoken; 
+            readywriting->data = rr; 
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+            io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
+            io_uring_sqe_set_data(sqe, readywriting); 
+            io_uring_submit(&ring);
+            // printf("got new client %d token %d\n", new_client_socket, ncm->sockettoken);
+            clients++;
+          }
         }
         // printf("Waiting...\n");
-        if (clients == 0) { continue; }
-        int ret = io_uring_wait_cqe(&ring, &cqe);
-        printf("After wait...");
-        printf("kind %d\n", ((struct SendUserData*) cqe->user_data)->kind);
+        // if (clients == 0) { continue; }
+        struct __kernel_timespec delay = {
+          1,
+          0
+        };
+        int ret = io_uring_wait_cqe_timeout(&ring, &cqe, &delay);
+        if (ret < 0) { continue; }
+        // printf("After wait...");
+        // printf("kind %d\n", ((struct SendUserData*) cqe->user_data)->kind);
 
         if (((struct SendUserData*) cqe->user_data)->kind == 3) {
           io_uring_cqe_seen(&ring, cqe);
@@ -872,20 +970,27 @@ void* io_thread(void *arg) {
         // printf("Received send wait finished\n");
         // struct epoll_event *events = (struct epoll_event*) cqe->user_data;
         // printf("%x\n", cqe->flags);
+        if (((struct SendUserData*) cqe->user_data)->kind == 8) {
+            // printf("Interrupted to tell about data being available\n");
+            io_uring_cqe_seen(&ring, cqe);
+        }
         if (((struct SendUserData*) cqe->user_data)->kind == 4) {
           void * _send;
-          // printf("readywriting\n"); 
           struct SendUserData *readywriting = ((struct SendUserData*) cqe->user_data);
-          struct ReadyWriting *rr = readywriting->data;
-          struct Buffer *send = bufferrecv("write", data, &data->iomailboxes[data->my_io], IO_WRITE, &_send, 1);
+          struct ReadyWriting *rr = readywriting->data; 
+          // printf("readywriting %d token %d\n", rr->client_socket, rr->sockettoken); 
+          struct Buffer *send = 0;
+          while (data->running == 1 && (send = bufferrecv_filter("write", data, &data->iomailboxes[data->my_io], IO_WRITE, &_send, 1, rr->sockettoken)) != NULL) {
           if (send != NULL) {
-            printf("data is to write\n");
+            // printf("data is to write %d\n", rr->client_socket);
             struct Write *write = send->data;
+            int client_socket = write->client_socket; 
+            // printf("%p write\n", write);
             struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
             struct Request *req = write->request;
+            // printf("req %p\n", req);
             req->event_type = EVENT_TYPE_WRITE;
-            io_uring_prep_writev(sqe, rr->client_socket, req->iov, req->iovec_count, 0);
-            
+            io_uring_prep_writev(sqe, client_socket, req->iov, req->iovec_count, 0);
             struct SendUserData *finishedwrite = calloc(1, sizeof(struct SendUserData));
             finishedwrite->kind = 5; 
             finishedwrite->data = req;
@@ -893,19 +998,53 @@ void* io_thread(void *arg) {
             io_uring_sqe_set_data(sqe, finishedwrite);
             io_uring_submit(&ring);
             io_uring_cqe_seen(&ring, cqe);
-            printf("submitted write\n");
+            // printf("submitted write\n");
             {
             struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
               io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
               io_uring_sqe_set_data(sqe, eventfdstop); 
               io_uring_submit(&ring);
             }
+          io_uring_prep_readv(sqe, epollfd, iov, 1, 0);
+          io_uring_sqe_set_data(sqe, readywriting); 
+          io_uring_submit(&ring);
             continue;
           } else {
-            // io_uring_cqe_seen(&ring, cqe);
+            // printf("not writes available yet\n");
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+              if (((struct SendUserData*) cqe->user_data)->kind == 4) {
+              struct ReadyWriting *rr = ((struct ReadyWriting*) cqe->user_data);
+              /*
+              // rearm  
+              struct SendUserData *newone = calloc(1, sizeof(struct SendUserData));
+              io_uring_prep_epoll_ctl(sqe, epollfd, rr->client_socket, EPOLL_CTL_ADD, readywriting->event);
+              newone->kind = 4; 
+              struct ReadyWriting *rr2 = calloc(1, sizeof(struct ReadyWriting));
+              rr2->client_socket = rr->client_socket; 
+              if (rr->client_socket == -1) {
+                exit(1);
+              }
+              newone->data = rr2; 
+              newone->event = readywriting->event; 
+              io_uring_sqe_set_data(sqe, newone); 
+              io_uring_submit(&ring);
+              */
+            }
             
+          io_uring_prep_readv(sqe, epollfd, iov, 1, 0);
+          io_uring_sqe_set_data(sqe, readywriting); 
+          io_uring_submit(&ring);
+          io_uring_cqe_seen(&ring, cqe);
+    {
+    struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+    io_uring_prep_readv(sqe, data->dataeventfd, iov, 1, 0);
+    io_uring_sqe_set_data(sqe, dataavailable); 
+    io_uring_submit(&ring);
+    }
             // printf("no data to write for socket %d\n", rr->client_socket);
+          break;
           }
+      }
           int ss = rr->client_socket;
           /*
           io_uring_prep_epoll_ctl(sqe, epollfd, ss, EPOLL_CTL_ADD, ev);
@@ -921,16 +1060,18 @@ void* io_thread(void *arg) {
           */
         }
         if (((struct SendUserData*) cqe->user_data)->kind == 5) { 
-          printf("events %ld\n", (long) cqe->user_data);
-          printf("something happened\n");
+          // printf("events %ld\n", (long) cqe->user_data);
+          // printf("finished write\n");
           struct Request *req = ((struct SendUserData *) cqe->user_data)->data;
           if (ret < 0)
               fatal_error("io_uring_wait_cqe");
-          printf("res %d\n", cqe->res);
+          // printf("res %d\n", cqe->res);
           if (cqe->res < 0) {
               fprintf(stderr, "Async request failed: %s for event: %d\n",
                       strerror(-cqe->res), req->event_type);
-              exit(1);
+              
+              io_uring_cqe_seen(&ring, cqe);
+              continue;
           }
 
           switch (req->event_type) {
@@ -947,9 +1088,9 @@ void* io_thread(void *arg) {
                   for (int i = 0; i < req->iovec_count; i++) {
                       free(req->iov[i].iov_base);
                   }
-                  printf("Freed request %d\n", req->client_socket);
+                  // printf("Freed request %d\n", req->client_socket);
                   clients--;
-                  io_uring_prep_epoll_ctl(sqe, epollfd, req->client_socket, EPOLL_CTL_DEL, readywriting->event);
+                  io_uring_prep_epoll_ctl(sqe, epollfd, req->client_socket, EPOLL_CTL_DEL, ((struct SendUserData *) cqe->user_data)->event);
                   io_uring_sqe_set_data(sqe, removed); 
                   io_uring_submit(&ring);
                   close(req->client_socket);
@@ -962,13 +1103,21 @@ void* io_thread(void *arg) {
 
           if (((struct SendUserData*) cqe->user_data)->kind == 7) { 
             io_uring_cqe_seen(&ring, cqe);
-            printf("removal\n");
+            // printf("removal\n");
           }
           struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
 
 
           io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
           io_uring_sqe_set_data(sqe, eventfdstop); 
+          io_uring_submit(&ring);
+
+          //io_uring_prep_readv(sqe, epollfd, iov, 1, 0);
+          //io_uring_sqe_set_data(sqe, readywriting); 
+          //io_uring_submit(&ring);
+
+          io_uring_prep_readv(sqe, data->dataeventfd, iov, 1, 0);
+          io_uring_sqe_set_data(sqe, dataavailable); 
           io_uring_submit(&ring);
       }
       printf("sendloopbroken\n");
@@ -1923,7 +2072,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 int main() {
   int core_count = 1;
   int threads_per_group = 2; // cannot be changed
-  int group_count = 3; // can be changed
+  int group_count = 1; // can be changed
   int thread_count = 2;
   int mailboxes_needed = group_count * thread_count;
   int timer_count = 1;
@@ -2387,7 +2536,7 @@ int main() {
   rings[IO_MODE_RECV] = calloc(1, sizeof(struct io_uring));
 
   struct Buffers *iomailboxes = calloc(io_threads, sizeof(struct Buffers));
-  long iomailboxes_size = 1000;
+  long iomailboxes_size = 35000;
   for (int x = 0 ; x < io_threads; x++) {
     iomailboxes[x].count = iomailboxes_size;
     iomailboxes[x].buffer = calloc(iomailboxes_size, sizeof(struct Buffer));
@@ -2401,6 +2550,11 @@ int main() {
   char * recv_identity = "recv-thread";
   char * unknown_identity = "unknown-thread";
   int counter = 0;
+
+  int dataeventfds[2];
+  dataeventfds[0] = eventfd(0, EFD_NONBLOCK);
+  dataeventfds[1] = eventfd(0, EFD_NONBLOCK);
+
   for (int x = io_index ; x < io_index + io_threads ; x++) {
     thread_data[x].type = IO;
     thread_data[x].running = 1;
@@ -2422,6 +2576,18 @@ int main() {
     thread_data[x].ring = rings[myring]; 
     int myeventfd = eventfd(0, EFD_NONBLOCK);
     thread_data[x]._eventfd = myeventfd; 
+    int otherdataeventfd = 0;
+    int datafd = 0;
+    if (x % 2 == 0) {
+      otherdataeventfd = dataeventfds[0];
+      datafd = dataeventfds[1];
+    } else {
+      otherdataeventfd = dataeventfds[1];
+      datafd = dataeventfds[0];
+    }
+    printf("my data event fd is %d other is %d\n", datafd, otherdataeventfd);
+    thread_data[x].dataeventfd = datafd; 
+    thread_data[x].otherdataeventfd = otherdataeventfd; 
     struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
