@@ -1081,12 +1081,12 @@ void* io_thread(void *arg) {
                       break;
                   }
                   // handle_client_request(req, &ring);
-                  free(req->iov[0].iov_base);
+                  // free(req->iov[0].iov_base);
                   // free(req);
                   break;
               case EVENT_TYPE_WRITE:
                   for (int i = 0; i < req->iovec_count; i++) {
-                      free(req->iov[i].iov_base);
+                      // free(req->iov[i].iov_base);
                   }
                   // printf("Freed request %d\n", req->client_socket);
                   clients--;
@@ -1094,7 +1094,7 @@ void* io_thread(void *arg) {
                   io_uring_sqe_set_data(sqe, removed); 
                   io_uring_submit(&ring);
                   close(req->client_socket);
-                  free(req);
+                  // free(req);
                   break;
           }
             io_uring_cqe_seen(&ring, cqe);
@@ -2526,8 +2526,8 @@ int main() {
       thread_data[x].type = WORKER;
       thread_data[x].running = 1;
       printf("Creating kernel worker thread %d in group %d\n", x, k);
-      pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
-      pthread_setaffinity_np(thread[x], sizeof(thread_data[x].cpu_set), thread_data[x].cpu_set);
+      // pthread_create(&thread[x], &thread_attr[x], &barriered_thread, &thread_data[x]);
+      // pthread_setaffinity_np(thread[x], sizeof(thread_data[x].cpu_set), thread_data[x].cpu_set);
     }
   }
   struct io_uring **rings = calloc(2, sizeof(struct io_uring*));
@@ -2536,7 +2536,7 @@ int main() {
   rings[IO_MODE_RECV] = calloc(1, sizeof(struct io_uring));
 
   struct Buffers *iomailboxes = calloc(io_threads, sizeof(struct Buffers));
-  long iomailboxes_size = 35000;
+  long iomailboxes_size = 10000;
   for (int x = 0 ; x < io_threads; x++) {
     iomailboxes[x].count = iomailboxes_size;
     iomailboxes[x].buffer = calloc(iomailboxes_size, sizeof(struct Buffer));
