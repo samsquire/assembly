@@ -18,6 +18,12 @@ This repository has:
 |multibarrier-prearrive-nv.c|The same multibarrier with 6 threads wait wait for eachother|
 |multibarrier-evented.c|A starbarrier, fast thread communication between thread pairs and then slower topology for forking tasks. Uses mutexes.|
 |multibarrier-evented2.c|Doesn't use mutexes.|
+|multibarrier-evented3.c|Fast. High throughput.|
+|multibarrier-evented4.c|Low latency, low throughput|
+|multibarrier-evented3-fswap.c|Does a friend swap on every superstep cycle|
+|multibarrier-evented4-fswap.c|Does a friend swap on every superstep cycle|
+|multiabrrier-split-io|Parallel io_uring, threads for sending/recving |
+
 # multithreaded nonblocking barrier-runtime
 # nonblocking-prearrive
 
@@ -38,7 +44,6 @@ Total sents 409855901
 Total receives 40985590
 ```
 
-With 12 threads for 30 seconds, 10 threads all incrementing a long can do all the following: 910 million additions, 40 million interthread sends, 2.6 million external thread ingests and 2.1 million critical sections a second.
 
 On a Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz, 1608 Mhz, 6 Core(s), 12 Logical Processor(s) CPU on Windows 11 Intel NUC inside an Lubuntu virtual machine.
 
@@ -150,7 +155,7 @@ This barrier creates the following rhythm. The threads can arrive in any order, 
 
 See [volatile considered harmful](https://www.kernel.org/doc/html/latest/process/volatile-considered-harmful.html).
 
-These algorithms use memory barriers and happens before relationships. I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
+These algorithms use compiler memory barriers and happens before relationships. I take advantage of benign data races. **If you use atomics, the program is slow**. There is a whitepaper called ["How to miscompile programs with “benign” data races"](https://www.usenix.org/legacy/events/hotpar11/tech/final_files/Boehm.pdf) There are errors reported by Thread Sanitizer. There is a **happens before** relationship between **arrived** and writes to arrived always **come from the same thread**. If they are observed by another thread the value is stale, it doesn't **seem** to affect correctness.
 
 
 
