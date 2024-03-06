@@ -66,6 +66,12 @@ SOFTWARE.
 #include <ctype.h>
 #include <sys/eventfd.h>
 #include <sched.h>
+#include <assert.h>
+#include "rocksdb/include/rocksdb/c.h"
+
+const char DBPath[] = "/tmp/rocksdb_c_simple_example";
+const char DBBackupPath[] = "/tmp/rocksdb_c_simple_example_backup";
+
 #define TIMER 0
 #define WORKER 1
 #define IO 2
@@ -77,9 +83,9 @@ SOFTWARE.
 #define QUEUE_DEPTH             256
 #define READ_SZ                 8192
 
-#define EVENT_TYPE_ACCEPT       0
-#define EVENT_TYPE_READ         1
-#define EVENT_TYPE_WRITE        2
+#define EVENT_TYPE_ACCEPT 0
+#define EVENT_TYPE_READ 1
+#define EVENT_TYPE_WRITE 2
 #define SERVER_STRING           "Server: zerohttpd/0.1\r\n"
 
 #define MAILBOX_FRIEND 1
@@ -142,7 +148,7 @@ struct Buffers {
   struct Buffer *buffer;
 };
 struct Buffer {
-  void * data; 
+  const void * data; 
   int available;
   struct Snapshot *snapshots;
   int snapshot_limit;
@@ -208,7 +214,7 @@ struct BarrierTask {
   long n; 
   long v; 
   int (*run)(struct BarrierTask*);
-  int (*protected)(struct BarrierTask*);
+  int (*protecteds)(struct BarrierTask*);
   struct KernelThread *thread;
   int thread_index;
   int thread_count;
@@ -250,7 +256,7 @@ struct Group {
 struct Global {
   int request_group_sync;
   int request_thread_sync;
-  struct ProtectedState *protected_state;
+  struct ProtectedState *protecteds_state;
 };
 
 #define KERNEL_THREAD 95
@@ -268,7 +274,7 @@ struct KernelThread {
   struct BarrierTask *tasks;
   int task_count;
   int running;
-  struct ProtectedState *protected_state;
+  struct ProtectedState *protecteds_state;
   struct Buffers **buffers;
   struct Buffers **iobuffers;
   struct io_uring *ring;
@@ -300,12 +306,12 @@ struct KernelThread {
   struct Buffers *iomailboxes;
   int other_io;
   int my_io;
-  char * identity;
+  const char * identity;
   int sockettoken;
 };
 
 struct ProtectedState {
-  long protected;
+  long protecteds;
   long balance;
   int modcount;
 };
@@ -385,9 +391,9 @@ void send_headers(struct KernelThread *data, struct Buffers *buffers, const char
     strcpy(small_case_path, path);
     strtolower(small_case_path);
 
-    char *str = "HTTP/1.0 200 OK\r\n";
+    const char *str = "HTTP/1.0 200 OK\r\n";
     unsigned long slen = strlen(str);
-    iov[0].iov_base = zh_malloc(slen);
+    iov[0].iov_base = (void*) zh_malloc(slen);
     iov[0].iov_len = slen;
     memcpy(iov[0].iov_base, str, slen);
 
@@ -422,14 +428,14 @@ void send_headers(struct KernelThread *data, struct Buffers *buffers, const char
     if (strcmp("txt", file_ext) == 0)
         strcpy(send_buffer, "Content-Type: text/plain\r\n");
     slen = strlen(send_buffer);
-    iov[2].iov_base = zh_malloc(slen);
+    iov[2].iov_base = (void*) zh_malloc(slen);
     iov[2].iov_len = slen;
     memcpy(iov[2].iov_base, send_buffer, slen);
 
     /* Send the content-length header, which is the file size in this case. */
     sprintf(send_buffer, "content-length: %ld\r\n", len);
     slen = strlen(send_buffer);
-    iov[3].iov_base = zh_malloc(slen);
+    iov[3].iov_base = (void*) zh_malloc(slen);
     iov[3].iov_len = slen;
     memcpy(iov[3].iov_base, send_buffer, slen);
 
@@ -439,14 +445,14 @@ void send_headers(struct KernelThread *data, struct Buffers *buffers, const char
      * */
     strcpy(send_buffer, "\r\n");
     slen = strlen(send_buffer);
-    iov[4].iov_base = zh_malloc(slen);
+    iov[4].iov_base = (void *) zh_malloc(slen);
     iov[4].iov_len = slen;
     memcpy(iov[4].iov_base, send_buffer, slen);
 }
 void copy_file_contents(char *file_path, off_t file_size, struct iovec *iov) {
     int fd;
 
-    char *buf = zh_malloc(file_size);
+    char *buf = (char*) zh_malloc(file_size);
     fd = open(file_path, O_RDONLY);
     if (fd < 0)
         fatal_error("read");
@@ -469,7 +475,7 @@ int add_write_request(struct KernelThread *data, struct Buffers *buffers, struct
     io_uring_sqe_set_data(sqe, req);
     io_uring_submit(ring);
     */
-    struct Write *write = calloc(1, sizeof(struct Write));
+    struct Write *write = (struct Write*) calloc(1, sizeof(struct Write));
     req->event_type = EVENT_TYPE_WRITE;
     write->client_socket = req->client_socket;
     write->sockettoken = req->sockettoken;
@@ -485,7 +491,7 @@ int add_write_request(struct KernelThread *data, struct Buffers *buffers, struct
 
 int add_read_request(struct KernelThread *data, struct Buffers *buffers, int client_socket, int sockettoken, struct io_uring *ring) {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    struct Request *req = malloc(sizeof(*req) + sizeof(struct iovec));
+    struct Request *req = (struct Request *) malloc(sizeof(*req) + sizeof(struct iovec));
         
 
     req->iov[0].iov_base = malloc(READ_SZ);
@@ -501,7 +507,7 @@ int add_read_request(struct KernelThread *data, struct Buffers *buffers, int cli
     return 0;
 }
 void _send_static_string_content(struct KernelThread *data, struct Buffers *buffers, const char *str, int client_socket, int sockettoken, struct io_uring *ring) {
-    struct Request *req = zh_malloc(sizeof(*req) + sizeof(struct iovec));
+    struct Request *req = (struct Request*) zh_malloc(sizeof(*req) + sizeof(struct iovec));
     unsigned long slen = strlen(str);
     req->iovec_count = 1;
     req->client_socket = client_socket;
@@ -510,7 +516,7 @@ void _send_static_string_content(struct KernelThread *data, struct Buffers *buff
       printf("send static client socket -1\n");
       exit(1);
     }
-    req->iov[0].iov_base = zh_malloc(slen);
+    req->iov[0].iov_base = (void*) zh_malloc(slen);
     req->iov[0].iov_len = slen;
     memcpy(req->iov[0].iov_base, str, slen);
     // printf("%s\n", str);
@@ -549,7 +555,7 @@ void handle_get_method(struct KernelThread *data, struct Buffers *buffers, char 
     else {
         /* Check if this is a normal/regular file and not a directory or something else */
         if (S_ISREG(path_stat.st_mode)) {
-            struct Request *req = zh_malloc(sizeof(*req) + (sizeof(struct iovec) * 6));
+            struct Request *req = (struct Request*) (zh_malloc(sizeof(*req) + (sizeof(struct iovec) * 6)));
             req->iovec_count = 6;
             req->client_socket = client_socket;
             req->sockettoken = sockettoken;
@@ -594,7 +600,7 @@ int get_line(const char *src, char *dest, int dest_sz) {
 int handle_client_request(struct KernelThread *data, struct Buffers *buffers, struct Request *req, struct io_uring *ring) {
     char http_request[1024];
     /* Get the first line, which will be the request */
-    if(get_line(req->iov[0].iov_base, http_request, sizeof(http_request))) {
+    if(get_line((const char*) req->iov[0].iov_base, http_request, sizeof(http_request))) {
         fprintf(stderr, "Malformed request\n");
         exit(1);
     }
@@ -608,10 +614,11 @@ int add_accept_request(int socket, struct sockaddr_in *client_addr,
 
   io_uring_prep_accept(sqe, socket, (struct sockaddr *) client_addr,
                        client_addr_len, 0);
-  struct Request *req = malloc(sizeof(*req));
+  struct Request *req = (struct Request*) malloc(sizeof(*req));
   req->event_type = EVENT_TYPE_ACCEPT;
   io_uring_sqe_set_data(sqe, req);
   io_uring_submit(ring);
+  return 0;
 }
 
 int buffersend(struct KernelThread *data, struct Buffers *buffers, int kind, void * send) {
@@ -658,7 +665,7 @@ int buffersend_filter(struct KernelThread *data, struct Buffers *buffers, int ki
   return 0;
 }
 
-void * bufferrecv_filter(char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking, int filter) {
+void * bufferrecv_filter(const char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking, int filter) {
 
   while (data->running == 1) {
       asm volatile ("" ::: "memory");
@@ -671,12 +678,12 @@ void * bufferrecv_filter(char * recvkind, struct KernelThread *data, struct Buff
             // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
 
             // we copy the pointer data
-            struct Buffer * reply = calloc(1, sizeof(struct Buffer));
+            struct Buffer * reply = (struct Buffer*) calloc(1, sizeof(struct Buffer));
             reply->data = buffers->buffer[x].data;
             reply->kind = buffers->buffer[x].kind;
             // *send = reply;
             buffers->buffer[x].available = 0;
-            asm volatile ("mfence" ::: "memory");
+            asm volatile ("" ::: "memory");
             return reply;
           }
         } else {
@@ -687,7 +694,7 @@ void * bufferrecv_filter(char * recvkind, struct KernelThread *data, struct Buff
 
   return 0;
 }
-void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking) {
+void * bufferrecv(const char * recvkind, struct KernelThread *data, struct Buffers *buffers, int kind, void ** send, int nonblocking) {
 
   while (data->running == 1) {
       asm volatile ("" ::: "memory");
@@ -700,12 +707,12 @@ void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *bu
             // data->thread->buffers[b]->buffer[x].ingest_snapshot = (data->thread->buffers[b]->buffer[x].ingest_snapshot + 1) % data->thread->buffers[b]->buffer[x].snapshot_limit;
 
             // we copy the pointer data
-            struct Buffer * reply = calloc(1, sizeof(struct Buffer));
+            struct Buffer * reply = (struct Buffer*)calloc(1, sizeof(struct Buffer));
             reply->data = buffers->buffer[x].data;
             reply->kind = buffers->buffer[x].kind;
             // *send = reply;
             buffers->buffer[x].available = 0;
-            asm volatile ("sfence" ::: "memory");
+            asm volatile ("" ::: "memory");
             return reply;
           }
         } else {
@@ -719,18 +726,19 @@ void * bufferrecv(char * recvkind, struct KernelThread *data, struct Buffers *bu
 struct NewClientMessage * wait_for_new_client(struct KernelThread *data, int nonblocking) {
   // printf("%s: waiting for new client\n", data->identity);
   void * _newclient;
-  struct Buffer* newclient = bufferrecv("clientwait", data, &data->iomailboxes[data->my_io], IO_NEW_CLIENT, &_newclient, nonblocking);
+  const char * prefix = "clientwait";
+  struct Buffer* newclient = (struct Buffer*) bufferrecv(prefix, data, &data->iomailboxes[data->my_io], IO_NEW_CLIENT, &_newclient, nonblocking);
   if (newclient == NULL) {
     return NULL;
   }
-  struct NewClientMessage *newclientmsg = newclient->data;
+  struct NewClientMessage *newclientmsg = (struct NewClientMessage*) newclient->data;
   // printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
   return newclientmsg;
 }
 
 void* io_thread(void *arg) {
   int port = 6363;
-  struct KernelThread *data = arg;
+  struct KernelThread *data = (struct KernelThread*) arg;
   
   struct io_uring ring = *data->ring;
   io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
@@ -771,7 +779,7 @@ void* io_thread(void *arg) {
     printf("Listening on port %d socket %d\n", port, sock);
 
     // tell the send socket about ourselves
-    struct NewSocketMessage *msg = calloc(1, sizeof(struct NewSocketMessage));
+    struct NewSocketMessage *msg = (struct NewSocketMessage*) calloc(1, sizeof(struct NewSocketMessage));
     msg->socket = sock;
     printf("%s: telling send thread our socket\n", data->identity);
     buffersend(data, &data->iomailboxes[data->other_io], IO_NEW_SOCKET, msg);
@@ -786,15 +794,15 @@ void* io_thread(void *arg) {
     add_accept_request(sock, &client_addr, &client_addr_len, &ring);
 
     eventfd_t dummy;
-    struct iovec *iov = calloc(1, sizeof(struct iovec));
-    iov->iov_base = zh_malloc(1000);
+    struct iovec *iov = (struct iovec*) calloc(1, sizeof(struct iovec));
+    iov->iov_base = (void*) zh_malloc(1000);
     iov->iov_len = 1000;
     struct io_uring_sqe *sqe= io_uring_get_sqe(&ring);
           io_uring_prep_readv(sqe, data->_eventfd, iov, 1, 0);
           io_uring_sqe_set_data(sqe, &data->_eventfd); 
     io_uring_submit(&ring);
     while (data->running == 1) {
-        asm volatile ("" ::: "memory");
+      asm volatile ("" ::: "memory");
         // printf("Looping read server...\n"); 
         int ret = io_uring_wait_cqe(&ring, &cqe);
         if (cqe->user_data == 1) {
@@ -814,9 +822,10 @@ void* io_thread(void *arg) {
 
         switch (req->event_type) {
             case EVENT_TYPE_ACCEPT:
+              {
                 // printf("Accepted connection socket %d\n", cqe->res);
                 add_accept_request(sock, &client_addr, &client_addr_len, &ring);
-                struct NewClientMessage *newclientmsg = calloc(1, sizeof(struct NewClientMessage));
+                struct NewClientMessage *newclientmsg = (struct NewClientMessage*) calloc(1, sizeof(struct NewClientMessage));
                 newclientmsg->socket = cqe->res;
                 data->sockettoken++;
                 newclientmsg->sockettoken = data->sockettoken;
@@ -826,8 +835,9 @@ void* io_thread(void *arg) {
                 // printf("WRITING TO OTHER FD %d\n", data->otherdataeventfd);
                 // free(req);
                 break;
+              }
             case EVENT_TYPE_READ:
-
+            {
                 if (!cqe->res) {
                     fprintf(stderr, "Empty request!\n");
                     // add_read_request(data, &data->iomailboxes[data->other_io], cqe->res, data->sockettoken, &ring);
@@ -838,6 +848,7 @@ void* io_thread(void *arg) {
                 // free(req->iov[0].iov_base);
                 // free(req);
                 break;
+           }
         }
         /* Mark this request as processed */
           io_uring_cqe_seen(&ring, cqe);
@@ -861,10 +872,10 @@ void* io_thread(void *arg) {
     void * reply;
     
     void * _reply = bufferrecv("waitsocketreply", data, &data->iomailboxes[data->my_io], IO_NEW_SOCKET, &reply, 0); 
-    struct Buffer *bufferreply = _reply;
-    struct NewSocketMessage *msg = bufferreply->data;
+    struct Buffer *bufferreply = (struct Buffer*) _reply;
+    struct NewSocketMessage *msg = (struct NewSocketMessage*) bufferreply->data;
     printf("%s: received socket from recv-thread, socket %d\n", data->identity, msg->socket);
-    struct NewSocketReply *ourreply = calloc(1, sizeof(struct NewSocketReply));
+    struct NewSocketReply *ourreply = (struct NewSocketReply*) calloc(1, sizeof(struct NewSocketReply));
     ourreply->nothing = msg->socket;
     buffersend(data, &data->iomailboxes[data->other_io], IO_NEW_SOCKET_REPLY, ourreply);
     printf("%s: Sent reply to socket message to send thread\n", data->identity);
@@ -872,12 +883,11 @@ void* io_thread(void *arg) {
       
     struct io_uring_cqe *cqe;
 
-    struct NewClientMessage *newclient_message = wait_for_new_client(data, 0);
+    struct NewClientMessage *newclient_message = wait_for_new_client(data, 1);
     if (newclient_message == NULL) {
       return 0;
     }
     int new_client_socket = newclient_message->socket;
-
     if (new_client_socket == -1) {
       exit(1); 
     }
@@ -889,17 +899,17 @@ void* io_thread(void *arg) {
 			   exit(EXIT_FAILURE);
 			   }
     */
-    struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
+    struct epoll_event *ev = (struct epoll_event*) calloc(1, sizeof(struct epoll_event));
     ev->events = EPOLLOUT;
     ev->data.fd = new_client_socket;
 
     eventfd_t dummy;
-    struct iovec *iov = calloc(1, sizeof(struct iovec));
-    iov->iov_base = zh_malloc(10);
+    struct iovec *iov = (struct iovec*) calloc(1, sizeof(struct iovec));
+    iov->iov_base = (void*) zh_malloc(10);
     iov->iov_len = 10;
-    struct SendUserData *eventfdstop = calloc(1, sizeof(struct SendUserData));
+    struct SendUserData *eventfdstop = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
     eventfdstop->kind = 3; 
-    struct SendUserData *removed = calloc(1, sizeof(struct SendUserData));
+    struct SendUserData *removed = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
     removed->kind = 7; 
 
     io_uring_register_eventfd(data->ring, data->dataeventfd);
@@ -907,9 +917,9 @@ void* io_thread(void *arg) {
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
           io_uring_prep_epoll_ctl(sqe, epollfd, new_client_socket, EPOLL_CTL_ADD, ev);
 
-          struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
+          struct SendUserData *readywriting = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
           readywriting->kind = 4; 
-          struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
+          struct ReadyWriting *rr = (struct ReadyWriting*) calloc(1, sizeof(struct ReadyWriting));
           rr->client_socket = new_client_socket; 
           rr->sockettoken = newclient_message->sockettoken; 
           readywriting->data = rr; 
@@ -919,7 +929,7 @@ void* io_thread(void *arg) {
 
 
 
-    struct SendUserData *dataavailable = calloc(1, sizeof(struct SendUserData));
+    struct SendUserData *dataavailable = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
     dataavailable->kind = 8; 
     printf("MY DATA EVENT FD %d\n", data->dataeventfd);
     {
@@ -931,24 +941,25 @@ void* io_thread(void *arg) {
 
     int clients = 1;
     while (data->running == 1) {
-        asm volatile ("" ::: "memory");
+      asm volatile ("" ::: "memory");
         // printf("Looping send server...\n"); 
         
+        asm volatile ("" ::: "memory");
         int new_client_socket = 0;
         struct NewClientMessage *ncm = NULL;
         while (data->running == 1 && ((ncm = wait_for_new_client(data, 1)) != NULL) && (new_client_socket = ncm->socket)) {
-        asm volatile ("" ::: "memory");
+          asm volatile ("" ::: "memory");
         // printf("newclien %d\n", new_client_socket);
           if (new_client_socket != -1) {
-            struct epoll_event *ev = calloc(1, sizeof(struct epoll_event));
+            struct epoll_event *ev = (struct epoll_event*) calloc(1, sizeof(struct epoll_event));
             ev->events = EPOLLOUT;
             ev->data.fd = new_client_socket;
 
-            struct SendUserData *readywriting = calloc(1, sizeof(struct SendUserData));
+            struct SendUserData *readywriting = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
             readywriting->kind = 4; 
             readywriting->event = ev;
             readywriting->sockettoken = ncm->sockettoken;
-            struct ReadyWriting *rr = calloc(1, sizeof(struct ReadyWriting));
+            struct ReadyWriting *rr = (struct ReadyWriting*) calloc(1, sizeof(struct ReadyWriting));
             rr->client_socket = new_client_socket; 
             rr->sockettoken = ncm->sockettoken; 
             readywriting->data = rr; 
@@ -986,14 +997,16 @@ void* io_thread(void *arg) {
         if (((struct SendUserData*) cqe->user_data)->kind == 4) {
           void * _send;
           struct SendUserData *readywriting = ((struct SendUserData*) cqe->user_data);
-          struct ReadyWriting *rr = readywriting->data; 
+          struct ReadyWriting *rr = (struct ReadyWriting*) readywriting->data; 
           // printf("readywriting %d token %d\n", rr->client_socket, rr->sockettoken); 
           struct Buffer *send = 0;
-          while (data->running == 1 && (send = bufferrecv_filter("write", data, &data->iomailboxes[data->my_io], IO_WRITE, &_send, 1, rr->sockettoken)) != NULL) {
+          const char * prefix = "write";
+          while (data->running == 1 && (send = (struct Buffer *) bufferrecv_filter(prefix, data, &data->iomailboxes[data->my_io], IO_WRITE, &_send, 1, rr->sockettoken)) != NULL) {
+
           asm volatile ("" ::: "memory");
           if (send != NULL) {
             // printf("data is to write %d\n", rr->client_socket);
-            struct Write *write = send->data;
+            struct Write *write = (struct Write*) send->data;
             int client_socket = write->client_socket; 
             // printf("%p write\n", write);
             struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
@@ -1001,7 +1014,7 @@ void* io_thread(void *arg) {
             // printf("req %p\n", req);
             req->event_type = EVENT_TYPE_WRITE;
             io_uring_prep_writev(sqe, client_socket, req->iov, req->iovec_count, 0);
-            struct SendUserData *finishedwrite = calloc(1, sizeof(struct SendUserData));
+            struct SendUserData *finishedwrite = (struct SendUserData*) calloc(1, sizeof(struct SendUserData));
             finishedwrite->kind = 5; 
             finishedwrite->data = req;
             finishedwrite->event = readywriting->event;
@@ -1072,7 +1085,7 @@ void* io_thread(void *arg) {
         if (((struct SendUserData*) cqe->user_data)->kind == 5) { 
           // printf("events %ld\n", (long) cqe->user_data);
           // printf("finished write\n");
-          struct Request *req = ((struct SendUserData *) cqe->user_data)->data;
+          struct Request *req = (struct Request*) ((struct SendUserData *) cqe->user_data)->data;
           if (ret < 0)
               fatal_error("io_uring_wait_cqe");
           // printf("res %d\n", cqe->res);
@@ -1166,7 +1179,7 @@ int receive(struct BarrierTask *data) {
   for (int n = 0 ; n < data->mailbox_thread_count; n++) {
     if (n == data->thread->real_thread_index) { continue; }
 
-    struct Data *me = data->mailboxes[n].lower;
+    struct Data *me = (struct Data*) data->mailboxes[n].lower;
     if (me->available_reading == 1) {
       // printf("Foreign mailbox %d is available for receiving\n", n);
     } 
@@ -1203,6 +1216,7 @@ int receive(struct BarrierTask *data) {
   // printf("endreceive %d %d\n", n, data->thread->real_thread_index); 
   }
   asm volatile ("" ::: "memory");
+  return 0;
 }
 
 int sendm(struct BarrierTask *data) {
@@ -1212,7 +1226,7 @@ int sendm(struct BarrierTask *data) {
         if (n == data->thread->real_thread_index) { continue; }
 
         
-        struct Data *them = data->mailboxes[n].higher;
+        struct Data *them = (struct Data*) data->mailboxes[n].higher;
         data->mailboxes[n].counter++;
         if (data->mailboxes[n].kind == MAILBOX_FOREIGN && data->mailboxes[n].counter < limit) {
           continue;
@@ -1259,11 +1273,11 @@ int sendm(struct BarrierTask *data) {
 struct Data * mailboxkind(struct Mailbox * mailbox, int kind) {
   if (kind == 0) {
     // printf("getting lower\n");
-    return mailbox->lower;
+    return (struct Data*) mailbox->lower;
   }
   else if (kind == 1) {
     // printf("getting higher\n");
-    return mailbox->higher;
+    return (struct Data*) mailbox->higher;
   }
   return NULL;
 }
@@ -1397,11 +1411,11 @@ int barriered_work(struct BarrierTask *data) {
     } else
     if (data->thread_index == data->thread->global->request_thread_sync && data->thread->global->request_group_sync == data->thread->group && data->thread->global->request_group_sync != -1) {
       // printf("%d In group sync %d from %d\n", data->thread->group, data->thread_index, data->thread->global->request_group_sync);
-      struct ProtectedState *protected = data->thread->global->protected_state;
-      int modcount = ++protected->modcount;
-      protected->protected++;
+      struct ProtectedState *protecteds = data->thread->global->protecteds_state;
+      int modcount = ++protecteds->modcount;
+      protecteds->protecteds++;
       nanosleep(&preempt , &rem);
-      if (protected->modcount != modcount) {
+      if (protecteds->modcount != modcount) {
         printf("Race condition in group sync\n");
       }
       data->thread->global->request_thread_sync = (data->thread_index + 1) % data->thread_count;
@@ -1667,16 +1681,16 @@ int barriered_work(struct BarrierTask *data) {
 
 
       clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].start);
-      int modcount = ++data->thread->protected_state->modcount;
+      int modcount = ++data->thread->protecteds_state->modcount;
 
       
       while (data->scheduled == 1) {
         data->n++;
-        data->protected(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
+        data->protecteds(&data->thread->threads[data->thread_index]->tasks[data->task_index]);
         asm volatile ("" ::: "memory");
       } 
     
-      if (modcount != data->thread->protected_state->modcount) {
+      if (modcount != data->thread->protecteds_state->modcount) {
         printf("Race condition!\n");
       }
       clock_gettime(CLOCK_REALTIME, &data->snapshots[data->current_snapshot].end);
@@ -1709,9 +1723,10 @@ int barriered_work(struct BarrierTask *data) {
 int barriered_work_ingest_andwork(struct BarrierTask *data) {
   barriered_work_ingest(data);
   barriered_work(data);
+  return 0;
 }
 void* barriered_thread(void *arg) {
-  struct KernelThread *data = arg;
+  struct KernelThread *data = (struct KernelThread*) arg;
   // printf("In barrier task %d\n", data->thread_index);
   // printf("TASK POINTER %p\n", data->threads[data->thread_index]->tasks);
   int t = 0;
@@ -1787,7 +1802,7 @@ void* barriered_thread(void *arg) {
           // printf("resolve %p %p %p my %d real %d task %d\n", &data->threads[data->thread_index], data->threads[data->thread_index]->tasks, &data->tasks, data->thread_index, data->real_thread_index, t);
           data->tasks[t].run(&data->threads[data->thread_index]->tasks[t]);
           //if (t == data->thread_index) {
-          //  data->tasks[t].protected(&data->threads[data->thread_index]->tasks[t]);
+          //  data->tasks[t].protecteds(&data->threads[data->thread_index]->tasks[t]);
           //}
           data->tasks[t].arrived++;
           data->iteration_count++;
@@ -1824,7 +1839,7 @@ void* timer_thread(void *arg) {
   long times = ((1000000000L*DURATION)/tick);
   // long times = tickseconds * 10;
   
-  struct KernelThread *data = arg;
+  struct KernelThread *data = (struct KernelThread*) arg;
   printf("In timer task %d\n", data->thread_index);
   struct timespec rem;
   struct timespec rem2;
@@ -1908,7 +1923,7 @@ void* timer_thread(void *arg) {
         }
       }
     }
-    if (all_empty == 1 && all_waited == 1) {
+    if (all_empty == 1) {
       drained = 1;
     } else {
       nanosleep(&drain , &drainrem);
@@ -1941,23 +1956,23 @@ void* timer_thread(void *arg) {
 }
 
 void * external_thread(void *arg) {
-  struct KernelThread *data = arg; 
+  struct KernelThread *data = (struct KernelThread*) arg; 
   long micros = 1000000L;
   struct timespec req = {
     0,
     micros };
   struct timespec rem;
-
+  const char * prefix = "Hello world";
   while (data->running == 1) {
     asm volatile ("" ::: "memory");
-    // nanosleep(&req , &rem);
+    nanosleep(&req , &rem);
     int created = 0;
     // printf("External thread wakeup...\n");
     for (int b = 0; b < data->buffers_count; b++) {
       for (int x = 0; x < data->buffers[b]->count; x++) {
 	//printf("Writing to buffer\n");
 				if (data->buffers[b]->buffer[x].available == 0) {
-					data->buffers[b]->buffer[x].data = "Hello world";
+					data->buffers[b]->buffer[x].data = prefix;
 					clock_gettime(CLOCK_MONOTONIC_RAW, &data->buffers[b]->buffer[x].snapshots[data->buffers[b]->buffer[x].ingest_snapshot].start);
 					data->buffers[b]->buffer[x].available = 1;
 					created++;
@@ -1970,16 +1985,16 @@ void * external_thread(void *arg) {
   return 0; 
 }
 
-int do_protected_write(struct BarrierTask *data) {
+int do_protecteds_write(struct BarrierTask *data) {
 
-  struct ProtectedState *protected = data->thread->protected_state;
+  struct ProtectedState *protecteds = data->thread->protecteds_state;
   data->v++; // thread local
     // printf("Protected %d %d\n", data->task_index, data->thread_index);
-  protected->protected++; // shared between all threads
-  if (protected->balance > 0) {
-    protected->balance -= 500; // shared between all threads
+  protecteds->protecteds++; // shared between all threads
+  if (protecteds->balance > 0) {
+    protecteds->balance -= 500; // shared between all threads
   } else {
-    protected->balance += 500; // shared between all threads
+    protecteds->balance += 500; // shared between all threads
   }
   return 0; 
 }
@@ -2084,7 +2099,7 @@ int verify(struct KernelThread *thread_data, int thread_count) {
 int main() {
   int core_count = 1;
   int threads_per_group = 2; // cannot be changed
-  int group_count = 1; // can be changed
+  int group_count = 3; // can be changed
   int thread_count = 2;
   int mailboxes_needed = group_count * thread_count;
   int timer_count = 1;
@@ -2114,12 +2129,12 @@ int main() {
 
   int dataid = 0;
 
-  struct ProtectedState *global_protected_state = calloc(1, sizeof(struct ProtectedState));
-  struct ProtectedState *protected_state = calloc(group_count, sizeof(struct ProtectedState));
-  struct KernelThread *thread_data = calloc(total_threads, sizeof(struct KernelThread)); 
+  struct ProtectedState *global_protecteds_state = (struct ProtectedState*) calloc(1, sizeof(struct ProtectedState));
+  struct ProtectedState *protecteds_state = (struct ProtectedState*) calloc(group_count, sizeof(struct ProtectedState));
+  struct KernelThread *thread_data = (struct KernelThread*) calloc(total_threads, sizeof(struct KernelThread)); 
   
-  pthread_mutex_t * mswapmutex = calloc(1, sizeof(pthread_mutex_t));
-  pthread_mutex_t * swapmutex = calloc(total_threads * total_threads, sizeof(pthread_mutex_t));
+  pthread_mutex_t * mswapmutex = (pthread_mutex_t*) calloc(1, sizeof(pthread_mutex_t));
+  pthread_mutex_t * swapmutex = (pthread_mutex_t*) calloc(total_threads * total_threads, sizeof(pthread_mutex_t));
   int cc = 0; 
   for (int x = 0 ; x < total_threads; x++) {
     for (int y = 0 ; y < total_threads; y++) {
@@ -2135,27 +2150,27 @@ int main() {
   printf("Timer index start %d\n", timer_index);
   int buffers_required = (group_count * thread_count) * barrier_count;
   printf("Need %d buffers required\n", buffers_required);
-  struct Buffers *buffers = calloc(buffers_required, sizeof(struct Buffers));
-  struct Buffers *iobuffers = calloc(io_threads, sizeof(struct Buffers));
+  struct Buffers *buffers = (struct Buffers*) calloc(buffers_required, sizeof(struct Buffers));
+  struct Buffers *iobuffers = (struct Buffers*) calloc(io_threads, sizeof(struct Buffers));
 
 
   int snapshot_limit = 100;
   for (int x = 0 ; x < io_threads; x++) {
     iobuffers[x].count = buffer_size;
-    iobuffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
+    iobuffers[x].buffer = (struct Buffer*) calloc(buffer_size, sizeof(struct Buffer));
     for (int y = 0 ; y < buffer_size; y++) {
       iobuffers[x].buffer[y].available = 0;
       iobuffers[x].buffer[y].snapshot_limit = snapshot_limit;
-      iobuffers[x].buffer[y].snapshots = calloc(snapshot_limit, sizeof(struct Snapshot));
+      iobuffers[x].buffer[y].snapshots = (struct Snapshot*) calloc(snapshot_limit, sizeof(struct Snapshot));
     }
   }
   for (int x = 0 ; x < buffers_required; x++) {
     buffers[x].count = buffer_size;
-    buffers[x].buffer = calloc(buffer_size, sizeof(struct Buffer));
+    buffers[x].buffer = (struct Buffer*) calloc(buffer_size, sizeof(struct Buffer));
     for (int y = 0 ; y < buffer_size; y++) {
       buffers[x].buffer[y].available = 0;
       buffers[x].buffer[y].snapshot_limit = snapshot_limit;
-      buffers[x].buffer[y].snapshots = calloc(snapshot_limit, sizeof(struct Snapshot));
+      buffers[x].buffer[y].snapshots = (struct Snapshot*) calloc(snapshot_limit, sizeof(struct Snapshot));
     }
   }
   int external_thread_index = 0;
@@ -2169,13 +2184,13 @@ int main() {
   int groupcount = 0;
   int seq = 0;
   int seqs[] = {1, 3, 6};
-  struct Group **all_groups = calloc(100, sizeof(struct Group*));
-  struct Global *global = calloc(1, sizeof(struct Global));
+  struct Group **all_groups = (struct Group**) calloc(100, sizeof(struct Group*));
+  struct Global *global = (struct Global*) calloc(1, sizeof(struct Global));
   global->request_group_sync = -1;
-  global->protected_state = global_protected_state;
+  global->protecteds_state = global_protecteds_state;
   for (int k = 0 ; k < group_count ; k++) {
-    struct Group * group_data = calloc(1, sizeof(struct Group));
-    struct KernelThread ** group_threads = calloc(100, sizeof(struct KernelThread*));
+    struct Group * group_data = (struct Group*) calloc(1, sizeof(struct Group));
+    struct KernelThread ** group_threads = (struct KernelThread**) calloc(100, sizeof(struct KernelThread*));
     all_groups[groupcount++] = group_data;
     group_data->thread_count = threads_per_group * group_count;
     group_data->threads = group_threads;
@@ -2189,13 +2204,13 @@ int main() {
       thread_data[x].group = k;
       thread_data[x].global = global;
       printf("Creating thread data for group %d thread %d\n", k, x);
-      struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
+      struct KernelThread **my_thread_data = (struct KernelThread**) calloc(2, sizeof(struct KernelThread*)); 
       
       group_data->threads[group_thread_count++] = &thread_data[x];  
 
       int other = -1;
       int me_thread = 0;
-      cpu_set_t *sendercpu = calloc(1, sizeof(cpu_set_t));
+      cpu_set_t *sendercpu = (cpu_set_t*) calloc(1, sizeof(cpu_set_t));
       CPU_ZERO(sendercpu);
       if (x % 2 == 1) {
         other = abs(x - 1) % total_threads;
@@ -2204,7 +2219,7 @@ int main() {
         my_thread_data[1] = &thread_data[x]; 
         me_thread = 1;
         // printf("odd %d %p %p\n", x, my_thread_data[0], my_thread_data[1]);
-        thread_data[x].protected_state = &protected_state[k];
+        thread_data[x].protecteds_state = &protecteds_state[k];
       } else {
         thread_data[x].thread_index = 0;
         other = (x + 1) % total_threads;
@@ -2212,7 +2227,7 @@ int main() {
         me_thread = 0;
         my_thread_data[1] = &thread_data[other]; 
         // printf("even %d %p %p\n", x, my_thread_data[0], my_thread_data[1]);
-        thread_data[x].protected_state = &protected_state[k];
+        thread_data[x].protecteds_state = &protecteds_state[k];
       }
       printf("i am %d, other is %d my thread index is %d\n", x, other, thread_data[x].thread_index);
       thread_data[x].other = other;
@@ -2241,15 +2256,15 @@ int main() {
       thread_data[x].threads_per_group = threads_per_group;
       thread_data[x].total_thread_count = total_threads;
       thread_data[x].task_count = total_barrier_count;
-      thread_data[x].start = calloc(timestamp_limit, sizeof(struct timespec));
-      thread_data[x].end = calloc(timestamp_limit, sizeof(struct timespec));
+      thread_data[x].start = (struct timespec*) calloc(timestamp_limit, sizeof(struct timespec));
+      thread_data[x].end = (struct timespec*) calloc(timestamp_limit, sizeof(struct timespec));
       thread_data[x].timestamp_count = 0;
       thread_data[x].timestamp_limit = timestamp_limit;
-      thread_data[x].task_snapshot = calloc(timestamp_limit, sizeof(struct TaskSnapshot));
+      thread_data[x].task_snapshot = (struct TaskSnapshot*) calloc(timestamp_limit, sizeof(struct TaskSnapshot));
       thread_data[x].task_timestamp_count = 0;
       thread_data[x].task_timestamp_limit = timestamp_limit;
 
-        struct BarrierTask *barriers = calloc(total_barrier_count, sizeof(struct BarrierTask));
+        struct BarrierTask *barriers = (struct BarrierTask*) calloc(total_barrier_count, sizeof(struct BarrierTask));
         thread_data[x].tasks = barriers;
         int assigned = 0;
         // external_thread_index = 0;
@@ -2263,8 +2278,8 @@ int main() {
                 s         x
                 k           x
           */
-          thread_data[x].tasks[y].protected = do_protected_write; 
-          struct Mailbox *mailboxes = calloc(mailboxes_needed, sizeof(struct Mailbox));
+          thread_data[x].tasks[y].protecteds = do_protecteds_write; 
+          struct Mailbox *mailboxes = (struct Mailbox*) calloc(mailboxes_needed, sizeof(struct Mailbox));
           thread_data[x].tasks[y].mailboxes = mailboxes;
           // long messages_limit = 20;/*9999999;*/
           
@@ -2275,9 +2290,9 @@ int main() {
             printf("group of %d %d\n", b, group_of);
             if (k == group_of) {
               // printf("Creating friend mailbox %d\n", b);
-              struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
-              struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
-              struct Data *data = calloc(3, sizeof(struct Data));
+              struct Message **messages = (struct Message**) calloc(messages_limit, sizeof(struct Message*));
+              struct Message **messages2 = (struct Message**) calloc(messages_limit, sizeof(struct Message*));
+              struct Data *data = (struct Data*) calloc(3, sizeof(struct Data));
 
               data[0].kind = MAILBOX_LOWER;
               data[0].a = x;
@@ -2319,10 +2334,10 @@ int main() {
               continue; 
             }
             printf("Creating external mailbox %d\n", b);
-            struct Message **messages = calloc(messages_limit, sizeof(struct Message*));
-            struct Message **messages2 = calloc(messages_limit, sizeof(struct Message*));
-            struct Data *data = calloc(3, sizeof(struct Data));
-            struct Data **stack = calloc(3, sizeof(struct Data));
+            struct Message **messages = (struct Message**) calloc(messages_limit, sizeof(struct Message*));
+            struct Message **messages2 = (struct Message**) calloc(messages_limit, sizeof(struct Message*));
+            struct Data *data = (struct Data*) calloc(3, sizeof(struct Data));
+            struct Data **stack = (struct Data**) calloc(3, sizeof(struct Data));
 
             data[0].kind = MAILBOX_LOWER;
             data[0].a = x;
@@ -2346,8 +2361,8 @@ int main() {
             mailboxes[b].my_higher = &data[1];
             mailboxes[b].kind = MAILBOX_FOREIGN;
 
-            stack[0] = mailboxes[b].lower;
-            stack[1] = mailboxes[b].higher;
+            stack[0] = (struct Data*) mailboxes[b].lower;
+            stack[1] = (struct Data*) mailboxes[b].higher;
             mailboxes[b].stack = (void**)stack;
 
             data[0].available_sending = 0;
@@ -2362,8 +2377,8 @@ int main() {
             data[1].messages_limit = messages_limit;
           }
 
-          char *message = malloc(sizeof(char) * 256);
-          struct Message *messaged = malloc(sizeof(struct Message));
+          char *message = (char*) malloc(sizeof(char) * 256);
+          struct Message *messaged = (struct Message*) calloc(1, sizeof(struct Message));
           memset(message, '\0', 256);
           sprintf(message, "Sending message from thread %d task %d group %d", x, y, k);
           messaged->message = message;
@@ -2379,7 +2394,7 @@ int main() {
           thread_data[x].tasks[y].message = messaged;
           thread_data[x].tasks[y].sending = 1;
           thread_data[x].tasks[y].snapshot_count = 99;
-          thread_data[x].tasks[y].snapshots = calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
+          thread_data[x].tasks[y].snapshots = (struct Snapshot*) calloc(thread_data[x].tasks[y].snapshot_count, sizeof(struct Snapshot));
           thread_data[x].tasks[y].current_snapshot = 0;
           thread_data[x].tasks[y].thread_index = my_thread_data[me_thread]->thread_index;
           thread_data[x].tasks[y].thread = my_thread_data[me_thread]; 
@@ -2415,15 +2430,15 @@ int main() {
           }
         }
         thread_data[x].buffers_count = buffers_per_thread;
-        thread_data[x].buffers = calloc(buffers_per_thread, sizeof(struct Buffers*)); 
+        thread_data[x].buffers = (struct Buffers**) calloc(buffers_per_thread, sizeof(struct Buffers*)); 
         for (int b = 0 ; b < buffers_per_thread; b++) {	
           thread_data[x].buffers[b] = &buffers[cur_buffer++];
         }
-        thread_data[x].iobuffers = calloc(io_threads, sizeof(struct Buffers*)); 
+        thread_data[x].iobuffers = (struct Buffers**) calloc(io_threads, sizeof(struct Buffers*)); 
         for (int b = 0 ; b < io_threads; b++) {	
           thread_data[x].iobuffers[b] = &buffers[iocur_buffer++];
         }
-        thread_data[x].tasks[barrier_count].protected = do_protected_write; 
+        thread_data[x].tasks[barrier_count].protecteds = do_protecteds_write; 
         thread_data[x].tasks[barrier_count].run = barriered_reset; 
         thread_data[x].tasks[barrier_count].thread = my_thread_data[me_thread]; 
         thread_data[x].tasks[barrier_count].available = 1; 
@@ -2435,7 +2450,7 @@ int main() {
         thread_data[x].tasks[barrier_count].task_count = total_barrier_count; 
     }
   }
-  struct Data ** cdatas = calloc(1024, sizeof(struct Data*)); 
+  struct Data ** cdatas = (struct Data**) calloc(1024, sizeof(struct Data*)); 
   int datas_size = 0; 
   for (int k = 0 ; k < group_count ; k++) {
     for (int d = 0 ; d < threads_per_group ; d++) {
@@ -2452,7 +2467,7 @@ int main() {
   FILE *m1;
   m1 = fopen("mailbox1", "w");
   for (int x = 0 ; x < datas_size; x++) {
-    char * c = calloc(250, sizeof(char));
+    char * c = (char *) calloc(250, sizeof(char));
     sprintf(c, "mailbox %d\n", cdatas[x]->id);
     printf("%s", c);
     fprintf(m1, "%s", c);
@@ -2470,7 +2485,7 @@ int main() {
         printf("\t\ttask-%d\n", y);  
         
         for (int m = 0 ; m < mailboxes_needed ; m++) {
-          char * mailbox_kind = calloc(100, sizeof(char));
+          char * mailbox_kind = (char *) calloc(100, sizeof(char));
           memset(mailbox_kind, '\0', 100);
           if (thread_data[x].tasks[y].mailboxes[m].kind == MAILBOX_FOREIGN) {
             sprintf(mailbox_kind, "%s", "foreign");
@@ -2489,7 +2504,7 @@ int main() {
   printf("io index = %d\n", io_index);
   int io_mode = 0;
   for (int x = io_index ; x < io_index + io_threads ; x++) {
-    struct KernelThread **my_thread_data = calloc(2, sizeof(struct KernelThread*)); 
+    struct KernelThread **my_thread_data = (struct KernelThread**) calloc(2, sizeof(struct KernelThread*)); 
     my_thread_data[0] = &thread_data[x]; 
     my_thread_data[1] = &thread_data[(x + 1) % thread_count]; 
 
@@ -2504,11 +2519,11 @@ int main() {
     thread_data[n].tasks[0].scheduled = 1;
   }
 
-  pthread_attr_t      *thread_attr = calloc(total_threads, sizeof(pthread_attr_t));
-  pthread_attr_t      *timer_attr = calloc(total_threads, sizeof(pthread_attr_t));
-  pthread_attr_t      *io_attr = calloc(total_threads, sizeof(pthread_attr_t));
-  pthread_attr_t      *external_attr = calloc(total_threads, sizeof(pthread_attr_t));
-  pthread_t *thread = calloc(total_threads, sizeof(pthread_t));
+  pthread_attr_t      *thread_attr = (pthread_attr_t*) calloc(total_threads, sizeof(pthread_attr_t));
+  pthread_attr_t      *timer_attr = (pthread_attr_t*) calloc(total_threads, sizeof(pthread_attr_t));
+  pthread_attr_t      *io_attr = (pthread_attr_t*) calloc(total_threads, sizeof(pthread_attr_t));
+  pthread_attr_t      *external_attr = (pthread_attr_t*) calloc(total_threads, sizeof(pthread_attr_t));
+  pthread_t *thread = (pthread_t*) calloc(total_threads, sizeof(pthread_t));
 
 
   int timer_threadi = group_count * thread_count;
@@ -2520,7 +2535,7 @@ int main() {
 
 
   // thread_data[thread_count].threads = thread_data;
-  struct KernelThread **my_thread_data = calloc(total_threads, sizeof(struct KernelThread*)); 
+  struct KernelThread **my_thread_data = (struct KernelThread**) calloc(total_threads, sizeof(struct KernelThread*)); 
   for (int n = 0 ; n < total_threads ; n++) {
     my_thread_data[n] = &thread_data[n]; 
   }
@@ -2542,25 +2557,25 @@ int main() {
       pthread_setaffinity_np(thread[x], sizeof(thread_data[x].cpu_set), thread_data[x].cpu_set);
     }
   }
-  struct io_uring **rings = calloc(2, sizeof(struct io_uring*));
+  struct io_uring **rings = (struct io_uring**) calloc(2, sizeof(struct io_uring*));
 
-  rings[IO_MODE_SEND] = calloc(1, sizeof(struct io_uring));
-  rings[IO_MODE_RECV] = calloc(1, sizeof(struct io_uring));
+  rings[IO_MODE_SEND] = (struct io_uring*) calloc(1, sizeof(struct io_uring));
+  rings[IO_MODE_RECV] = (struct io_uring*) calloc(1, sizeof(struct io_uring));
 
-  struct Buffers *iomailboxes = calloc(io_threads, sizeof(struct Buffers));
+  struct Buffers *iomailboxes = (struct Buffers*) calloc(io_threads, sizeof(struct Buffers));
   long iomailboxes_size = 10000;
   for (int x = 0 ; x < io_threads; x++) {
     iomailboxes[x].count = iomailboxes_size;
-    iomailboxes[x].buffer = calloc(iomailboxes_size, sizeof(struct Buffer));
+    iomailboxes[x].buffer = (struct Buffer*) calloc(iomailboxes_size, sizeof(struct Buffer));
     for (int y = 0 ; y < iomailboxes_size; y++) {
       iomailboxes[x].buffer[y].available = 0;
       iomailboxes[x].buffer[y].snapshot_limit = snapshot_limit;
-      iomailboxes[x].buffer[y].snapshots = calloc(snapshot_limit, sizeof(struct Snapshot));
+      iomailboxes[x].buffer[y].snapshots = (struct Snapshot*) calloc(snapshot_limit, sizeof(struct Snapshot));
     }
   }
-  char * send_identity = "send-thread";
-  char * recv_identity = "recv-thread";
-  char * unknown_identity = "unknown-thread";
+  const char * send_identity = "send-thread";
+  const char * recv_identity = "recv-thread";
+  const char * unknown_identity = "unknown-thread";
   int counter = 0;
 
   int dataeventfds[2];
@@ -2600,7 +2615,7 @@ int main() {
     printf("my data event fd is %d other is %d\n", datafd, otherdataeventfd);
     thread_data[x].dataeventfd = datafd; 
     thread_data[x].otherdataeventfd = otherdataeventfd; 
-    struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
+    struct KernelThread **my_thread_data = (struct KernelThread**) calloc(thread_count, sizeof(struct KernelThread*)); 
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
@@ -2619,10 +2634,10 @@ int main() {
     thread_data[x].type = EXTERNAL;
     thread_data[x].running = 1;
     thread_data[x].task_count = 0;
-    thread_data[x].buffers = calloc(1, sizeof(struct Buffers*));
+    thread_data[x].buffers = (struct Buffers**) calloc(1, sizeof(struct Buffers*));
 		thread_data[x].buffers[0] = &buffers[next_buffer++];
 	  thread_data[x].buffers_count = 1;
-    struct KernelThread **my_thread_data = calloc(thread_count, sizeof(struct KernelThread*)); 
+    struct KernelThread **my_thread_data = (struct KernelThread**) calloc(thread_count, sizeof(struct KernelThread*)); 
     for (int n = 0 ; n < thread_count ; n++) {
       my_thread_data[n] = &thread_data[n]; 
     }
@@ -2643,7 +2658,7 @@ int main() {
     pthread_join(thread[x], &result);
     printf("Finished thread %d\n", x);
   }
-  struct Data ** datas = calloc(1024, sizeof(struct Data*)); 
+  struct Data ** datas = (struct Data**) calloc(1024, sizeof(struct Data*)); 
   int datas2_size = 0; 
   for (int k = 0 ; k < group_count ; k++) {
     for (int d = 0 ; d < threads_per_group ; d++) {
@@ -2660,7 +2675,7 @@ int main() {
   FILE *m2;
   m2 = fopen("mailbox2", "w");
   for (int x = 0 ; x < datas2_size; x++) {
-    char * c = calloc(250, sizeof(char));
+    char * c = (char*) calloc(250, sizeof(char));
     sprintf(c, "mailbox %d\n", datas[x]->id);
     printf("%s", c);
     fprintf(m2, "%s", c);
@@ -2684,7 +2699,7 @@ int main() {
         other = (x + 1) % total_threads;
       }
       printf("\n");
-      printf("Total Protected %ld\n", protected_state[me].protected);
+      printf("Total Protected %ld\n", protecteds_state[me].protecteds);
 
       for (int n = 0 ; n < thread_data[me].task_count ; n++) {
         v += thread_data[me].tasks[n].v;
@@ -2693,7 +2708,7 @@ int main() {
         v += thread_data[other].tasks[n].v;
       }
       printf("Total V %ld\n", v);
-      printf("Total Protected per second %ld\n", protected_state[me].protected / DURATION);
+      printf("Total Protected per second %ld\n", protecteds_state[me].protecteds / DURATION);
       printf("\n");
       for (int n = 0 ; n < thread_data[x].task_count ; n++) {
         total += thread_data[x].tasks[n].n;
@@ -2745,7 +2760,7 @@ int main() {
   }
   printf("Total Requests %ld\n", total);
   printf("\n");
-  printf("Total money %ld (correct if 0 or 500)\n", protected_state->balance);
+  printf("Total money %ld (correct if 0 or 500)\n", protecteds_state->balance);
   printf("Total external thread ingests per second %ld\n", ingests / DURATION);
   printf("Total intra thread sends per second %ld\n", sends / DURATION);
   printf("Total Requests per second %ld\n", total / DURATION);
@@ -2755,6 +2770,73 @@ int main() {
   printf("Total receives per second %ld\n", recdur);
   // verify(thread_data, thread_count);
   printf("Difference %ld\n", recdur - sentdur);
+
+  rocksdb_t *db;
+  rocksdb_backup_engine_t *be;
+  rocksdb_options_t *options = rocksdb_options_create();
+  // Optimize RocksDB. This is the easiest way to
+  // get RocksDB to perform well.
+#if defined(OS_WIN)
+  SYSTEM_INFO system_info;
+  GetSystemInfo(&system_info);
+  long cpus = system_info.dwNumberOfProcessors;
+#else
+  long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+  // Set # of online cores
+  rocksdb_options_increase_parallelism(options, (int)(cpus));
+  rocksdb_options_optimize_level_style_compaction(options, 0);
+  // create the DB if it's not already present
+  rocksdb_options_set_create_if_missing(options, 1);
+
+  // open DB
+  char *err = NULL;
+  db = rocksdb_open(options, DBPath, &err);
+  assert(!err);
+
+  // open Backup Engine that we will use for backing up our database
+  be = rocksdb_backup_engine_open(options, DBBackupPath, &err);
+  assert(!err);
+
+  // Put key-value
+  rocksdb_writeoptions_t *writeoptions = rocksdb_writeoptions_create();
+  const char key[] = "key";
+  const char *value = "value";
+  rocksdb_put(db, writeoptions, key, strlen(key), value, strlen(value) + 1,
+              &err);
+  assert(!err);
+  // Get value
+  rocksdb_readoptions_t *readoptions = rocksdb_readoptions_create();
+  size_t len;
+  char *returned_value =
+      rocksdb_get(db, readoptions, key, strlen(key), &len, &err);
+  assert(!err);
+  assert(strcmp(returned_value, "value") == 0);
+  free(returned_value);
+
+  // create new backup in a directory specified by DBBackupPath
+  rocksdb_backup_engine_create_new_backup(be, db, &err);
+  assert(!err);
+
+  rocksdb_close(db);
+
+  // If something is wrong, you might want to restore data from last backup
+  rocksdb_restore_options_t *restore_options = rocksdb_restore_options_create();
+  rocksdb_backup_engine_restore_db_from_latest_backup(be, DBPath, DBPath,
+                                                      restore_options, &err);
+  assert(!err);
+  rocksdb_restore_options_destroy(restore_options);
+
+  db = rocksdb_open(options, DBPath, &err);
+  assert(!err);
+
+  // cleanup
+  rocksdb_writeoptions_destroy(writeoptions);
+  rocksdb_readoptions_destroy(readoptions);
+  rocksdb_options_destroy(options);
+  rocksdb_backup_engine_close(be);
+  rocksdb_close(db);
+
   return 0;
 
 }

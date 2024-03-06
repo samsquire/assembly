@@ -3,3 +3,5 @@
 *.swo
 mailbox2-*
 mailbox2
+mailbox1
+multibarrier-split-io-cxx

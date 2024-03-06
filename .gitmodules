@@ -1,0 +1,6 @@
+[submodule "rocksdb"]
+	path = rocksdb
+	url = git@github.com:facebook/rocksdb.git
+[submodule "liburing"]
+	path = liburing
+	url = git@github.com:axboe/liburing.git
