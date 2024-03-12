@@ -68,7 +68,7 @@ SOFTWARE.
 #include <sched.h>
 #include <assert.h>
 #include "rocksdb/include/rocksdb/c.h"
-
+#include "tree234.h"
 const char DBPath[] = "/tmp/rocksdb_c_simple_example";
 const char DBBackupPath[] = "/tmp/rocksdb_c_simple_example_backup";
 
@@ -105,6 +105,8 @@ const char DBBackupPath[] = "/tmp/rocksdb_c_simple_example_backup";
 #define IO_NEW_SOCKET_REPLY 1
 #define IO_NEW_CLIENT 2
 #define IO_WRITE 3
+
+#define WORKER_WRITE_REQ 3
 
 struct Coroutine {
   char * pos; // %rip
@@ -308,6 +310,7 @@ struct KernelThread {
   int my_io;
   const char * identity;
   int sockettoken;
+  int mailbox_thread_count;
 };
 
 struct ProtectedState {
@@ -335,6 +338,11 @@ struct Write {
   struct Request *request;
   int client_socket;
   int sockettoken;
+};
+struct WriteRequest {
+  int thread_index;
+  void * data;
+  struct iovec *iodata;
 };
 
 struct SendUserData {
@@ -637,7 +645,7 @@ int buffersend(struct KernelThread *data, struct Buffers *buffers, int kind, voi
           return 0;
         } else {
         }
-  }
+    }
   }
 
   return 0;
@@ -734,6 +742,22 @@ struct NewClientMessage * wait_for_new_client(struct KernelThread *data, int non
   struct NewClientMessage *newclientmsg = (struct NewClientMessage*) newclient->data;
   // printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
   return newclientmsg;
+}
+
+struct WriteRequest * wait_for_write_req(struct KernelThread *data, int nonblocking) {
+  // printf("%s: waiting for new client\n", data->identity);
+  void * _writereq;
+  const char * prefix = "writewait";
+  for (int x = 0 ; data->mailbox_thread_count; x++) { 
+    struct Buffer* writereq = (struct Buffer*) bufferrecv_filter(prefix, data, data->iobuffers[x], WORKER_WRITE_REQ, &_writereq, nonblocking, WORKER_WRITE_REQ);
+    if (writereq == NULL) {
+      return NULL;
+    }
+    struct WriteRequest *writerequest = (struct WriteRequest*) writereq->data;
+    // printf("%s: received new client socket %d\n", data->identity, newclientmsg->socket);
+    return writerequest;
+  }
+  return NULL;
 }
 
 void* io_thread(void *arg) {
@@ -883,7 +907,8 @@ void* io_thread(void *arg) {
       
     struct io_uring_cqe *cqe;
 
-    struct NewClientMessage *newclient_message = wait_for_new_client(data, 1);
+    // this will use lot of CPU
+    struct NewClientMessage *newclient_message = wait_for_new_client(data, 0);
     if (newclient_message == NULL) {
       return 0;
     }
@@ -971,6 +996,10 @@ void* io_thread(void *arg) {
             clients++;
           }
         }
+        struct WriteRequest * writereq;
+        //while (data->running == 1 && ((writereq = wait_for_write_req(data, 1)) != NULL)) {
+
+        //}
         // printf("Waiting...\n");
         // if (clients == 0) { continue; }
         struct __kernel_timespec delay = {
@@ -2255,6 +2284,7 @@ int main() {
       thread_data[x].group_count = group_count;
       thread_data[x].threads_per_group = threads_per_group;
       thread_data[x].total_thread_count = total_threads;
+      thread_data[x].mailbox_thread_count = mailboxes_needed;
       thread_data[x].task_count = total_barrier_count;
       thread_data[x].start = (struct timespec*) calloc(timestamp_limit, sizeof(struct timespec));
       thread_data[x].end = (struct timespec*) calloc(timestamp_limit, sizeof(struct timespec));
