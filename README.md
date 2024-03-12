@@ -23,25 +23,23 @@ This repository has:
 |multibarrier-evented3-fswap.c|Does a friend swap on every superstep cycle|
 |multibarrier-evented4-fswap.c|Does a friend swap on every superstep cycle|
 |multiabrrier-split-io|Parallel io_uring, threads for sending/recving |
-
+|multibarrier-evented2.c|Doesn't use mutexes, single writer.|
+|multibarrier-evented3.c|Multiwriter.|
+|multibarrier-evented4.c|Low latency but low throughput.|
 # multithreaded nonblocking barrier-runtime
-# nonblocking-prearrive
+# multibarrier-evented3
 
 This is my [Samuel Michael Squire](https://samsquire.com/), sam@samsquire.com) lock free algorithm and runtime for a nonblocking multithreaded barrier. It is Zero Clause BSD Licenced.
 
 ```
-Total Requests 27317816286
+Total money 0 (correct if 0 or 500)
+Total external thread ingests per second 2232515
+Total intra thread sends per second 6778769
+Total Requests per second 435583002
+Total sents per second 13421500
+Total receives per second 13421500
+Difference 0
 
-Total Protected 63025917
-Total V 63025917
-
-Total Protected per second 2100863
-Total money 500 (correct if 0 or 500)
-Total external thread ingests per second 2691622
-Total intra thread sends per second 409855901
-Total Requests per second 910593876
-Total sents 409855901
-Total receives 40985590
 ```
 
 
