@@ -1,4 +1,31 @@
-# assembly projects
+# parallel data race server
+
+This is incomplete.
+
+This is an experimental project from my learning of assembly and C.
+
+ * **Concurrent and parallel coroutines** 
+ * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
+ * **Split IO** We run two io_urings in two separate threads: one for **send** and one for **recv**
+
+**todo**:
+
+ * **Coroutines API**
+ * **msquic** Can use Microsoft's msquic implementation for fast UDP traffic.
+ *  **rocksdb** Built with rocksdb
+ *  **wasm runtime**
+
+# Coroutine's API
+
+|Function|Description|
+|--|--|
+|yield_until|Yield until a fact is true|
+|yield|Yield|
+|start|Start a task in parallel and concurrently|
+|when|Wait for an event to be fired|
+
+
+# also in this repository
 
 This repository has:
 

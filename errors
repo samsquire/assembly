@@ -1,0 +1,8 @@
+multibarrier-split-io-cxx.c:51: warning: "_GNU_SOURCE" redefined
+   51 | #define _GNU_SOURCE
+      | 
+<command-line>: note: this is the location of the previous definition
+multibarrier-split-io-cxx.c:70:10: fatal error: rocksdb/include/rocksdb/c.h: No such file or directory
+   70 | #include "rocksdb/include/rocksdb/c.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
