@@ -7,6 +7,12 @@ This is an experimental project from my learning of assembly and C.
  * **Concurrent and parallel coroutines** 
  * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
  * **Split IO** We run two io_urings in two separate threads: one for **send** and one for **recv**
+ *  **thread per core** each core is a bucket that executes work.
+ *  **async pipeline syntax** Configure sequences of tasks that render to grids.
+ *  **send work to the data** Similar to how Seastar sends functions to where data is.
+ *  **phaser runtime** lock free no mutexes
+ *  **message passing** double buffering is used for fast transfer of ownership between threads
+ *  **event bucketing**
 
 **todo**:
 
@@ -15,7 +21,17 @@ This is an experimental project from my learning of assembly and C.
  *  **rocksdb** Built with rocksdb
  *  **wasm runtime**
 
-# Coroutine's API
+# downways split
+
+A A A > (to completion)
+B B B (downways)
+
+Do the first operation on all the data.
+then the second
+
+
+
+# Coroutines API
 
 |Function|Description|
 |--|--|
@@ -23,6 +39,53 @@ This is an experimental project from my learning of assembly and C.
 |yield|Yield|
 |start|Start a task in parallel and concurrently|
 |when|Wait for an event to be fired|
+|register_when|when this happens do X|
+|send|Send data to another thread|
+
+Start a process and it can send events back to parent.
+event scheduling when events are a faucet.
+
+outer when - do stuff and it goes into event loop
+
+sending the data + function to execute next, in a pointer,
+
+its just control flow.
+
+
+# coroutine scheduler
+
+Check the size of the queue to decide who to send to.
+
+We want to send to a worker which has a small amount in its queue. how to thread safely check its queue?
+
+work 
+
+work stealing, atomic write owner to queue field. skipped over.
+ack protocol.
+
+lockstep work stealing, only one thread can steal at a time
+
+nested semaphores
+
+// threads 1-12
+// thread 1
+if tasks.taskindex == workindex
+  workindex++
+  locked
+  
+
+position of the other iterator
+
+// thread 2
+if tasks.taskindex > threads[0].workindex:
+  value = 2
+
+single writer transacter, read all memory changes everything
+someone needs to renumber the tasks
+
+acknowledgement
+
+fractal mutex owned values in memory- determine memory location to write to
 
 
 # also in this repository
