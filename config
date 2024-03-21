@@ -1,0 +1,3 @@
+Host github.com
+	IdentityFile /tmp/priv
+	User git@github.com

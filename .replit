@@ -1,5 +1,5 @@
-compile = "make cxx"
-run = "./multibarrier-split-io-cxx"
+compile = "make threadsafe-workqueue"
+run = "./threadsafe-workqueue"
 hidden = ["main", "**/*.o", "**/*.d", ".ccls-cache", "Makefile"]
 
 [nix]

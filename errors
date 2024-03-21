@@ -2,7 +2,20 @@ multibarrier-split-io-cxx.c:51: warning: "_GNU_SOURCE" redefined
    51 | #define _GNU_SOURCE
       | 
 <command-line>: note: this is the location of the previous definition
-multibarrier-split-io-cxx.c:70:10: fatal error: rocksdb/include/rocksdb/c.h: No such file or directory
-   70 | #include "rocksdb/include/rocksdb/c.h"
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-compilation terminated.
+multibarrier-split-io-cxx.c: In function ‘int receive(BarrierTask*)’:
+multibarrier-split-io-cxx.c:1236:45: warning: unknown conversion type character ‘b’ in format [-Wformat=]
+ 1236 |         printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread->thread_index);
+      |                                             ^
+multibarrier-split-io-cxx.c:1236:48: warning: unknown conversion type character ‘b’ in format [-Wformat=]
+ 1236 |         printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread->thread_index);
+      |                                                ^
+multibarrier-split-io-cxx.c:1236:16: warning: too many arguments for format [-Wformat-extra-args]
+ 1236 |         printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread->thread_index);
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lrocksdb: No such file or directory
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lzstd: No such file or directory
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lsnappy: No such file or directory
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -llz4: No such file or directory
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lz: No such file or directory
+/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lbz2: No such file or directory
+collect2: error: ld returned 1 exit status

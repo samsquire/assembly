@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-luring -lm -O3 -g -Irocksdb/
+CFLAGS=-luring -lm -O3 -g
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
@@ -7,7 +7,7 @@ IMGS=$(patsubst %.dot,%.svg,$(DOTFILES))
 OBJ=$(patsubst %.c,%,$(CFILES))
 all: $(OBJ) $(IMGS)
 %: %.c 
-	$(CC) rocksdb/librocksdb.a -o $@  $< $(CFLAGS)
+	$(CC) -o $@  $< $(CFLAGS)
 	objdump -drwC  -S $@ > output-assembly/$@.S
 
 ringbuffer-tla/%.svg: ringbuffer-tla/%.dot

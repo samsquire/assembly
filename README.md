@@ -13,7 +13,11 @@ This is an experimental project from my learning of assembly and C.
  *  **phaser runtime** lock free no mutexes
  *  **message passing** double buffering is used for fast transfer of ownership between threads
  *  **event bucketing**
-
+ *  **run single core but also can run parallel**
+ * ****
+   
+updating a field faster than single core frequency
+ 
 **todo**:
 
  * **Coroutines API**
