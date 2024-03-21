@@ -13,7 +13,7 @@ struct Work {
 struct Data {
   struct Data *main;
   struct Data *threads;
-  
+  long freq;
   int taskindex; 
   int workindex;
   int wantindex;
@@ -45,19 +45,20 @@ void * work(void * arg) {
   
   while (data->running == 1) {
     memset(output, 0, 100);
-    if (data->threadindex != 0 && data->main->workindex >= data->worksize) { continue; }
-    if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
+   if (data->threadindex != 0 && data->main->workindex >= data->worksize) { continue; }
+    //if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
+    /*if (data->main->workindex >= data->worksize){
         data->main->workindex = 0;
         printf("work epoch end\n");
         for (int x = 0 ; x < data->worksize; x++) {
           data->main->works[x].available = 1;
         }
-    }
+   }*/
       asm volatile ("" ::: "memory");
       int allunavailable = 1;
       int available = 1;
     int target = (data->main->workindex);
-   for (int x = 0 ; x < data->threadsize ; x++ ) {
+   for (int x = target ; x < data->worksize ; x++ ) {
         
     if (data->main->works[x].available == 1 ) {
         target = x;
@@ -78,21 +79,32 @@ void * work(void * arg) {
           break;
         }
       }
-
+      
       if (available == 1 && data->main->works[target].available == 1) {
+        data->freq++;
         if (data->threadindex == 0) {
+          ;
         snprintf(output, 100, "queue owner [%d]: processing queue item %d", data->threadindex, target);
         printf("%s\n", output); 
 
         } else {
 snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadindex, target);
-          printf("%s\n", output);
+         printf("%s\n", output);
           
           
         }
         data->main->works[target].available = 0;
         data->threads[data->threadindex].wantindex = -1;
         data->main->workindex = (target + 1);
+        if (data->main->workindex >= data->worksize){
+        data->main->workindex = 0;
+        printf("work epoch end\n");
+        for (int x = 0 ; x < data->worksize; x++) {
+          data->main->works[x].available = 1;
+        }
+          printf("reset\n");
+        }
+        
         
         //asm volatile ("sfence" ::: "memory");
 
@@ -109,7 +121,7 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
 
       
       // for (int x = 0 ; x < data->worksize; x++) {
-        asm volatile ("" ::: "memory");
+        //asm volatile ("" ::: "memory");
       
           
           // data->main->works[x].taskindex = (data->main->works[x].taskindex + data->worksize - 1) % data->worksize;
@@ -122,14 +134,14 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
 
 int main(int argc, char **argv) {
   int worksize = 10;
-  int threadsize = 5;
+  int threadsize = 6;
   printf("Starting %d workers\n", threadsize);
   pthread_t *thread = calloc(threadsize, sizeof(pthread_t));
   pthread_attr_t *attr = calloc(threadsize, sizeof(pthread_attr_t));
   struct Data *data = calloc(threadsize, sizeof(struct Data));
-  struct Work *works = calloc(100, sizeof(struct Work));
+  struct Work *works = calloc(worksize, sizeof(struct Work));
   
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < worksize; i++) {
     works[i].taskindex = 2;
     works[i].available = 1;
     
@@ -138,7 +150,7 @@ int main(int argc, char **argv) {
   data[0].works = works;
   for (int x = 0; x < threadsize ; x++) {
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
-    CPU_SET(cpu += 1, data[x].cpu_set);
+    CPU_SET(cpu += 2, data[x].cpu_set);
     printf("assigning thread %d to cpu %d\n", x, cpu);
     data[x].running = 1;
     data[x].threadindex = x;
@@ -172,4 +184,9 @@ int main(int argc, char **argv) {
     pthread_join(thread[x], &res);
   }
   printf("finished simulation.\n");
+  long freq = 0;
+  for (int x= 0; x < threadsize; x++) {
+    freq += data[x].freq;
+  }
+  printf("freq: %ld\n", freq);
 }
