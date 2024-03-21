@@ -13,7 +13,7 @@ struct Work {
 struct Data {
   struct Data *main;
   struct Data *threads;
-  long timestamp;
+  
   int taskindex; 
   int workindex;
   int wantindex;
@@ -56,7 +56,15 @@ void * work(void * arg) {
       asm volatile ("" ::: "memory");
       int allunavailable = 1;
       int available = 1;
-      int target = (data->main->workindex);
+    int target = (data->main->workindex);
+   for (int x = 0 ; x < data->threadsize ; x++ ) {
+        
+    if (data->main->works[x].available == 1 ) {
+        target = x;
+        break;
+    }
+   } 
+      
       data->threads[data->threadindex].wantindex = target;
       for (int x = 0; x < data->threadsize ; x++ ) {
         if (x == data->threadindex) {
@@ -70,7 +78,7 @@ void * work(void * arg) {
           break;
         }
       }
-      
+
       if (available == 1 && data->main->works[target].available == 1) {
         if (data->threadindex == 0) {
         snprintf(output, 100, "queue owner [%d]: processing queue item %d", data->threadindex, target);
@@ -114,7 +122,7 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
 
 int main(int argc, char **argv) {
   int worksize = 10;
-  int threadsize = 2;
+  int threadsize = 5;
   printf("Starting %d workers\n", threadsize);
   pthread_t *thread = calloc(threadsize, sizeof(pthread_t));
   pthread_attr_t *attr = calloc(threadsize, sizeof(pthread_attr_t));
@@ -130,7 +138,7 @@ int main(int argc, char **argv) {
   data[0].works = works;
   for (int x = 0; x < threadsize ; x++) {
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
-    CPU_SET(cpu += 2, data[x].cpu_set);
+    CPU_SET(cpu += 1, data[x].cpu_set);
     printf("assigning thread %d to cpu %d\n", x, cpu);
     data[x].running = 1;
     data[x].threadindex = x;
@@ -155,7 +163,7 @@ int main(int argc, char **argv) {
   };
   
   nanosleep(&time, &rem);
-  for (int x = 0; x < 3 ; x++) {
+  for (int x = 0; x < threadsize ; x++) {
     data[x].running = 0;
     
   }
