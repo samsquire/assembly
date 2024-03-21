@@ -45,18 +45,25 @@ void * work(void * arg) {
   
   while (data->running == 1) {
     memset(output, 0, 100);
-    
+    if (data->threadindex != 0 && data->main->workindex >= data->worksize) { continue; }
+    if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
+        data->main->workindex = 0;
+        printf("work epoch end\n");
+        for (int x = 0 ; x < data->worksize; x++) {
+          data->main->works[x].available = 1;
+        }
+    }
       asm volatile ("" ::: "memory");
       int allunavailable = 1;
       int available = 1;
-      int target = (data->main->workindex) % data->worksize;
+      int target = (data->main->workindex);
       data->threads[data->threadindex].wantindex = target;
       for (int x = 0; x < data->threadsize ; x++ ) {
         if (x == data->threadindex) {
           continue;
         }
-        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target && data[x].failcounter > data->threads[data->threadindex].failcounter) {
-          printf("%d fail\n", data->threadindex);
+        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target /*&& data[x].failcounter > data->threads[data->threadindex].failcounter*/) {
+         // printf("%d fail\n", data->threadindex);
           available = 0;
           data->threads[data->threadindex].wantindex = -1;
           data->threads[data->threadindex].failcounter++;
@@ -77,7 +84,7 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
         }
         data->main->works[target].available = 0;
         data->threads[data->threadindex].wantindex = -1;
-        data->main->workindex = (target + 1) % data->worksize;
+        data->main->workindex = (target + 1);
         
         //asm volatile ("sfence" ::: "memory");
 
@@ -89,13 +96,7 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
           allunavailable = 0;
         }
       }
-      if (allunavailable == 1) {
-        // data->main->workindex = 0;
-        printf("work epoch end\n");
-        for (int x = 0 ; x < data->worksize; x++) {
-          data->main->works[x].available = 1;
-        }
-      }
+      
     } 
 
       

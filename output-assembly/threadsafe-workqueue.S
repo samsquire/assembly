@@ -84,7 +84,7 @@ printf (const char *__restrict __fmt, ...)
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
   4010c2:	ba 02 00 00 00       	mov    $0x2,%edx
   4010c7:	bf 01 00 00 00       	mov    $0x1,%edi
-  4010cc:	48 8d 35 49 0f 00 00 	lea    0xf49(%rip),%rsi        # 40201c <_IO_stdin_used+0x1c>
+  4010cc:	48 8d 35 40 0f 00 00 	lea    0xf40(%rip),%rsi        # 402013 <_IO_stdin_used+0x13>
   4010d3:	41 54                	push   %r12
   4010d5:	55                   	push   %rbp
   4010d6:	53                   	push   %rbx
@@ -126,7 +126,7 @@ printf (const char *__restrict __fmt, ...)
   40113d:	e8 3e ff ff ff       	call   401080 <calloc@plt>
   
   for (int i = 0; i < 100; i++) {
-  401142:	66 0f 6f 05 96 0f 00 00 	movdqa 0xf96(%rip),%xmm0        # 4020e0 <_IO_stdin_used+0xe0>
+  401142:	66 0f 6f 05 76 0f 00 00 	movdqa 0xf76(%rip),%xmm0        # 4020c0 <_IO_stdin_used+0xc0>
   40114a:	48 89 c2             	mov    %rax,%rdx
   40114d:	48 8d 88 20 03 00 00 	lea    0x320(%rax),%rcx
   401154:	0f 1f 40 00          	nopl   0x0(%rax)
@@ -146,7 +146,7 @@ printf (const char *__restrict __fmt, ...)
   401169:	bf 01 00 00 00       	mov    $0x1,%edi
   data[0].works = works;
   40116e:	48 89 43 38          	mov    %rax,0x38(%rbx)
-  401172:	4c 8d 2d 2f 0f 00 00 	lea    0xf2f(%rip),%r13        # 4020a8 <_IO_stdin_used+0xa8>
+  401172:	4c 8d 2d 27 0f 00 00 	lea    0xf27(%rip),%r13        # 4020a0 <_IO_stdin_used+0xa0>
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
   401179:	e8 02 ff ff ff       	call   401080 <calloc@plt>
   40117e:	31 d2                	xor    %edx,%edx
@@ -170,7 +170,7 @@ printf (const char *__restrict __fmt, ...)
   4011a1:	be 80 00 00 00       	mov    $0x80,%esi
     data[x].threads = data;
     data[x].wantindex = -1;
-  4011a6:	66 0f 6f 05 42 0f 00 00 	movdqa 0xf42(%rip),%xmm0        # 4020f0 <_IO_stdin_used+0xf0>
+  4011a6:	66 0f 6f 05 22 0f 00 00 	movdqa 0xf22(%rip),%xmm0        # 4020d0 <_IO_stdin_used+0xd0>
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
   4011ae:	bf 01 00 00 00       	mov    $0x1,%edi
     data[x].threadsize = threadsize;
@@ -200,7 +200,7 @@ printf (const char *__restrict __fmt, ...)
   4011f0:	48 89 ef             	mov    %rbp,%rdi
   4011f3:	49 c7 c5 e0 13 40 00 	mov    $0x4013e0,%r13
     data[x].wantindex = -1;
-  4011fa:	66 0f 6f 05 fe 0e 00 00 	movdqa 0xefe(%rip),%xmm0        # 402100 <_IO_stdin_used+0x100>
+  4011fa:	66 0f 6f 05 de 0e 00 00 	movdqa 0xede(%rip),%xmm0        # 4020e0 <_IO_stdin_used+0xe0>
     data[x].main = &data[0];
   401202:	48 89 5b 50          	mov    %rbx,0x50(%rbx)
     data[x].threadsize = threadsize;
@@ -242,7 +242,7 @@ printf (const char *__restrict __fmt, ...)
   40125f:	48 8d 74 24 30       	lea    0x30(%rsp),%rsi
   401264:	48 8d 7c 24 20       	lea    0x20(%rsp),%rdi
   struct timespec time = {
-  401269:	66 0f 6f 05 9f 0e 00 00 	movdqa 0xe9f(%rip),%xmm0        # 402110 <_IO_stdin_used+0x110>
+  401269:	66 0f 6f 05 7f 0e 00 00 	movdqa 0xe7f(%rip),%xmm0        # 4020f0 <_IO_stdin_used+0xf0>
   401271:	0f 29 44 24 20       	movaps %xmm0,0x20(%rsp)
   struct timespec rem = {
   401276:	66 0f ef c0          	pxor   %xmm0,%xmm0
@@ -261,7 +261,7 @@ printf (const char *__restrict __fmt, ...)
   4012a8:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
   4012ac:	4c 89 e6             	mov    %r12,%rsi
   4012af:	e8 fc fd ff ff       	call   4010b0 <pthread_join@plt>
-  4012b4:	48 8d 3d 76 0d 00 00 	lea    0xd76(%rip),%rdi        # 402031 <_IO_stdin_used+0x31>
+  4012b4:	48 8d 3d 6d 0d 00 00 	lea    0xd6d(%rip),%rdi        # 402028 <_IO_stdin_used+0x28>
   4012bb:	e8 90 fd ff ff       	call   401050 <puts@plt>
   }
   printf("finished simulation.\n");
@@ -355,306 +355,174 @@ printf (const char *__restrict __fmt, ...)
 
 00000000004013e0 <work>:
 void * work(void * arg) {
-  4013e0:	41 57                	push   %r15
+  4013e0:	41 56                	push   %r14
   char * output = calloc(100, sizeof(char));
   4013e2:	be 01 00 00 00       	mov    $0x1,%esi
 void * work(void * arg) {
-  4013e7:	41 56                	push   %r14
-  4013e9:	41 55                	push   %r13
-  4013eb:	41 54                	push   %r12
-  4013ed:	55                   	push   %rbp
-  4013ee:	48 89 fd             	mov    %rdi,%rbp
+  4013e7:	41 55                	push   %r13
+  4013e9:	41 54                	push   %r12
+  4013eb:	55                   	push   %rbp
+  4013ec:	53                   	push   %rbx
+  4013ed:	48 89 fb             	mov    %rdi,%rbx
   char * output = calloc(100, sizeof(char));
-  4013f1:	bf 64 00 00 00       	mov    $0x64,%edi
-void * work(void * arg) {
-  4013f6:	53                   	push   %rbx
-  4013f7:	48 83 ec 08          	sub    $0x8,%rsp
-  char * output = calloc(100, sizeof(char));
-  4013fb:	e8 80 fc ff ff       	call   401080 <calloc@plt>
-        if (data->main->works[x].available == 1) {
-  401400:	66 0f 6f 15 c8 0c 00 00 	movdqa 0xcc8(%rip),%xmm2        # 4020d0 <_IO_stdin_used+0xd0>
-  char * output = calloc(100, sizeof(char));
-  401408:	49 89 c7             	mov    %rax,%r15
+  4013f0:	bf 64 00 00 00       	mov    $0x64,%edi
+  4013f5:	e8 86 fc ff ff       	call   401080 <calloc@plt>
+  while (data->running == 1) {
+  4013fa:	83 7b 24 01          	cmpl   $0x1,0x24(%rbx)
+  4013fe:	0f 85 28 01 00 00    	jne    40152c <work+0x14c>
+  401404:	4c 8b 03             	mov    (%rbx),%r8
+  401407:	49 89 c5             	mov    %rax,%r13
+  40140a:	48 8d 2d f3 0b 00 00 	lea    0xbf3(%rip),%rbp        # 402004 <_IO_stdin_used+0x4>
+  401411:	eb 0f                	jmp    401422 <work+0x42>
+  401413:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  401418:	83 7b 24 01          	cmpl   $0x1,0x24(%rbx)
+  40141c:	0f 85 0a 01 00 00    	jne    40152c <work+0x14c>
    case no work is done at all.  We detect these problems by referring
    non-existing functions.  */
 __fortify_function void *
 __NTH (memset (void *__dest, int __ch, size_t __len))
 {
   return __builtin___memset_chk (__dest, __ch, __len,
-  40140b:	45 31 e4             	xor    %r12d,%r12d
-  40140e:	66 90                	xchg   %ax,%ax
-  while (data->running == 1) {
-  401410:	44 8b 6d 24          	mov    0x24(%rbp),%r13d
-  401414:	41 83 fd 01          	cmp    $0x1,%r13d
-  401418:	0f 85 f3 02 00 00    	jne    401711 <work+0x331>
-  40141e:	4c 89 ff             	mov    %r15,%rdi
-  401421:	4c 89 e0             	mov    %r12,%rax
+  401422:	31 c0                	xor    %eax,%eax
   401424:	b9 0c 00 00 00       	mov    $0xc,%ecx
-  401429:	f3 48 ab             	rep stos %rax,%es:(%rdi)
-  40142c:	c7 07 00 00 00 00    	movl   $0x0,(%rdi)
-      int target = (data->main->workindex) % data->worksize;
-  401432:	4c 8b 45 00          	mov    0x0(%rbp),%r8
-  401436:	8b 7d 28             	mov    0x28(%rbp),%edi
+  401429:	4c 89 ef             	mov    %r13,%rdi
+  40142c:	f3 48 ab             	rep stos %rax,%es:(%rdi)
+    if (data->threadindex != 0 && data->main->workindex >= data->worksize) { continue; }
+  40142f:	8b 4b 2c             	mov    0x2c(%rbx),%ecx
+  401432:	8b 43 28             	mov    0x28(%rbx),%eax
+  401435:	85 c9                	test   %ecx,%ecx
+  401437:	c7 07 00 00 00 00    	movl   $0x0,(%rdi)
+  40143d:	0f 84 f5 00 00 00    	je     401538 <work+0x158>
+  401443:	41 39 40 1c          	cmp    %eax,0x1c(%r8)
+  401447:	7d cf                	jge    401418 <work+0x38>
       data->threads[data->threadindex].wantindex = target;
-  401439:	4c 8b 55 08          	mov    0x8(%rbp),%r10
-      int target = (data->main->workindex) % data->worksize;
-  40143d:	41 8b 40 1c          	mov    0x1c(%r8),%eax
-  401441:	99                   	cltd
-  401442:	f7 ff                	idiv   %edi
+  401449:	48 63 43 2c          	movslq 0x2c(%rbx),%rax
+      int target = (data->main->workindex);
+  40144d:	4c 8b 03             	mov    (%rbx),%r8
       data->threads[data->threadindex].wantindex = target;
-  401444:	48 63 45 2c          	movslq 0x2c(%rbp),%rax
-  401448:	4c 8d 1c 80          	lea    (%rax,%rax,4),%r11
-  40144c:	49 89 c1             	mov    %rax,%r9
-  40144f:	49 c1 e3 04          	shl    $0x4,%r11
-  401453:	4d 01 d3             	add    %r10,%r11
-  401456:	41 89 53 20          	mov    %edx,0x20(%r11)
-      int target = (data->main->workindex) % data->worksize;
-  40145a:	89 d3                	mov    %edx,%ebx
+  401450:	48 8b 53 08          	mov    0x8(%rbx),%rdx
       for (int x = 0; x < data->threadsize ; x++ ) {
-  40145c:	8b 55 30             	mov    0x30(%rbp),%edx
-  40145f:	85 d2                	test   %edx,%edx
-  401461:	0f 8e c1 01 00 00    	jle    401628 <work+0x248>
-  401467:	31 c0                	xor    %eax,%eax
-  401469:	eb 14                	jmp    40147f <work+0x9f>
-  40146b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-  401470:	83 c0 01             	add    $0x1,%eax
-  401473:	48 83 c1 50          	add    $0x50,%rcx
-  401477:	39 d0                	cmp    %edx,%eax
-  401479:	0f 84 a9 01 00 00    	je     401628 <work+0x248>
+  401454:	8b 73 30             	mov    0x30(%rbx),%esi
+      data->threads[data->threadindex].wantindex = target;
+  401457:	48 8d 3c 80          	lea    (%rax,%rax,4),%rdi
+      int target = (data->main->workindex);
+  40145b:	45 8b 60 1c          	mov    0x1c(%r8),%r12d
+      data->threads[data->threadindex].wantindex = target;
+  40145f:	49 89 c1             	mov    %rax,%r9
+  401462:	48 c1 e7 04          	shl    $0x4,%rdi
+  401466:	48 01 d7             	add    %rdx,%rdi
+  401469:	44 89 67 20          	mov    %r12d,0x20(%rdi)
+      for (int x = 0; x < data->threadsize ; x++ ) {
+  40146d:	85 f6                	test   %esi,%esi
+  40146f:	7e 2f                	jle    4014a0 <work+0xc0>
+  401471:	48 83 c2 20          	add    $0x20,%rdx
+  401475:	31 c0                	xor    %eax,%eax
+  401477:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
         if (x == data->threadindex) {
-  40147f:	41 39 c1             	cmp    %eax,%r9d
-  401482:	74 ec                	je     401470 <work+0x90>
-        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target && data[x].failcounter > data->threads[data->threadindex].failcounter) {
-  401484:	41 8b 74 0a 20       	mov    0x20(%r10,%rcx,1),%esi
-  401489:	83 fe ff             	cmp    $0xffffffff,%esi
-  40148c:	74 e2                	je     401470 <work+0x90>
-  40148e:	39 de                	cmp    %ebx,%esi
-  401490:	75 de                	jne    401470 <work+0x90>
-  401492:	41 8b 73 48          	mov    0x48(%r11),%esi
-  401496:	39 74 0d 48          	cmp    %esi,0x48(%rbp,%rcx,1)
-  40149a:	7e d4                	jle    401470 <work+0x90>
-  40149c:	bf 01 00 00 00       	mov    $0x1,%edi
-  4014a1:	44 89 ca             	mov    %r9d,%edx
-  4014a4:	48 8d 35 59 0b 00 00 	lea    0xb59(%rip),%rsi        # 402004 <_IO_stdin_used+0x4>
-  4014ab:	31 c0                	xor    %eax,%eax
-  4014ad:	e8 de fb ff ff       	call   401090 <__printf_chk@plt>
-          data->threads[data->threadindex].wantindex = -1;
-  4014b2:	48 63 45 2c          	movslq 0x2c(%rbp),%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  4014b6:	8b 7d 28             	mov    0x28(%rbp),%edi
-  4014b9:	66 0f 6f 15 0f 0c 00 00 	movdqa 0xc0f(%rip),%xmm2        # 4020d0 <_IO_stdin_used+0xd0>
-          data->threads[data->threadindex].wantindex = -1;
-  4014c1:	48 8d 04 80          	lea    (%rax,%rax,4),%rax
-  4014c5:	48 c1 e0 04          	shl    $0x4,%rax
-  4014c9:	48 03 45 08          	add    0x8(%rbp),%rax
-          data->threads[data->threadindex].failcounter++;
-  4014cd:	83 40 48 01          	addl   $0x1,0x48(%rax)
-          data->threads[data->threadindex].wantindex = -1;
-  4014d1:	c7 40 20 ff ff ff ff 	movl   $0xffffffff,0x20(%rax)
+  401480:	41 39 c1             	cmp    %eax,%r9d
+  401483:	74 10                	je     401495 <work+0xb5>
+        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target /*&& data[x].failcounter > data->threads[data->threadindex].failcounter*/) {
+  401485:	8b 0a                	mov    (%rdx),%ecx
+  401487:	83 f9 ff             	cmp    $0xffffffff,%ecx
+  40148a:	74 09                	je     401495 <work+0xb5>
+  40148c:	44 39 e1             	cmp    %r12d,%ecx
+  40148f:	0f 84 f3 00 00 00    	je     401588 <work+0x1a8>
+      for (int x = 0; x < data->threadsize ; x++ ) {
+  401495:	83 c0 01             	add    $0x1,%eax
+  401498:	48 83 c2 50          	add    $0x50,%rdx
+  40149c:	39 f0                	cmp    %esi,%eax
+  40149e:	75 e0                	jne    401480 <work+0xa0>
       if (available == 1 && data->main->works[target].available == 1) {
-  4014d8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-      for (int x = 0; x < data->worksize ; x++) {
-  4014e0:	85 ff                	test   %edi,%edi
-  4014e2:	0f 8e eb 00 00 00    	jle    4015d3 <work+0x1f3>
-        if (data->main->works[x].available == 1) {
-  4014e8:	48 8b 45 00          	mov    0x0(%rbp),%rax
-  4014ec:	8d 57 ff             	lea    -0x1(%rdi),%edx
-  4014ef:	48 8b 70 38          	mov    0x38(%rax),%rsi
-  4014f3:	83 fa 03             	cmp    $0x3,%edx
-  4014f6:	0f 86 37 02 00 00    	jbe    401733 <work+0x353>
-  4014fc:	89 d1                	mov    %edx,%ecx
-  4014fe:	48 8d 46 04          	lea    0x4(%rsi),%rax
-  401502:	66 0f 6f ca          	movdqa %xmm2,%xmm1
-  401506:	c1 e9 02             	shr    $0x2,%ecx
-  401509:	83 e9 01             	sub    $0x1,%ecx
-  40150c:	48 c1 e1 05          	shl    $0x5,%rcx
-  401510:	48 8d 4c 0e 24       	lea    0x24(%rsi,%rcx,1),%rcx
-  401515:	0f 1f 00             	nopl   (%rax)
-  401518:	f3 0f 6f 00          	movdqu (%rax),%xmm0
-  40151c:	f3 0f 6f 60 10       	movdqu 0x10(%rax),%xmm4
-  401521:	48 83 c0 20          	add    $0x20,%rax
-  401525:	0f c6 c4 88          	shufps $0x88,%xmm4,%xmm0
-  401529:	66 0f 76 c2          	pcmpeqd %xmm2,%xmm0
-  40152d:	66 0f df c1          	pandn  %xmm1,%xmm0
-  401531:	66 0f 6f c8          	movdqa %xmm0,%xmm1
-      for (int x = 0; x < data->worksize ; x++) {
-  401535:	48 39 c8             	cmp    %rcx,%rax
-  401538:	75 de                	jne    401518 <work+0x138>
-  40153a:	66 0f 6f d8          	movdqa %xmm0,%xmm3
-  40153e:	83 e2 fc             	and    $0xfffffffc,%edx
-  401541:	66 0f 73 db 08       	psrldq $0x8,%xmm3
-  401546:	66 0f 6f c3          	movdqa %xmm3,%xmm0
-  40154a:	66 0f 66 c1          	pcmpgtd %xmm1,%xmm0
-  40154e:	66 0f db c8          	pand   %xmm0,%xmm1
-  401552:	66 0f df c3          	pandn  %xmm3,%xmm0
-  401556:	66 0f eb c1          	por    %xmm1,%xmm0
-  40155a:	66 0f 6f d8          	movdqa %xmm0,%xmm3
-  40155e:	66 0f 73 db 04       	psrldq $0x4,%xmm3
-  401563:	66 0f 6f cb          	movdqa %xmm3,%xmm1
-  401567:	66 0f 66 c8          	pcmpgtd %xmm0,%xmm1
-  40156b:	66 0f db c1          	pand   %xmm1,%xmm0
-  40156f:	66 0f df cb          	pandn  %xmm3,%xmm1
-  401573:	66 0f eb c8          	por    %xmm0,%xmm1
-  401577:	66 41 0f 7e cd       	movd   %xmm1,%r13d
-        if (data->main->works[x].available == 1) {
-  40157c:	48 63 c2             	movslq %edx,%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  40157f:	83 c2 01             	add    $0x1,%edx
-        if (data->main->works[x].available == 1) {
-  401582:	83 7c c6 04 01       	cmpl   $0x1,0x4(%rsi,%rax,8)
-  401587:	0f 84 33 01 00 00    	je     4016c0 <work+0x2e0>
-      for (int x = 0; x < data->worksize ; x++) {
-  40158d:	39 fa                	cmp    %edi,%edx
-  40158f:	7d 38                	jge    4015c9 <work+0x1e9>
-        if (data->main->works[x].available == 1) {
-  401591:	48 63 c2             	movslq %edx,%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  401594:	83 c2 01             	add    $0x1,%edx
-        if (data->main->works[x].available == 1) {
-  401597:	83 7c c6 04 01       	cmpl   $0x1,0x4(%rsi,%rax,8)
-  40159c:	0f 84 3a 01 00 00    	je     4016dc <work+0x2fc>
-      for (int x = 0; x < data->worksize ; x++) {
-  4015a2:	39 d7                	cmp    %edx,%edi
-  4015a4:	7e 23                	jle    4015c9 <work+0x1e9>
-        if (data->main->works[x].available == 1) {
-  4015a6:	48 63 c2             	movslq %edx,%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  4015a9:	83 c2 01             	add    $0x1,%edx
-        if (data->main->works[x].available == 1) {
-  4015ac:	83 7c c6 04 01       	cmpl   $0x1,0x4(%rsi,%rax,8)
-  4015b1:	0f 84 41 01 00 00    	je     4016f8 <work+0x318>
-      for (int x = 0; x < data->worksize ; x++) {
-  4015b7:	39 fa                	cmp    %edi,%edx
-  4015b9:	7d 0e                	jge    4015c9 <work+0x1e9>
-        if (data->main->works[x].available == 1) {
-  4015bb:	48 63 d2             	movslq %edx,%rdx
-  4015be:	83 7c d6 04 01       	cmpl   $0x1,0x4(%rsi,%rdx,8)
-  4015c3:	0f 84 47 fe ff ff    	je     401410 <work+0x30>
-      if (allunavailable == 1) {
-  4015c9:	41 83 fd 01          	cmp    $0x1,%r13d
-  4015cd:	0f 85 3d fe ff ff    	jne    401410 <work+0x30>
-  4015d3:	48 8d 3d 33 0a 00 00 	lea    0xa33(%rip),%rdi        # 40200d <_IO_stdin_used+0xd>
-  4015da:	e8 71 fa ff ff       	call   401050 <puts@plt>
-        for (int x = 0 ; x < data->worksize; x++) {
-  4015df:	8b 4d 28             	mov    0x28(%rbp),%ecx
-  4015e2:	66 0f 6f 15 e6 0a 00 00 	movdqa 0xae6(%rip),%xmm2        # 4020d0 <_IO_stdin_used+0xd0>
-  4015ea:	85 c9                	test   %ecx,%ecx
-  4015ec:	0f 8e 19 fe ff ff    	jle    40140b <work+0x2b>
-          data->main->works[x].available = 1;
-  4015f2:	48 8b 45 00          	mov    0x0(%rbp),%rax
-  4015f6:	83 e9 01             	sub    $0x1,%ecx
-  4015f9:	48 8b 50 38          	mov    0x38(%rax),%rdx
-  4015fd:	48 8d 42 04          	lea    0x4(%rdx),%rax
-  401601:	48 8d 54 ca 0c       	lea    0xc(%rdx,%rcx,8),%rdx
-  401606:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
-  401610:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
-        for (int x = 0 ; x < data->worksize; x++) {
-  401616:	48 83 c0 08          	add    $0x8,%rax
-  40161a:	48 39 d0             	cmp    %rdx,%rax
-  40161d:	75 f1                	jne    401610 <work+0x230>
-  40161f:	e9 e7 fd ff ff       	jmp    40140b <work+0x2b>
-  401624:	0f 1f 40 00          	nopl   0x0(%rax)
-      if (available == 1 && data->main->works[target].available == 1) {
-  401628:	49 8b 50 38          	mov    0x38(%r8),%rdx
-  40162c:	48 63 c3             	movslq %ebx,%rax
-  40162f:	4c 8d 34 c5 00 00 00 00 	lea    0x0(,%rax,8),%r14
-  401637:	83 7c c2 04 01       	cmpl   $0x1,0x4(%rdx,%rax,8)
-  40163c:	0f 85 9e fe ff ff    	jne    4014e0 <work+0x100>
+  4014a0:	49 8b 50 38          	mov    0x38(%r8),%rdx
+  4014a4:	49 63 c4             	movslq %r12d,%rax
+  4014a7:	4c 8d 34 c5 00 00 00 00 	lea    0x0(,%rax,8),%r14
+  4014af:	83 7c c2 04 01       	cmpl   $0x1,0x4(%rdx,%rax,8)
+  4014b4:	0f 85 5e ff ff ff    	jne    401418 <work+0x38>
         if (data->threadindex == 0) {
-  401642:	45 85 c9             	test   %r9d,%r9d
-  401645:	0f 85 d7 00 00 00    	jne    401722 <work+0x342>
+  4014ba:	45 85 c9             	test   %r9d,%r9d
+  4014bd:	0f 85 d5 00 00 00    	jne    401598 <work+0x1b8>
   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
-  40164b:	48 83 ec 08          	sub    $0x8,%rsp
-  40164f:	4c 8d 05 f2 09 00 00 	lea    0x9f2(%rip),%r8        # 402048 <_IO_stdin_used+0x48>
-  401656:	53                   	push   %rbx
-  401657:	b9 64 00 00 00       	mov    $0x64,%ecx
-  40165c:	ba 01 00 00 00       	mov    $0x1,%edx
-  401661:	4c 89 ff             	mov    %r15,%rdi
-  401664:	31 c0                	xor    %eax,%eax
-  401666:	be 64 00 00 00       	mov    $0x64,%esi
-  40166b:	e8 c0 f9 ff ff       	call   401030 <__snprintf_chk@plt>
+  4014c3:	48 83 ec 08          	sub    $0x8,%rsp
+  4014c7:	4c 8d 05 72 0b 00 00 	lea    0xb72(%rip),%r8        # 402040 <_IO_stdin_used+0x40>
+  4014ce:	41 54                	push   %r12
+  4014d0:	ba 01 00 00 00       	mov    $0x1,%edx
+  4014d5:	b9 64 00 00 00       	mov    $0x64,%ecx
+  4014da:	4c 89 ef             	mov    %r13,%rdi
+  4014dd:	31 c0                	xor    %eax,%eax
+  4014df:	be 64 00 00 00       	mov    $0x64,%esi
+        data->main->workindex = (target + 1);
+  4014e4:	41 83 c4 01          	add    $0x1,%r12d
+  4014e8:	e8 43 fb ff ff       	call   401030 <__snprintf_chk@plt>
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-  401670:	4c 89 ff             	mov    %r15,%rdi
-  401673:	e8 d8 f9 ff ff       	call   401050 <puts@plt>
+  4014ed:	4c 89 ef             	mov    %r13,%rdi
+  4014f0:	e8 5b fb ff ff       	call   401050 <puts@plt>
         data->main->works[target].available = 0;
-  401678:	48 8b 4d 00          	mov    0x0(%rbp),%rcx
-  40167c:	58                   	pop    %rax
-  40167d:	5a                   	pop    %rdx
-        data->main->workindex = (target + 1) % data->worksize;
-  40167e:	8b 7d 28             	mov    0x28(%rbp),%edi
-        data->main->works[target].available = 0;
-  401681:	48 8b 41 38          	mov    0x38(%rcx),%rax
-  401685:	66 0f 6f 15 43 0a 00 00 	movdqa 0xa43(%rip),%xmm2        # 4020d0 <_IO_stdin_used+0xd0>
-  40168d:	42 c7 44 30 04 00 00 00 00 	movl   $0x0,0x4(%rax,%r14,1)
+  4014f5:	4c 8b 03             	mov    (%rbx),%r8
+  4014f8:	58                   	pop    %rax
+  4014f9:	5a                   	pop    %rdx
+  4014fa:	49 8b 40 38          	mov    0x38(%r8),%rax
+  4014fe:	42 c7 44 30 04 00 00 00 00 	movl   $0x0,0x4(%rax,%r14,1)
         data->threads[data->threadindex].wantindex = -1;
-  401696:	48 63 45 2c          	movslq 0x2c(%rbp),%rax
-  40169a:	48 8d 04 80          	lea    (%rax,%rax,4),%rax
-  40169e:	48 c1 e0 04          	shl    $0x4,%rax
-  4016a2:	48 03 45 08          	add    0x8(%rbp),%rax
-  4016a6:	c7 40 20 ff ff ff ff 	movl   $0xffffffff,0x20(%rax)
-        data->main->workindex = (target + 1) % data->worksize;
-  4016ad:	8d 43 01             	lea    0x1(%rbx),%eax
-  4016b0:	99                   	cltd
-  4016b1:	f7 ff                	idiv   %edi
-  4016b3:	89 51 1c             	mov    %edx,0x1c(%rcx)
-  4016b6:	e9 25 fe ff ff       	jmp    4014e0 <work+0x100>
-  4016bb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-          allunavailable = 0;
-  4016c0:	45 31 ed             	xor    %r13d,%r13d
-      for (int x = 0; x < data->worksize ; x++) {
-  4016c3:	39 fa                	cmp    %edi,%edx
-  4016c5:	0f 8d 45 fd ff ff    	jge    401410 <work+0x30>
-        if (data->main->works[x].available == 1) {
-  4016cb:	48 63 c2             	movslq %edx,%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  4016ce:	83 c2 01             	add    $0x1,%edx
-        if (data->main->works[x].available == 1) {
-  4016d1:	83 7c c6 04 01       	cmpl   $0x1,0x4(%rsi,%rax,8)
-  4016d6:	0f 85 c6 fe ff ff    	jne    4015a2 <work+0x1c2>
-          allunavailable = 0;
-  4016dc:	45 31 ed             	xor    %r13d,%r13d
-      for (int x = 0; x < data->worksize ; x++) {
-  4016df:	39 fa                	cmp    %edi,%edx
-  4016e1:	0f 8d 29 fd ff ff    	jge    401410 <work+0x30>
-        if (data->main->works[x].available == 1) {
-  4016e7:	48 63 c2             	movslq %edx,%rax
-      for (int x = 0; x < data->worksize ; x++) {
-  4016ea:	83 c2 01             	add    $0x1,%edx
-        if (data->main->works[x].available == 1) {
-  4016ed:	83 7c c6 04 01       	cmpl   $0x1,0x4(%rsi,%rax,8)
-  4016f2:	0f 85 bf fe ff ff    	jne    4015b7 <work+0x1d7>
-          allunavailable = 0;
-  4016f8:	45 31 ed             	xor    %r13d,%r13d
-      for (int x = 0; x < data->worksize ; x++) {
-  4016fb:	39 fa                	cmp    %edi,%edx
-  4016fd:	0f 8c b8 fe ff ff    	jl     4015bb <work+0x1db>
+  401507:	48 63 43 2c          	movslq 0x2c(%rbx),%rax
+  40150b:	48 8d 04 80          	lea    (%rax,%rax,4),%rax
+  40150f:	48 c1 e0 04          	shl    $0x4,%rax
+  401513:	48 03 43 08          	add    0x8(%rbx),%rax
   while (data->running == 1) {
-  401703:	44 8b 6d 24          	mov    0x24(%rbp),%r13d
-  401707:	41 83 fd 01          	cmp    $0x1,%r13d
-  40170b:	0f 84 0d fd ff ff    	je     40141e <work+0x3e>
+  401517:	83 7b 24 01          	cmpl   $0x1,0x24(%rbx)
+        data->threads[data->threadindex].wantindex = -1;
+  40151b:	c7 40 20 ff ff ff ff 	movl   $0xffffffff,0x20(%rax)
+        data->main->workindex = (target + 1);
+  401522:	45 89 60 1c          	mov    %r12d,0x1c(%r8)
+  while (data->running == 1) {
+  401526:	0f 84 f6 fe ff ff    	je     401422 <work+0x42>
   }
-  401711:	48 83 c4 08          	add    $0x8,%rsp
-  401715:	31 c0                	xor    %eax,%eax
-  401717:	5b                   	pop    %rbx
-  401718:	5d                   	pop    %rbp
-  401719:	41 5c                	pop    %r12
-  40171b:	41 5d                	pop    %r13
-  40171d:	41 5e                	pop    %r14
-  40171f:	41 5f                	pop    %r15
-  401721:	c3                   	ret
+  40152c:	5b                   	pop    %rbx
+  40152d:	5d                   	pop    %rbp
+  40152e:	41 5c                	pop    %r12
+  401530:	41 5d                	pop    %r13
+  401532:	41 5e                	pop    %r14
+  401534:	c3                   	ret
+  401535:	0f 1f 00             	nopl   (%rax)
+    if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
+  401538:	41 39 40 1c          	cmp    %eax,0x1c(%r8)
+  40153c:	0f 8c 07 ff ff ff    	jl     401449 <work+0x69>
+        data->main->workindex = 0;
+  401542:	41 c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%r8)
+  40154a:	48 89 ef             	mov    %rbp,%rdi
+  40154d:	e8 fe fa ff ff       	call   401050 <puts@plt>
+        for (int x = 0 ; x < data->worksize; x++) {
+  401552:	8b 53 28             	mov    0x28(%rbx),%edx
+  401555:	85 d2                	test   %edx,%edx
+  401557:	0f 8e ec fe ff ff    	jle    401449 <work+0x69>
+          data->main->works[x].available = 1;
+  40155d:	48 8b 03             	mov    (%rbx),%rax
+  401560:	83 ea 01             	sub    $0x1,%edx
+  401563:	48 8b 48 38          	mov    0x38(%rax),%rcx
+  401567:	48 8d 41 04          	lea    0x4(%rcx),%rax
+  40156b:	48 8d 54 d1 0c       	lea    0xc(%rcx,%rdx,8),%rdx
+  401570:	c7 00 01 00 00 00    	movl   $0x1,(%rax)
+        for (int x = 0 ; x < data->worksize; x++) {
+  401576:	48 83 c0 08          	add    $0x8,%rax
+  40157a:	48 39 c2             	cmp    %rax,%rdx
+  40157d:	75 f1                	jne    401570 <work+0x190>
+  40157f:	e9 c5 fe ff ff       	jmp    401449 <work+0x69>
+  401584:	0f 1f 40 00          	nopl   0x0(%rax)
+          data->threads[data->threadindex].failcounter++;
+  401588:	83 47 48 01          	addl   $0x1,0x48(%rdi)
+          data->threads[data->threadindex].wantindex = -1;
+  40158c:	c7 47 20 ff ff ff ff 	movl   $0xffffffff,0x20(%rdi)
+      if (available == 1 && data->main->works[target].available == 1) {
+  401593:	e9 80 fe ff ff       	jmp    401418 <work+0x38>
   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
-  401722:	48 83 ec 08          	sub    $0x8,%rsp
-  401726:	4c 8d 05 4b 09 00 00 	lea    0x94b(%rip),%r8        # 402078 <_IO_stdin_used+0x78>
-  40172d:	53                   	push   %rbx
-  40172e:	e9 24 ff ff ff       	jmp    401657 <work+0x277>
-      for (int x = 0; x < data->worksize ; x++) {
-  401733:	31 d2                	xor    %edx,%edx
-  401735:	e9 42 fe ff ff       	jmp    40157c <work+0x19c>
+  401598:	48 83 ec 08          	sub    $0x8,%rsp
+  40159c:	4c 8d 05 cd 0a 00 00 	lea    0xacd(%rip),%r8        # 402070 <_IO_stdin_used+0x70>
+  4015a3:	41 54                	push   %r12
+  4015a5:	e9 26 ff ff ff       	jmp    4014d0 <work+0xf0>
 
 Disassembly of section .fini:
 
-000000000040173c <_fini>:
-  40173c:	f3 0f 1e fa          	endbr64
-  401740:	48 83 ec 08          	sub    $0x8,%rsp
-  401744:	48 83 c4 08          	add    $0x8,%rsp
-  401748:	c3                   	ret
+00000000004015ac <_fini>:
+  4015ac:	f3 0f 1e fa          	endbr64
+  4015b0:	48 83 ec 08          	sub    $0x8,%rsp
+  4015b4:	48 83 c4 08          	add    $0x8,%rsp
+  4015b8:	c3                   	ret
