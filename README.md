@@ -1,5 +1,7 @@
 # parallel data race server
 
+this is a meant to be a swiss army knife tool for parallelism.
+
 This is incomplete.
 
 This is an experimental project from my learning of assembly and C.
@@ -13,11 +15,31 @@ This is an experimental project from my learning of assembly and C.
  *  **phaser runtime** lock free no mutexes
  *  **message passing** double buffering is used for fast transfer of ownership between threads
  *  **event bucketing**
- *  **run single core but also can run parallel**
- * ****
+ *  **run single core sequential code but also can run parallel**
+ * **scalable work distribution** enqueue work and dequeue work and distribute across threads
    
 updating a field faster than single core frequency
- 
+
+defining an iterator
+
+monads coroutine iterators
+
+paginate, movement
+
+how to model a work queue as communication patterns.
+
+
+multiple threads can enqueue
+single writer
+the binary protocol works
+
+
+```
+dequeue-work-item
+enqueue-item
+```
+approach to thread safety.
+
 **todo**:
 
  * **Coroutines API**

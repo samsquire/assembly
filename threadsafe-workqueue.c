@@ -28,6 +28,8 @@ struct Data {
   int loglevel;
   int *primes;
   int buckets;
+  int availables;
+  int bucketstart;
 };
 
 /*
@@ -46,9 +48,17 @@ if tasks.taskindex > threads[0].workindex:
 void * work(void * arg) {
   struct Data *data = (struct Data*) arg;
   char * output = calloc(100, sizeof(char));
-  
+  int found = 0;
+  int currentbucket = (data->threadindex + 1) % data->threadsize;
+  int innerfind = 0;
+  int bucketlim = ((data->threadindex + 1) * data->buckets) ;
+  int bucketstart = data->bucketstart;
+  printf("bucketlim %d\n", bucketlim);
+  data->workindex = bucketstart;
   while (data->running == 1) {
-  memset(output, 0, 100);
+    found = 0;
+    innerfind = 0;
+  //memset(output, 0, 100);
    
     //if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
     /*if (data->main->workindex >= data->worksize){
@@ -61,62 +71,101 @@ void * work(void * arg) {
       asm volatile ("" ::: "memory");
       int allunavailable = 1;
       int available = 1;
-      int target = (data->threadindex * data->buckets);
+      int target = 0;
     
-    int bucketlim = (data->threadindex + 1) * data->buckets;
+    
     // printf("target: %d %d\n", target, bucketlim);
     int stride = 1;
-    int found = 0;
+    int end = 0;
+    int start = 0;
     int mine = 1;
-   for (int x = data->workindex ; x < bucketlim ; x+= stride ) {
+  
+   for (int x = data->bucketstart ; x < bucketlim; x+= stride ) {
        //printf("%d\n", x); 
     if (data->main->works[x].available == 1 ) {
         target = x;
         found = 1;
+        start = data->bucketstart;
+        end = bucketlim;
+     //printf("found\n");
+      
+      
         break;
     } else {
         
       
     }
    }
+  data->workindex = target;
+  {
     
   if (found == 0) {
-    //printf("expired\n");
     mine = 0;
-    target = 0;
+  // printf("expired\n");
+  
+    
+    
+    currentbucket = (currentbucket + 1) % data->threadsize;
+    if (currentbucket == data->threadindex) { currentbucket = (currentbucket + 1) % data->threadsize;}
+    
     int stride = 1;
     
-   for (int x = target ; x < data->worksize ; x+= stride ) {
+   for (int x = currentbucket * data->buckets ; x < (currentbucket * data->buckets) + data->buckets ; x+= stride ) {
         
     if (data->main->works[x].available == 1 ) {
         target = x;
-        
-        break;
+      start = currentbucket * data->buckets;
+      end = (currentbucket * data->buckets) + data->buckets- 1;
+        innerfind = 1;
+                break;
     } else {
         
       
     }
    }
   }
-    data->workindex = target;
-    if (mine == 0) {
-      data->workindex = target;
+  
+  
+    
+    
+       //printf("syncing\n");
       data->threads[data->threadindex].wantindex = target;
       for (int x = 0; x < data->threadsize ; x++ ) {
         if (x == data->threadindex) {
           continue;
         }
-        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target /*&& data[x].failcounter > data->threads[data->threadindex].failcounter*/) {
-         // printf("%d fail\n", data->threadindex);
+        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target
+          ) {
+       //printf("%d fail\n", data->threadindex);
           available = 0;
           data->threads[data->threadindex].wantindex = -1;
-          data->threads[data->threadindex].failcounter++;
+          
           break;
         }
       }
+    if (found == 0) {
+    //  printf("used up\n");
     }
+  }
       if (available == 1 && data->main->works[target].available == 1) {
+        if (innerfind == 1) {
+         //printf("cb %d\n", data->threads[currentbucket].availables);
+       data->threads[currentbucket].availables--;
+        //  printf("stolen availablea\n");
+        }
+        if (found == 1) {
+          //printf("availablesless\n");
+          data->availables--;
+        }
+data->main->works[target].available = 0;
+     //printf("work %d %d %d\n", start, end, data->workindex);
+      
+        //data->workindex = (data->threadindex * data->buckets);
+        
         data->freq++;
+        if (mine == 0) {
+        //printf("[%d] stole %d from bucket %d\n", data->threadindex, target, currentbucket);
+        }
         if (data->loglevel == 1) {
         if (data->threadindex == 0) {
           ;
@@ -130,31 +179,20 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
           
           
         } }
-        data->main->works[target].available = 0;
+        
         data->threads[data->threadindex].wantindex = -1;
         //data->main->workindex = (target + 1);
-        if (found == 0) {
-        data->workindex = (data->threadindex * data->buckets);
-        if (data->loglevel == 1) { printf("work epoch end\n"); }
-        for (int x = data->buckets * data->threadindex ; x < bucketlim; x++) {
-          data->main->works[x].available = 1;
-        }
+        
           
         }
-        
+    
         
         //asm volatile ("sfence" ::: "memory");
 
         // data->main->workindex = (data->main->workindex+ 1) % data->worksize;
         
-      }
-      for (int x = 0; x < data->worksize ; x++) {
-        if (data->main->works[x].available == 1) {
-          allunavailable = 0;
-        }
-      }
       
-    } 
+      
 
       
       // for (int x = 0 ; x < data->worksize; x++) {
@@ -162,24 +200,47 @@ snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadin
       
           
           // data->main->works[x].taskindex = (data->main->works[x].taskindex + data->worksize - 1) % data->worksize;
+      
+  //
+    if (data->threadindex == 0) {
+  int availables = 0;
+    
+     for (int x = 0 ; x< data->threadsize ; x++) {
+       availables += data->threads[x].availables;
+     }
+   // printf("%d availables\n", availables);
+     if (availables == 0) {
+       
+          data->workindex = data->bucketstart;
+                 {
+      if (data->loglevel == 1) { printf("all used\n"); }
         
-        
-    
-    
-    
-  }
+       // printf("xx %d %d\n", xx, bucketlim);
+        for (int x = 0; x < data->threadsize ; x++) {
+          data->threads[x].availables = data->buckets;
+            data->threads[x].workindex = data->threads[x].bucketstart;
+
+
+        }
+      for (int x = 0; x < data->worksize; x++) {
+        data->main->works[x].available = 1;
+      }
+      }
+     }
+      }}
+}
 
 int main(int argc, char **argv) {
   int debug = 0;
-  int worksize = 10000000;
-  
+  int worksize = 30;
+  srand(time(NULL));
   int primes[] = {3, 7, 13, 19, 23, 29, 31, 37};
-  int threadsize = 7;
+  int threadsize = 3;
   int buckets = worksize / threadsize;
   printf("Starting %d workers\n", threadsize);
   pthread_t *thread = calloc(threadsize, sizeof(pthread_t));
   pthread_attr_t *attr = calloc(threadsize, sizeof(pthread_attr_t));
-  struct Data *data = calloc(threadsize, sizeof(struct Data));
+  struct Data *data = calloc(1, sizeof(struct Data) * threadsize);
   struct Work *works = calloc(worksize, sizeof(struct Work));
   
   for (int i = 0; i < worksize; i++) {
@@ -193,10 +254,12 @@ int main(int argc, char **argv) {
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
     CPU_SET(cpu += 1, data[x].cpu_set);
     printf("assigning thread %d to cpu %d\n", x, cpu);
+    data[x].bucketstart = x * buckets ;
     data[x].loglevel = debug;
     data[x].running = 1;
     data[x].threadindex = x;
     data[x].worksize = worksize;
+    data[x].availables = buckets;
     data[x].threadsize = threadsize;
     data[x].buckets = buckets;
     data[x].main = &data[0];
