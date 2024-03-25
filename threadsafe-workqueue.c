@@ -10,10 +10,36 @@ struct Work {
   int taskindex;
   int available __attribute__((aligned (128)));
 };
+struct Chunk {
+  long start;
+  long end;
+  int available;
+  int owner;
+  int index;
+};
+#define FREE 1
+#define READING 2
+#define WRITING 3
+
+#define READ_MASK (1 << 3)
+#define WRITE_MASK (1 << 2)
+#define BUSY_MASK (1)
+#define PREP_READ_MASK (1 << 4)
+#define PREP_WRITE_MASK (1 << 5)
+
 // __attribute__((aligned (128)))
 struct Data {
+  long read;
+  long write;
+  int available;
+  long start;
+  long end;
+  int ready;
   struct Data *main;
   struct Data *threads;
+  struct Work *consumelist;
+  long publishstart;
+  long publishend;
   long freq ;
   int taskindex; 
   int workindex __attribute__((aligned (128)));
@@ -30,6 +56,17 @@ struct Data {
   int buckets;
   int availables;
   int bucketstart;
+  int readypublish;
+  struct Chunk *freelist;
+  struct Chunk *reading;
+  struct Chunk *writing;
+
+  long chunkslen;
+  long chunksize;
+  long newmask;
+
+
+
 };
 
 /*
@@ -48,16 +85,179 @@ if tasks.taskindex > threads[0].workindex:
 void * work(void * arg) {
   struct Data *data = (struct Data*) arg;
   char * output = calloc(100, sizeof(char));
+  
   int found = 0;
   int currentbucket = (data->threadindex + 1) % data->threadsize;
   int innerfind = 0;
   int bucketlim = ((data->threadindex + 1) * data->buckets) ;
   int bucketstart = data->bucketstart;
+  
   printf("bucketlim %d\n", bucketlim);
+  int * available = calloc(data->chunkslen, sizeof(long));
+  int * readyreaders = calloc(data->threadsize, sizeof(int));
+  int * readywriters = calloc(data->threadsize, sizeof(int));
   data->workindex = bucketstart;
+  int writers;
+  int readers;
+  int stop = 0;
   while (data->running == 1) {
-    found = 0;
-    innerfind = 0;
+    writers = 0;
+    readers = 0;
+    stop = 0;
+    asm volatile ("" ::: "memory");
+   // printf("write cycle\n");
+    //memset(available, -1, data->threadsize);
+    int availableidx = 0;
+    if (data->threadindex == 0) {
+      
+      for (int x = 0; x < data->chunkslen + 1 ; x++) {
+        
+        if (data->freelist[x].available == FREE ) {
+         available[availableidx] = x;
+          availableidx++;
+
+
+         // printf("%d chunk is free\n", x);
+        }
+      }
+      if (availableidx == 0) {
+       // printf("no chunks avail\n");
+        
+        continue;
+      }
+   
+      
+    
+  for (int x = 1; x < data->threadsize ; x++) {
+    //printf("%d\n", data->threads[x].ready);
+        data->threads[x].newmask = 0;
+        if ((data->threads[x].ready & WRITE_MASK) == WRITE_MASK || data->threads[x].ready == 0) {
+       // printf("found a writer\n");
+          readywriters[writers++] = x;
+        }
+    if (data->threads[x].ready & (READ_MASK == READ_MASK) || data->threads[x].ready == 0) {
+      readyreaders[readers++] = x;
+    // printf("found a resder\n");
+    }
+      }
+   //printf("%d readers %d writers\n", readers, writers);
+      
+      
+  
+      long size = data->main->write - data->main->read;
+      long buckets = size / availableidx;
+      long offset = data->read;
+      int assignedchunk = 0;
+      
+        for (int x = 0; x < readers ; x++) {
+          if (assignedchunk > availableidx) {
+            //printf("not enough space readers\n");
+                  break;
+          }
+          int thread = readyreaders[x];
+          //printf("%d %p\n", thread, &data->freelist[available[assignedchunk]]);
+      struct Chunk *chunk = &data->freelist[available[assignedchunk++]];
+          chunk->available = READING;
+          //printf("assign %p\n", chunk);
+
+
+          data->threads[thread].reading = chunk;
+          
+          chunk->owner = thread;
+          long start = chunk->start;
+          data->threads[thread].start = start;
+          
+          long end = chunk->end;
+          data->threads[thread].end = end;
+        // printf("reader giving %d between %ld and %ld\n", x, start, end);
+          
+         data->threads[thread].newmask =  data->threads[thread].newmask | PREP_READ_MASK;
+          
+        }
+      
+   for (int x = 0; x < writers ; x++) {
+                if (assignedchunk  > availableidx) {
+                  
+               //  printf("not enough space writer %d %d\n", assignedchunk, availableidx);
+                  break;
+                }
+          int thread = readywriters[x];
+     
+      struct Chunk *chunk = &data->freelist[available[assignedchunk++]];
+    
+      chunk->available = WRITING;
+          data->threads[thread].writing = chunk;
+          chunk->owner = thread;
+          long start = chunk->start;
+          data->threads[thread].publishstart = start;
+          
+          long end = chunk->end;
+          data->threads[thread].publishend = end;
+        //  printf("writer giving %d between %ld and %ld\n", available[assignedchunk], start, end);
+          // asm volatile ("sfence" ::: "memory");
+         data->threads[thread].newmask = data->threads[thread].newmask | PREP_WRITE_MASK;
+        
+   } 
+      for (int x = 0; x < data->threadsize ; x++) {
+        
+        data->threads[x].ready = data->threads[x].newmask;
+        
+      }
+      
+  
+    } else  {
+      asm volatile ("" ::: "memory");
+      long mask = data->ready;
+ //printf("%d %d\n", mask, (mask & PREP_READ_MASK));
+//printf("%d %d\n", mask, (mask & PREP_WRITE_MASK));
+      long newmask = 0;
+      if ((mask & PREP_READ_MASK) == PREP_READ_MASK) {
+        
+  /// printf("%d == %d\n", data->ready, PREP_READ_MASK);
+      ///data->ready = BUSY_MASK;
+     // printf("consume %d %ld %ld\n", data->threadindex, data->start, data->end );
+      for (int x = data->start; x < data->end; x++) {
+      
+        data->freq++;
+        data->main->works[x].available = 0;
+        
+      }
+       // printf("%p\n", data->reading);
+        data->reading->available = FREE;
+      // printf("%d freed\n", data->reading->index);
+        newmask = newmask | READ_MASK;
+
+
+      }
+      if ((mask & PREP_WRITE_MASK) == PREP_WRITE_MASK) {
+        
+        //data->ready = BUSY_MASK;
+      // printf("%d publishing\n", data->threadindex);
+      
+      
+      if (data->publishstart < data->publishend) {
+    //   printf("publish\n");
+        for (int x = data->publishstart ; x < data->publishend; x++) {
+          data->main->works[x].available = 1;
+        }
+      
+        data->writing->available = FREE;
+      //  printf("%d freed\n", data->writing->index);
+        newmask = newmask | WRITE_MASK;
+      }
+        
+      } 
+      if (newmask != 0) {
+       // printf("newmask %d\n", newmask);
+        data->ready = newmask;
+      }
+     // asm volatile ("" ::: "memory");
+    }
+      
+        
+  }
+      
+        
   //memset(output, 0, 100);
    
     //if (data->threadindex == 0 && data->main->workindex >= data->worksize) {
@@ -68,181 +268,48 @@ void * work(void * arg) {
           data->main->works[x].available = 1;
         }
    }*/
-      asm volatile ("" ::: "memory");
-      int allunavailable = 1;
-      int available = 1;
-      int target = 0;
-    
-    
-    // printf("target: %d %d\n", target, bucketlim);
-    int stride = 1;
-    int end = 0;
-    int start = 0;
-    int mine = 1;
-  
-   for (int x = data->bucketstart ; x < bucketlim; x+= stride ) {
-       //printf("%d\n", x); 
-    if (data->main->works[x].available == 1 ) {
-        target = x;
-        found = 1;
-        start = data->bucketstart;
-        end = bucketlim;
-     //printf("found\n");
       
-      
-        break;
-    } else {
-        
-      
-    }
-   }
-  data->workindex = target;
-  {
-    
-  if (found == 0) {
-    mine = 0;
-  // printf("expired\n");
-  
-    
-    
-    currentbucket = (currentbucket + 1) % data->threadsize;
-    if (currentbucket == data->threadindex) { currentbucket = (currentbucket + 1) % data->threadsize;}
-    
-    int stride = 1;
-    
-   for (int x = currentbucket * data->buckets ; x < (currentbucket * data->buckets) + data->buckets ; x+= stride ) {
-        
-    if (data->main->works[x].available == 1 ) {
-        target = x;
-      start = currentbucket * data->buckets;
-      end = (currentbucket * data->buckets) + data->buckets- 1;
-        innerfind = 1;
-                break;
-    } else {
-        
-      
-    }
-   }
-  }
-  
-  
-    
-    
-       //printf("syncing\n");
-      data->threads[data->threadindex].wantindex = target;
-      for (int x = 0; x < data->threadsize ; x++ ) {
-        if (x == data->threadindex) {
-          continue;
-        }
-        if (data->threads[x].wantindex != -1 && data->threads[x].wantindex == target
-          ) {
-       //printf("%d fail\n", data->threadindex);
-          available = 0;
-          data->threads[data->threadindex].wantindex = -1;
-          
-          break;
-        }
-      }
-    if (found == 0) {
-    //  printf("used up\n");
-    }
-  }
-      if (available == 1 && data->main->works[target].available == 1) {
-        if (innerfind == 1) {
-         //printf("cb %d\n", data->threads[currentbucket].availables);
-       data->threads[currentbucket].availables--;
-        //  printf("stolen availablea\n");
-        }
-        if (found == 1) {
-          //printf("availablesless\n");
-          data->availables--;
-        }
-data->main->works[target].available = 0;
-     //printf("work %d %d %d\n", start, end, data->workindex);
-      
-        //data->workindex = (data->threadindex * data->buckets);
-        
-        data->freq++;
-        if (mine == 0) {
-        //printf("[%d] stole %d from bucket %d\n", data->threadindex, target, currentbucket);
-        }
-        if (data->loglevel == 1) {
-        if (data->threadindex == 0) {
-          ;
-        snprintf(output, 100, "queue owner [%d]: processing queue item %d", data->threadindex, target);
-        printf("%s\n", output); 
-
-        } else {
-          
-snprintf(output, 100, "queue other [%d]: stealing queue item %d", data->threadindex, target);
-         printf("%s\n", output);
-          
-          
-        } }
-        
-        data->threads[data->threadindex].wantindex = -1;
-        //data->main->workindex = (target + 1);
-        
-          
-        }
-    
-        
-        //asm volatile ("sfence" ::: "memory");
-
-        // data->main->workindex = (data->main->workindex+ 1) % data->worksize;
-        
-      
-      
-
-      
-      // for (int x = 0 ; x < data->worksize; x++) {
-        //asm volatile ("" ::: "memory");
-      
-          
-          // data->main->works[x].taskindex = (data->main->works[x].taskindex + data->worksize - 1) % data->worksize;
-      
-  //
-    if (data->threadindex == 0) {
-  int availables = 0;
-    
-     for (int x = 0 ; x< data->threadsize ; x++) {
-       availables += data->threads[x].availables;
-     }
-   // printf("%d availables\n", availables);
-     if (availables == 0) {
-       
-          data->workindex = data->bucketstart;
-                 {
-      if (data->loglevel == 1) { printf("all used\n"); }
-        
-       // printf("xx %d %d\n", xx, bucketlim);
-        for (int x = 0; x < data->threadsize ; x++) {
-          data->threads[x].availables = data->buckets;
-            data->threads[x].workindex = data->threads[x].bucketstart;
-
-
-        }
-      for (int x = 0; x < data->worksize; x++) {
-        data->main->works[x].available = 1;
-      }
-      }
-     }
-      }}
+   printf("%d thread exit\n", data->threadindex);           
 }
 
 int main(int argc, char **argv) {
   int debug = 0;
-  int worksize = 30;
-  srand(time(NULL));
-  int primes[] = {3, 7, 13, 19, 23, 29, 31, 37};
-  int threadsize = 3;
+  int seconds = 5;
+  int worksize = 14;
+  int threadsize = 7;
   int buckets = worksize / threadsize;
+              printf("read mask %d\n", READ_MASK);
+  printf("write mask %d\n", WRITE_MASK);
+  printf("prepwrite mask %d\n", PREP_WRITE_MASK);
   printf("Starting %d workers\n", threadsize);
   pthread_t *thread = calloc(threadsize, sizeof(pthread_t));
   pthread_attr_t *attr = calloc(threadsize, sizeof(pthread_attr_t));
   struct Data *data = calloc(1, sizeof(struct Data) * threadsize);
   struct Work *works = calloc(worksize, sizeof(struct Work));
-  
+  long offset = 0;
+  long chunksize = worksize /((threadsize - 1) * 2);
+  long chunkslen = (threadsize - 1) * 2;
+  int chunkindex = 0;
+  struct Chunk *freelist = calloc(chunkslen, sizeof(struct Chunk));
+          for (int x = 0; x < chunkslen; x++) {
+          int thread = x;
+        
+          
+          long start = offset;
+          
+          
+          long end = start + chunksize;
+          
+          printf("writer giving %d between %ld and %ld\n", x, start, end);
+          offset += chunksize;
+        
+         freelist[chunkindex].index = chunkindex;   freelist[chunkindex].available = FREE;
+            freelist[chunkindex].start = start;
+freelist[chunkindex].end = end;
+            chunkindex++;
+        }
+
+printf("%ld chunks\n", chunkslen);
   for (int i = 0; i < worksize; i++) {
     works[i].taskindex = 2;
     works[i].available = 1;
@@ -259,20 +326,29 @@ int main(int argc, char **argv) {
     data[x].running = 1;
     data[x].threadindex = x;
     data[x].worksize = worksize;
+    data[x].ready = 0;
     data[x].availables = buckets;
     data[x].threadsize = threadsize;
     data[x].buckets = buckets;
     data[x].main = &data[0];
     data[x].threads = data;
     data[x].wantindex = -1;
+    data[x].read = 0;
+    data[x].write = worksize;
+    data[x].ready = 1;
+    data[x].freelist = freelist;
+    data[x].chunksize = chunksize;
+    data[x].chunkslen = chunkslen;
+    
   } 
   
   for (int x = 0; x < threadsize ; x++) {
     pthread_create(&thread[x], &attr[0], work, &data[x]);
     pthread_setaffinity_np(thread[x], sizeof(data[x].cpu_set), data[x].cpu_set);
   }
+  
   struct timespec time = {
-    1,
+    seconds,
     0
   };
   struct timespec rem = {
@@ -294,5 +370,5 @@ int main(int argc, char **argv) {
   for (int x= 0; x < threadsize; x++) {
     freq += data[x].freq;
   }
-  printf("freq: %ld\n", freq);
+  printf("freq: %ld\n", freq / seconds);
 }
