@@ -1,14 +1,31 @@
 # parallel data race server
 
-this is a meant to be a swiss army knife tool for parallelism.
+You're writing an application that serves requests on the web and you have a number of queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency.
+
+Or you have an event stream that is constantly growing such as social media or social network feeds.
+
+
+
+```
+25 get-recent
+
+24 get-recent
+```
+
+Specify the bottlenecks.
+
+this is a meant to be a swiss army knife tool for server parallelism.
 
 This is incomplete.
 
 This is an experimental project from my learning of assembly and C.
 
+What do you need to do in this context to change control flow to over here?
+
+
  * **Concurrent and parallel coroutines** 
  * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
- * **Split IO** We run two io_urings in two separate threads: one for **send** and one for **recv**
+ * **Split IO** We run two io_urings in two separate threads: one for **send** and one for **recv** This means you can parallelise reading and sending.
  *  **thread per core** each core is a bucket that executes work.
  *  **async pipeline syntax** Configure sequences of tasks that render to grids.
  *  **send work to the data** Similar to how Seastar sends functions to where data is.
@@ -17,10 +34,30 @@ This is an experimental project from my learning of assembly and C.
  *  **event bucketing**
  *  **run single core sequential code but also can run parallel**
  * **scalable work distribution** enqueue work and dequeue work and distribute across threads
-   
-updating a field faster than single core frequency
 
-defining an iterator
+# questions i want to answer
+
+ * how do update a field faster than single core possible memory throughput?
+
+|Workload|Description|
+|---|---|
+|Many independent tasks|I want to start many small tasks with low latency.|
+|Large amounts of data with the same operation||
+|A large amount of data with many expensive steps||
+|Many different disparate queries||
+
+
+Communication by control flow
+
+can parallelize iteration of a big data set
+
+I want to distribute work to threads efficiently and at low latency.
+
+LINQ parallel multiplicated parallel replicated parallel
+
+I want to fork work fast and process with low latency.
+
+ defining an iterator
 
 monads coroutine iterators
 
