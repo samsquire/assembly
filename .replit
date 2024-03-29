@@ -69,3 +69,7 @@ start = "ccls"
 [deployment]
 run = ["sh", "-c", "./multibarrier-split-io-cxx"]
 build = ["sh", "-c", "make cxx"]
+
+[[ports]]
+localPort = 1024
+externalPort = 3000

@@ -4,6 +4,7 @@ You're writing an application that serves requests on the web and you have a num
 
 Or you have an event stream that is constantly growing such as social media or social network feeds.
 
+sql cloud - you provide the sql of your pages 
 
 
 ```
@@ -50,6 +51,12 @@ What do you need to do in this context to change control flow to over here?
 Communication by control flow
 
 can parallelize iteration of a big data set
+
+# single writer scheduler workqueue
+
+If there is multiple single writers. Each single writer can dispatch any number of thresds 1-2 million messages a second.
+
+
 
 I want to distribute work to threads efficiently and at low latency.
 

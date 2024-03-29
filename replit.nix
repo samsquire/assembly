@@ -1,5 +1,6 @@
 { pkgs }: {
 	deps = [
+   pkgs.hdf5-mpi
    pkgs.wget
    pkgs.openssh
    pkgs.vim
