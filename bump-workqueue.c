@@ -8,6 +8,18 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <limits.h>
+
+#define NEW_EPOCH 1
+#define DURATION 1
+
+struct Epoch {
+  int thread;
+  struct timespec time;
+  int buffer;
+  int kind;
+  int set;
+};
 
 struct Work {
   int taskindex;
@@ -58,7 +70,7 @@ struct Data {
   int worksize;
   int threadindex;
   int threadsize;
-  struct Work *works;
+  char *works;
   cpu_set_t *cpu_set;
   int loglevel;
   int *primes;
@@ -93,6 +105,11 @@ struct Data {
   int * writecursors;
   int currentread;
   int currentwrite;
+  int prevread;
+  int prevwrite;
+  struct Epoch * epochs;
+  int epochssize;
+  int currentepoch;
 };
 
 /*
@@ -188,12 +205,27 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
   if ((data->readcursor % data->threadsize) == 0) {
     data->currentread++;
     data->readcursor = 0;
-    printf("readepoch\n");
+    // printf("readepoch\n");
+    long buffer = (data->readcursor) | (data->threadindex << 8);
+  
+        // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
+        struct Data * thread = &data->threads[data->threadindex];
+        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
+        clock_gettime(CLOCK_MONOTONIC_RAW, &epoch->time);
+  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+        epoch->kind = NEW_EPOCH;
+        epoch->thread = data->threadindex;
+        epoch->set = 1;
+    
+  } else {
+    
   }
   if ((data->writecursor % data->threadsize) == 0) {
     data->currentwrite++;
     data->writecursor = 0;
-    printf("writeepoch\n");
+    //printf("writeepoch\n");
+  } else {
+    
   }
   
 }
@@ -317,14 +349,28 @@ int * threadwork(struct Data * data) {
   
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
+  
+  
         data->freq++;
-  int buffer = 1 * (data->main->currentread % data->threadsize) + 2 * data->oreadcursor + 3 * data->readcursor + 4 * data->threadindex;
-  printf("%d buffer %d\n", data->threadindex, buffer);
-        data->main->works[buffer].available = 0;
+        long buffer = (data->threadindex << 16) | (data->main->readcursor % 0xff) << 8 | data->readcursor % 0xff;
+       // printf("%x\n", buffer);
+        // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
+        struct Data * thread = &data->threads[data->threadindex];
+        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
+        clock_gettime(CLOCK_MONOTONIC_RAW, &epoch->time);
+  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+        epoch->thread = data->threadindex;
+  epoch->buffer = buffer;
+  epoch->set = 1;
+        data->main->works[buffer] = 0;
   //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
         // data->readcursors[data->threadindex]++;
   // }
+          data->readcursor = (data->readcursor + 1) % 0xffffff;
          __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
+    data->prevread = data->main->currentread;
+         
+    
      
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
         
@@ -343,13 +389,18 @@ int * threadwork(struct Data * data) {
       
       
       // printf("publish\n");
-     
+       
      // if (data->writecursors[data->threadindex] != data->middle ) {
+  /*
           data->main->works[(data->main->currentwrite % data->threadsize) + data->owritecursor + data->writecursor].available = 1;
           data->freq_writes++;
           // data->writecursors[data->threadindex]++;
      //}  
+        data->writecursor++;
+        data->prevwrite = data->main->currentwrite;
         __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
+        
+       */
        
           // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].written);
         
@@ -377,12 +428,13 @@ void * work2(void * arg) {
 }
 
 void * work(void * arg) {
+
   
   int writers;
   int readers;
   struct Data *data = (struct Data*) arg;
   printf("started thread %d\n", data->threadindex);
-  char * output = calloc(100, sizeof(char));
+  
   
   int found = 0;
   int currentbucket = (data->threadindex + 1) % data->threadsize;
@@ -429,9 +481,9 @@ void * work(void * arg) {
 
 int main(int argc, char **argv) {
   int debug = 0;
-  int seconds = 5;
+  int seconds = DURATION;
   int worksize_each = 1;
-  int threadsize = 8;
+  int threadsize = 14;
   
   int workers = threadsize - 1;
   printf("read mask %d\n", READ_MASK);
@@ -443,16 +495,16 @@ int main(int argc, char **argv) {
   struct Data *data = calloc(1, sizeof(struct Data) * threadsize);
   
   long offset = 0;
-  long chunkslen = threadsize * (2 * threadsize) + threadsize;
-  int worksize = chunkslen * worksize_each;
+  long chunkslen = 0xffffffff;
+  long worksize = chunkslen * worksize_each;
   int buckets = worksize / threadsize;
   long chunksize = ceil((double) worksize / (double) chunkslen);
-  struct Work *works = calloc(worksize, sizeof(struct Work));
-  printf("Buffer size %d\n", worksize);
+  char *works = calloc(worksize, sizeof(char));
+  printf("Buffer size %ld\n", worksize);
   int chunkindex = 0;
   int * readcursors = calloc(threadsize, sizeof(int));
   int * writecursors = calloc(threadsize, sizeof(int));
-  struct Chunk *freelist = calloc(chunkslen, sizeof(struct Chunk));
+  struct Chunk *freelist = calloc(100, sizeof(struct Chunk));
           for (int x = 0; x < threadsize; x++) {
             
           int thread = x;
@@ -480,11 +532,11 @@ int main(int argc, char **argv) {
 printf("offset %d\n", offset);
   
 printf("%ld chunks\n", chunkslen);
-  for (int i = 0; i < worksize; i++) {
-    works[i].taskindex = 2;
-    works[i].available = 1;
+ // for (int i = 0; i < worksize; i++) {
+   // works[i].taskindex = 2;
+   //works[i].available = 1;
     
-  }
+ // }
   int cpu = 0;
   int * readies __attribute__((aligned (128))) = calloc(threadsize, sizeof(int));
   data[0].works = works;
@@ -513,7 +565,11 @@ printf("%ld chunks\n", chunkslen);
     data[x].chunksize = chunksize;
     data[x].chunkslen = chunkslen;
     data[x].newmask = 0;
-    
+    data[x].prevread = -1;
+    data[x].prevwrite = -1;
+    int epochs = 10000000;
+    data[x].epochs = calloc(epochs, sizeof(struct Epoch));
+    data[x].epochssize = epochs;
   } 
   
   for (int x = 0; x < threadsize ; x++) {
@@ -553,6 +609,7 @@ printf("%ld chunks\n", chunkslen);
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
 
+  /*
   for (int i = 0; i < threadsize * 2; i++) {
    struct timespec created = works[i].created;
     struct timespec read = works[i].read;
@@ -561,6 +618,7 @@ printf("%ld chunks\n", chunkslen);
     printf("%ldns\n", written.tv_nsec - read.tv_nsec);
     
   }
+  */
   printf("writer speed\n");
   for (int x = 0; x < 1 ;  x++){
    printf("%ld\n", data[x].wend.tv_nsec - data[x].wstart.tv_nsec);
@@ -571,5 +629,22 @@ printf("%ld chunks\n", chunkslen);
     printf("%ld\n", data[x].wpoll.tv_nsec - data[x].wavail.tv_nsec);
     printf("sw %ld\n", data[x].swend.tv_nsec - data[x].swstart.tv_nsec);
   } 
+  
+  char * filename = calloc(100, sizeof(char));
+  char * buf = calloc(1000, sizeof(char));
+  memset(filename, 0, 100);
+  snprintf(filename, 100, "samples%d", data->threadsize);
+  FILE *out_file = fopen(filename, "w");
+  
+  for (int x = 0; x < threadsize; x++) {
+    for (int y = 0; y < data[x].epochssize; y++) {
+      struct Epoch * epoch = &data[x].epochs[y];
+      if (epoch->set == 1) {
+        memset(buf, 0, 1000);
+        snprintf(buf, 100, "%ld%ld %d %d %d\n", epoch->time.tv_sec, epoch->time.tv_nsec, epoch->kind, epoch->buffer, epoch->thread);
+        fprintf(out_file, "%s", buf);
+      }
+    }
+  }
   
 }
