@@ -1,19 +1,26 @@
 # parallel data race server
 
-You're writing an application that serves requests on the web and you have a number of queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency.
+You're writing an application that serves requests on the web and you have a number of database queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency. Latency and throughput is a tradeoff with eachother.
 
 Or you have an event stream that is constantly growing such as social media or social network feeds.
 
-sql cloud - you provide the sql of your pages 
+HTTP state in buffers
+
+When a HTTP event is received it is parsed and placed into buffers for bulk processing.
+
+A bucket that refills.
+
+
+
 
 
 ```
 25 get-recent
-
+22 login
 24 get-recent
 ```
 
-Specify the bottlenecks.
+Specify the bottlenecks. Specify the indirections.
 
 this is a meant to be a swiss army knife tool for server parallelism.
 
@@ -33,12 +40,14 @@ What do you need to do in this context to change control flow to over here?
  *  **phaser runtime** lock free no mutexes
  *  **message passing** double buffering is used for fast transfer of ownership between threads
  *  **event bucketing**
- *  **run single core sequential code but also can run parallel**
+ *  **generate straight line single core sequential code but also generate parallel code**
  * **scalable work distribution** enqueue work and dequeue work and distribute across threads
 
 # questions i want to answer
 
- * how do update a field faster than single core possible memory throughput?
+ * how do update a field faster than single core possible memory throughput? eventual consistency
+ * is it still valid? timespans
+ * valid for X period debounce
 
 |Workload|Description|
 |---|---|
@@ -54,7 +63,7 @@ can parallelize iteration of a big data set
 
 # single writer scheduler workqueue
 
-If there is multiple single writers. Each single writer can dispatch any number of thresds 1-2 million messages a second.
+If there is multiple single writers. Each single writer can dispatch any number of threads 1-2 million messages a second.
 
 
 
@@ -99,7 +108,7 @@ B B B (downways)
 Do the first operation on all the data.
 then the second
 
-
+SQL cloud - you provide the sql of your pages 
 
 # Coroutines API
 

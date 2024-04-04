@@ -22,6 +22,7 @@ struct Chunk {
   int available;
   int owner;
   int index;
+  
 };
 #define FREE 1
 #define READING 2
@@ -35,6 +36,8 @@ struct Chunk {
 
 // __attribute__((aligned (128)))
 struct Data {
+
+  
   long read;
   long write;
   int available;
@@ -76,8 +79,20 @@ struct Data {
   struct timespec wavail;
   struct timespec wpoll;
   struct timespec wassign;
-struct timespec swstart;
-struct timespec swend;
+  struct timespec swstart;
+  struct timespec swend;
+  int writecursor;
+  int middle;
+  int readcursor;
+  int owritecursor;
+  int oreadcursor;
+  int step;
+  int readstep;
+  int globalstep;
+  int * readcursors;
+  int * writecursors;
+  int currentread;
+  int currentwrite;
 };
 
 /*
@@ -142,7 +157,59 @@ int findavailable(struct Data * data, long * available, int * availableidx, int 
   return 0;
 }
 
+int singlewriter2(struct Data *data, long * available, int * readyreaders, int * readywriters) {
+  int completed = 0;
+  /*
+  for (int x = 1; x < data->threadsize; x++) {
+    struct Data * t = &data->threads[x];
+    
+    if (t->readcursors[x] == t->middle) {
+    //printf("%d\n", t->readcursor);
+      int rc = t->oreadcursor;
+      t->readcursors[x] = 0;
+      completed++;
+    } else {
+      
+    }
+    
+    if (t->writecursors[x] == t->middle) {
+      int wc = t->owritecursor;
+      t->writecursors[x] = 0;
+      
+    }
+    
+   
+  }
+  if (completed == data->threadsize) {
+     data->globalstep = (data->globalstep + 1) % data->threadsize;
+   }
+   */
+   
+  if ((data->readcursor % data->threadsize) == 0) {
+    data->currentread++;
+    data->readcursor = 0;
+    printf("readepoch\n");
+  }
+  if ((data->writecursor % data->threadsize) == 0) {
+    data->currentwrite++;
+    data->writecursor = 0;
+    printf("writeepoch\n");
+  }
+  
+}
+/*
+t0
+thread1 r1 w2
+thread2 r3 w4
+thread3 r5 w6
+
+
+
+
+*/
+
 int singlewriter(struct Data *data, long * available, int * readyreaders, int * readywriters) {
+  data->threads[0].step = (data->threads[0].step + 1) % data->threadsize;
   int readers = 0;
   int writers = 0;
   int availableidx = 0;
@@ -236,39 +303,39 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 
 int * threadwork(struct Data * data) {
  // printf("%d\n", data->threadindex);
-    // asm volatile ("":"=m" (data->readies[data->threadindex])::);
-      int mask = data->readies[data->threadindex];
-     // printf("mask %d %d\n", data->threadindex, mask);
-      if (mask != data->prev) {
-//printf("pwrite?%d %ld\n", mask, (mask & PREP_WRITE_MASK));
-       // printf("pread? %ld %d\n", mask, (mask & PREP_READ_MASK));
-      //  printf("readmask? %ld %ld\n", mask, (mask & READ_MASK));
-     //   printf("writemask ? %ld %ld\n", mask, (mask & WRITE_MASK));
-      }
-      data->prev = data->readies[data->threadindex];
+   // asm volatile (""::: "memory");
+
 //printf("%d %d\n", mask, (mask & PREP_WRITE_MASK));
-      int newmask = 0;
-      if ((mask & PREP_READ_MASK) == PREP_READ_MASK) {
+      
+      
         
   /// printf("%d == %d\n", data->ready, PREP_READ_MASK);
       ///data->ready = BUSY_MASK;
    //  printf("consume %d %ld %ld\n", data->threadindex, data->start, data->end );
-      for (int x = data->start; x < data->end; x++) {
+      //printf("%d %d rc\n", data->readcursor, data->middle);
+     // printf("%d \n", data->readcursor);
+  
     // printf("item %d\n", x);
+  //if (data->readcursors[data->threadindex] != data->middle) {
         data->freq++;
-        data->main->works[x].available = 0;
+  int buffer = 1 * (data->main->currentread % data->threadsize) + 2 * data->oreadcursor + 3 * data->readcursor + 4 * data->threadindex;
+  printf("%d buffer %d\n", data->threadindex, buffer);
+        data->main->works[buffer].available = 0;
+  //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
+        // data->readcursors[data->threadindex]++;
+  // }
+         __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
+     
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
         
-      }
-       // printf("%p\n", data->reading);
-        data->reading->available = FREE;
-      // printf("%d freed\n", data->reading->index);
-        newmask = newmask | READ_MASK;
-
-
-      }
       
-      if ((mask & PREP_WRITE_MASK) == PREP_WRITE_MASK) {
+       // printf("%p\n", data->reading);
+        
+
+
+      
+      
+      
         
         //data->ready = BUSY_MASK;
       // printf("%d publishing\n", data->threadindex);
@@ -276,23 +343,24 @@ int * threadwork(struct Data * data) {
       
       
       // printf("publish\n");
-        for (int x = data->publishstart ; x < data->publishend; x++) {
-          
-          data->main->works[x].available = 1;
+     
+     // if (data->writecursors[data->threadindex] != data->middle ) {
+          data->main->works[(data->main->currentwrite % data->threadsize) + data->owritecursor + data->writecursor].available = 1;
           data->freq_writes++;
+          // data->writecursors[data->threadindex]++;
+     //}  
+        __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
+       
           // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].written);
-        }
-      
-        data->writing->available = FREE;
-      //  printf("%d freed\n", data->writing->index);
-        newmask = newmask | WRITE_MASK;
+        
       
         
-      } 
-      if (newmask != 0) {
-       // printf("newmask %d\n", newmask);
-        data->readies[data->threadindex] = newmask;
-      }
+      //  printf("%d freed\n", data->writing->index);
+        
+      
+        
+      
+      
      //asm volatile ("sfence" ::: "memory");
   
       
@@ -338,7 +406,7 @@ void * work(void * arg) {
     //memset(available, -1, data->threadsize);
     if (data->threadindex == 0) {
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
-      singlewriter(data, available, readyreaders, readywriters);
+      singlewriter2(data, available, readyreaders, readywriters);
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swend);
   
     } else  {
@@ -375,32 +443,42 @@ int main(int argc, char **argv) {
   struct Data *data = calloc(1, sizeof(struct Data) * threadsize);
   
   long offset = 0;
-  long chunkslen = 500;
+  long chunkslen = threadsize * (2 * threadsize) + threadsize;
   int worksize = chunkslen * worksize_each;
   int buckets = worksize / threadsize;
   long chunksize = ceil((double) worksize / (double) chunkslen);
   struct Work *works = calloc(worksize, sizeof(struct Work));
   printf("Buffer size %d\n", worksize);
   int chunkindex = 0;
+  int * readcursors = calloc(threadsize, sizeof(int));
+  int * writecursors = calloc(threadsize, sizeof(int));
   struct Chunk *freelist = calloc(chunkslen, sizeof(struct Chunk));
-          for (int x = 0; x < chunkslen; x++) {
+          for (int x = 0; x < threadsize; x++) {
+            
           int thread = x;
-        
-          
+               
           long start = offset;
           
-          
-          long end = start + chunksize;
+          long middle = start + threadsize + 1;
+          long end = middle + threadsize;
           
        //   printf("writer giving %d between %ld and %ld\n", x, start, end);
-          offset += chunksize;
+          offset += (threadsize * 2) + 1;
         
-         freelist[chunkindex].index = chunkindex;   freelist[chunkindex].available = FREE;
-            freelist[chunkindex].start = start;
-freelist[chunkindex].end = end;
-            chunkindex++;
-        }
-
+     data[chunkindex].writecursors = writecursors;
+     data[chunkindex].readcursors = readcursors;
+            
+    data[chunkindex].owritecursor = middle + 1;
+    printf("middle %ld\n", middle);
+    data[chunkindex].middle = middle;
+    data[chunkindex].readcursors[chunkindex] = middle;
+    data[chunkindex].writecursors[chunkindex] = middle;
+    data[chunkindex].oreadcursor = start;
+    chunkindex++;
+        
+          }
+printf("offset %d\n", offset);
+  
 printf("%ld chunks\n", chunkslen);
   for (int i = 0; i < worksize; i++) {
     works[i].taskindex = 2;
@@ -465,7 +543,7 @@ printf("%ld chunks\n", chunkslen);
   printf("finished simulation.\n");
   long freq = 0;
   for (int x = 0; x < threadsize; x++) {
-    printf("%d\n", data[x].freq);
+    printf("%ld\n", data[x].freq);
     freq += data[x].freq;
   }
   printf("freq: %ld\n", freq/ seconds);

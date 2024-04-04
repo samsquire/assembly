@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+sshpass -e ssh root@$(cat server)
