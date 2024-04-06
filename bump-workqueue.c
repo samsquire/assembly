@@ -94,9 +94,9 @@ struct Data {
   struct timespec wassign;
   struct timespec swstart;
   struct timespec swend;
-  int writecursor;
+  int writecursor __attribute__((aligned (128)));
   int middle;
-  int readcursor;
+  int readcursor __attribute__((aligned (128)));
   int owritecursor;
   int oreadcursor;
   int step;
@@ -104,10 +104,10 @@ struct Data {
   int globalstep;
   int * readcursors;
   int * writecursors;
-  int currentread;
-  int currentwrite;
-  int prevread;
-  int prevwrite;
+  long currentread __attribute__((aligned (128)));
+  long currentwrite __attribute__((aligned (128)));
+  long prevread;
+  long prevwrite;
   struct Epoch * epochs;
   int epochssize;
   int currentepoch;
@@ -203,11 +203,11 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
    }
    */
    
-  if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
-    //if ((data->readcursor % data->threadsize) == 0) {
+// if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
+   if (data->readcursor != 0 && (data->readcursor % data->threadsize - 1) == 0) {
     data->currentread++;
     data->readcursor = 0;
-    // printf("readepoch\n");
+    //printf("readepoch\n");
     
   
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
@@ -222,7 +222,7 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
   } else {
     
   }
-  if ((data->writecursor % data->threadsize) == 0) {
+  if (data->writecursor != 0 && (data->writecursor % data->threadsize - 1) == 0) {
     data->currentwrite++;
     data->writecursor = 0;
     //printf("writeepoch\n");
@@ -352,6 +352,10 @@ int * threadwork(struct Data * data) {
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
   struct timespec time;
+  //printf("%ld %ld\n", data->main->currentwrite, data->prevwrite);
+  if (data->main->currentwrite != data->prevwrite) {
+    //printf("w%d\n", data->threadindex);
+    data->prevwrite = data->main->currentwrite + 1;
   clock_gettime(CLOCK_MONOTONIC_RAW, &time);
      for (int x = 1; x < data->threadsize ; x++) {
        
@@ -374,11 +378,17 @@ int * threadwork(struct Data * data) {
   // }
          data->writecursor = (data->writecursor + 1) % 0xf;
          
-    data->prevread = data->main->currentread;
+  //  data->prevread = data->main->currentread;
      }
      }
-  __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
-       
+    
+    __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
+    
+  }
+  
+  if (data->main->currentread != data->prevread) {
+    data->prevread = data->main->currentread + 1;
+   // printf("r%d\n", data->threadindex);
   for (int y = 1 ; y < data->threadsize; y++) {
           int x = y;
           
@@ -414,8 +424,12 @@ int * threadwork(struct Data * data) {
         }
           
         }
+    
+    //printf("%ld\n", data->main->currentread);
+    
     __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
-     
+  
+  } 
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
         
       
@@ -604,7 +618,8 @@ printf("%ld chunks\n", chunkslen);
     data[x].wantindex = -1;
     data[x].read = 0;
     data[x].write = worksize;
-    
+    data[x].readcursor = threadsize - 1;
+    data[x].writecursor = threadsize - 1;
     data[x].freelist = freelist;
     data[x].chunksize = chunksize;
     data[x].chunkslen = chunkslen;
@@ -643,13 +658,14 @@ printf("%ld chunks\n", chunkslen);
   printf("finished simulation.\n");
   long freq = 0;
   for (int x = 0; x < threadsize; x++) {
-    printf("%ld\n", data[x].freq);
+    printf("%ld reads\n", data[x].freq);
     freq += data[x].freq;
   }
   printf("freq: %ld\n", freq/ seconds);
   long freq_writes = 0;
   for (int x = 0; x < threadsize; x++) {
     freq_writes += data[x].freq_writes;
+    printf("%ld writes\n", data[x].freq_writes);
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
 
