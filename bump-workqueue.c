@@ -11,12 +11,13 @@
 #include <limits.h>
 
 #define NEW_EPOCH 1
-#define DURATION 1
-
+#define DURATION 5
+#define SAMPLE 1
+#define THREADS 16
 struct Epoch {
   int thread;
   struct timespec time;
-  int buffer;
+  long buffer;
   int kind;
   int set;
 };
@@ -202,11 +203,12 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
    }
    */
    
-  if ((data->readcursor % data->threadsize) == 0) {
+  if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
+    //if ((data->readcursor % data->threadsize) == 0) {
     data->currentread++;
     data->readcursor = 0;
     // printf("readepoch\n");
-    long buffer = (data->readcursor) | (data->threadindex << 8);
+    
   
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
         struct Data * thread = &data->threads[data->threadindex];
@@ -349,27 +351,65 @@ int * threadwork(struct Data * data) {
   
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
-  
-  
-        data->freq++;
-        long buffer = (data->threadindex << 16) | (data->main->readcursor % 0xff) << 8 | data->readcursor % 0xff;
+  struct timespec time;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+     for (int x = 0; x < data->threadsize ; x++) {
+       
+     
+        data->freq_writes++;
+        long buffer = (data->threadindex << 24) | (data->main->readcursor % 0xff) << 16 | x << 8 | data->readcursor % 0xff;
        // printf("%x\n", buffer);
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
         struct Data * thread = &data->threads[data->threadindex];
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-        clock_gettime(CLOCK_MONOTONIC_RAW, &epoch->time);
+        epoch->time = time;
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
         epoch->thread = data->threadindex;
   epoch->buffer = buffer;
   epoch->set = 1;
         data->main->works[buffer] = 0;
+        
   //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
         // data->readcursors[data->threadindex]++;
   // }
           data->readcursor = (data->readcursor + 1) % 0xffffff;
-         __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
-    data->prevread = data->main->currentread;
          
+    data->prevread = data->main->currentread;
+     }
+  __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
+        for (int y = 0 ; y < data->threadsize; y++) {
+          int x = (data->threadindex + y) % data->threadsize;
+          data->freq++;
+          if (x != data->threadindex) {
+            long past = ((data->main->readcursor - 1) % 0xff);
+            if (past < 0) {
+              past = data->threadsize - 1;
+            }
+            int rc = data->threads[x].readcursor - 2;
+            if (rc < 0) {
+              rc = 0xff - 1;
+            }
+            
+                long buffer = (x << 24) | past << 16 | data->threadindex << 8 | (rc) % 0xff;
+               // printf("%x\n", buffer);
+                // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
+                struct Data * thread = &data->threads[data->threadindex];
+                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
+            
+            thepoch->time = time; 
+            //clock_gettime(CLOCK_MONOTONIC_RAW, &thepoch->time);
+          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+                thepoch->thread = x;
+          thepoch->buffer = buffer;
+          thepoch->set = 1;
+               // data->main->works[buffer] = 0;
+          
+          //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
+                // data->readcursors[data->threadindex]++;
+          // }
+                  // data->readcursor = (data->readcursor + 1) % 0xffffff;
+        }
+        }
     
      
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
@@ -483,7 +523,7 @@ int main(int argc, char **argv) {
   int debug = 0;
   int seconds = DURATION;
   int worksize_each = 1;
-  int threadsize = 14;
+  int threadsize = THREADS;
   
   int workers = threadsize - 1;
   printf("read mask %d\n", READ_MASK);
@@ -629,7 +669,8 @@ printf("%ld chunks\n", chunkslen);
     printf("%ld\n", data[x].wpoll.tv_nsec - data[x].wavail.tv_nsec);
     printf("sw %ld\n", data[x].swend.tv_nsec - data[x].swstart.tv_nsec);
   } 
-  
+
+  if (SAMPLE == 1) {
   char * filename = calloc(100, sizeof(char));
   char * buf = calloc(1000, sizeof(char));
   memset(filename, 0, 100);
@@ -641,10 +682,10 @@ printf("%ld chunks\n", chunkslen);
       struct Epoch * epoch = &data[x].epochs[y];
       if (epoch->set == 1) {
         memset(buf, 0, 1000);
-        snprintf(buf, 100, "%ld%ld %d %d %d\n", epoch->time.tv_sec, epoch->time.tv_nsec, epoch->kind, epoch->buffer, epoch->thread);
+        snprintf(buf, 100, "%ld%ld %d %ld %d\n", epoch->time.tv_sec, epoch->time.tv_nsec, epoch->kind, epoch->buffer, epoch->thread);
         fprintf(out_file, "%s", buf);
       }
     }
   }
-  
+  }
 }

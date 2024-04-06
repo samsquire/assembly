@@ -2,6 +2,8 @@
 
 You're writing an application that serves requests on the web and you have a number of database queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency. Latency and throughput is a tradeoff with eachother.
 
+Ideally you want to make as many separate requests as possible simultaneously in parallel, so the backend can work on retrieving these items. This sets a fix amount of higher resource usage (CPU+memory+network) while all the requests are being handled.
+
 Or you have an event stream that is constantly growing such as social media or social network feeds.
 
 HTTP state in buffers
@@ -11,7 +13,7 @@ When a HTTP event is received it is parsed and placed into buffers for bulk proc
 A bucket that refills.
 
 
-
+coroutine btree
 
 
 ```
