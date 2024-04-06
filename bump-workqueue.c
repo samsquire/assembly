@@ -11,8 +11,8 @@
 #include <limits.h>
 
 #define NEW_EPOCH 1
-#define DURATION 5
-#define SAMPLE 1
+#define DURATION 1
+#define SAMPLE 0
 #define THREADS 16
 struct Epoch {
   int thread;
@@ -353,11 +353,11 @@ int * threadwork(struct Data * data) {
   //if (data->readcursors[data->threadindex] != data->middle) {
   struct timespec time;
   clock_gettime(CLOCK_MONOTONIC_RAW, &time);
-     for (int x = 0; x < data->threadsize ; x++) {
+     for (int x = 1; x < data->threadsize ; x++) {
        
-     
+     if (x != data->threadindex) {
         data->freq_writes++;
-        long buffer = (data->threadindex << 24) | (data->main->readcursor % 0xff) << 16 | x << 8 | data->readcursor % 0xff;
+        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
        // printf("%x\n", buffer);
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
         struct Data * thread = &data->threads[data->threadindex];
@@ -367,30 +367,33 @@ int * threadwork(struct Data * data) {
         epoch->thread = data->threadindex;
   epoch->buffer = buffer;
   epoch->set = 1;
-        data->main->works[buffer] = 0;
+        data->main->works[buffer] = data->threadindex;
         
   //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
         // data->readcursors[data->threadindex]++;
   // }
-          data->readcursor = (data->readcursor + 1) % 0xffffff;
+         data->writecursor = (data->writecursor + 1) % 0xf;
          
     data->prevread = data->main->currentread;
      }
-  __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
-        for (int y = 0 ; y < data->threadsize; y++) {
-          int x = (data->threadindex + y) % data->threadsize;
-          data->freq++;
-          if (x != data->threadindex) {
-            long past = ((data->main->readcursor - 1) % 0xff);
+     }
+  __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
+       
+  for (int y = 1 ; y < data->threadsize; y++) {
+          int x = y;
+          
+          if (y != data->threadindex) {
+            data->freq++;
+            long past = ((data->main->writecursor - 1) % 0xf);
             if (past < 0) {
               past = data->threadsize - 1;
             }
-            int rc = data->threads[x].readcursor - 2;
+            int rc = data->threads[x].writecursor;
             if (rc < 0) {
-              rc = 0xff - 1;
+              rc = 0xf - 1;
             }
             
-                long buffer = (x << 24) | past << 16 | data->threadindex << 8 | (rc) % 0xff;
+         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
                // printf("%x\n", buffer);
                 // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
                 struct Data * thread = &data->threads[data->threadindex];
@@ -402,15 +405,16 @@ int * threadwork(struct Data * data) {
                 thepoch->thread = x;
           thepoch->buffer = buffer;
           thepoch->set = 1;
-               // data->main->works[buffer] = 0;
-          
+         // printf("%d received %d\n", data->threadindex, data->main->works[buffer]);
+          data->readcursor = (data->readcursor) % 0xf;
           //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
                 // data->readcursors[data->threadindex]++;
           // }
                   // data->readcursor = (data->readcursor + 1) % 0xffffff;
         }
+          
         }
-    
+    __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
      
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
         
@@ -649,6 +653,8 @@ printf("%ld chunks\n", chunkslen);
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
 
+  // printf("total_sent per second %ld\n", (freq * threadsize) / seconds);
+  //printf("total_received per second %ld\n", (freq_writes * threadsize) / seconds);
   /*
   for (int i = 0; i < threadsize * 2; i++) {
    struct timespec created = works[i].created;
