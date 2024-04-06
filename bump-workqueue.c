@@ -387,8 +387,9 @@ int * threadwork(struct Data * data) {
   }
   
   if (data->main->currentread != data->prevread) {
+   // printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
     data->prevread = data->main->currentread + 1;
-   // printf("r%d\n", data->threadindex);
+   
   for (int y = 1 ; y < data->threadsize; y++) {
           int x = y;
           
