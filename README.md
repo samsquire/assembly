@@ -14,7 +14,7 @@ A bucket that refills.
 
 
 coroutine btree
-indexed computstion countrd btrees
+indexed computstion counted btrees
 
 ```
 25 get-recent
@@ -60,6 +60,20 @@ What do you need to do in this context to change control flow to over here?
 
 
 Communication by control flow
+
+Endless streaming - buffer locations generated endlessly. No conflicts due to memory locations.
+
+Can use the available protocol
+the rotation CAN be arbitrary different rate threads
+
+
+
+when to switch buffers.
+
+Writecursor switching is fine.
+but waiting for sync is slow.
+
+
 
 can parallelize iteration of a big data set
 

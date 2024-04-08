@@ -11,15 +11,16 @@
 #include <limits.h>
 
 #define NEW_EPOCH 1
-#define DURATION 1
-#define SAMPLE 0
-#define THREADS 16
+#define DURATION 5
+#define SAMPLE 1
+#define THREADS 8
 struct Epoch {
   int thread;
   struct timespec time;
   long buffer;
   int kind;
   int set;
+  int dest;
 };
 
 struct Work {
@@ -111,6 +112,10 @@ struct Data {
   struct Epoch * epochs;
   int epochssize;
   int currentepoch;
+  int thiswrite;
+  struct Epoch * writelog;
+  long totalwrites;
+  long totalreads;
 };
 
 /*
@@ -204,7 +209,7 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
    */
    
 // if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
-   if (data->readcursor != 0 && (data->readcursor % data->threadsize - 1) == 0) {
+   if (data->readcursor != 0 && (data->readcursor % (data->threadsize - 1)) == 0) {
     data->currentread++;
     data->readcursor = 0;
     //printf("readepoch\n");
@@ -222,7 +227,8 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
   } else {
     
   }
-  if (data->writecursor != 0 && (data->writecursor % data->threadsize - 1) == 0) {
+  //printf("%d %d\n", data->writecursor, data->writecursor % (data->threadsize - 1));
+  if (data->writecursor != 0 && (data->writecursor % (data->threadsize - 1)) == 0) {
     data->currentwrite++;
     data->writecursor = 0;
     //printf("writeepoch\n");
@@ -352,15 +358,22 @@ int * threadwork(struct Data * data) {
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
   struct timespec time;
-  //printf("%ld %ld\n", data->main->currentwrite, data->prevwrite);
-  if (data->main->currentwrite != data->prevwrite) {
-    //printf("w%d\n", data->threadindex);
-    data->prevwrite = data->main->currentwrite + 1;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+  //printf("pw %ld %ld\n", data->main->currentwrite, data->prevwrite);
+  //long lastwrite = __atomic_load_n(&data->main->currentwrite, __ATOMIC_ACQUIRE);
+  long lastwrite = data->main->totalwrites % (data->threadsize);
+  long lastcursor = data->main->writecursor;
+//printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
+ //if (lastwrite != data->prevwrite) {
+   
+    data->prevwrite = lastwrite;
+    data->thiswrite = lastcursor;
+  //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
+   clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+   data->freq_writes++;
      for (int x = 1; x < data->threadsize ; x++) {
        
      if (x != data->threadindex) {
-        data->freq_writes++;
+        
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
        // printf("%x\n", buffer);
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
@@ -369,6 +382,7 @@ int * threadwork(struct Data * data) {
         epoch->time = time;
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
         epoch->thread = data->threadindex;
+  epoch->dest = x;
   epoch->buffer = buffer;
   epoch->set = 1;
         data->main->works[buffer] = data->threadindex;
@@ -383,18 +397,19 @@ int * threadwork(struct Data * data) {
      }
     
     __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
+   //  __atomic_fetch_add(&data->main->totalwrites, 1, __ATOMIC_ACQUIRE);
     
-  }
-  
-  if (data->main->currentread != data->prevread) {
-   // printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
-    data->prevread = data->main->currentread + 1;
-   
+  //}
+  long lastread = data->main->totalreads % data->threadsize;
+ // if (lastread != data->prevread) {
+   //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
+   data->prevread = lastread;
+   data->freq++;
   for (int y = 1 ; y < data->threadsize; y++) {
           int x = y;
           
           if (y != data->threadindex) {
-            data->freq++;
+            
             long past = ((data->main->writecursor - 1) % 0xf);
             if (past < 0) {
               past = data->threadsize - 1;
@@ -429,14 +444,14 @@ int * threadwork(struct Data * data) {
     //printf("%ld\n", data->main->currentread);
     
     __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
-  
-  } 
+ // __atomic_fetch_add(&data->main->totalreads, 1, __ATOMIC_ACQUIRE);
+ // } 
         // clock_gettime(CLOCK_MONOTONIC_RAW, &data->main->works[x].read);
         
       
        // printf("%p\n", data->reading);
         
-
+    
 
       
       
@@ -625,11 +640,14 @@ printf("%ld chunks\n", chunkslen);
     data[x].chunksize = chunksize;
     data[x].chunkslen = chunkslen;
     data[x].newmask = 0;
-    data[x].prevread = -1;
-    data[x].prevwrite = -1;
+    data[x].prevread = threadsize;
+    data[x].prevwrite = threadsize;
+    data[x].thiswrite = threadsize;
     int epochs = 10000000;
     data[x].epochs = calloc(epochs, sizeof(struct Epoch));
     data[x].epochssize = epochs;
+    
+    data[x].writelog = calloc(10000, sizeof(struct Epoch));
   } 
   
   for (int x = 0; x < threadsize ; x++) {
@@ -663,6 +681,9 @@ printf("%ld chunks\n", chunkslen);
     freq += data[x].freq;
   }
   printf("freq: %ld\n", freq/ seconds);
+  printf("freq_ps: %ld\n", (freq*threadsize-1)/ seconds);
+  printf("freq latency2: %ld\n", 1000000000/((freq/seconds)));
+  printf("freq latency: %ld\n", 1000000000/((freq*threadsize-1)/seconds));
   long freq_writes = 0;
   for (int x = 0; x < threadsize; x++) {
     freq_writes += data[x].freq_writes;
@@ -670,6 +691,9 @@ printf("%ld chunks\n", chunkslen);
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
 
+  printf("freq_writes_total: %ld\n", (freq_writes * threadsize - 1) / seconds);
+  printf("freq_writes latency2: %ld\n", 1000000000/(freq_writes / seconds));
+  printf("freq_writes latency: %ld\n", 1000000000/((freq_writes * threadsize - 1) / seconds));
   // printf("total_sent per second %ld\n", (freq * threadsize) / seconds);
   //printf("total_received per second %ld\n", (freq_writes * threadsize) / seconds);
   /*
@@ -705,7 +729,7 @@ printf("%ld chunks\n", chunkslen);
       struct Epoch * epoch = &data[x].epochs[y];
       if (epoch->set == 1) {
         memset(buf, 0, 1000);
-        snprintf(buf, 100, "%ld%ld %d %ld %d\n", epoch->time.tv_sec, epoch->time.tv_nsec, epoch->kind, epoch->buffer, epoch->thread);
+        snprintf(buf, 100, "%ld%ld %d %ld %d %d\n", epoch->time.tv_sec, epoch->time.tv_nsec, epoch->kind, epoch->buffer, epoch->thread, epoch->dest);
         fprintf(out_file, "%s", buf);
       }
     }
