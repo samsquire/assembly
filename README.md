@@ -1,8 +1,16 @@
 # parallel data race server
 
+this is a meant to be a swiss army knife tool for server parallelism.
+
+This is incomplete.
+
+the goal is you can write a protocol and it is autoparallelised.
+
+This is an experimental project from my learning of assembly and C.
+
 You're writing an application that serves requests on the web and you have a number of database queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency. Latency and throughput is a tradeoff with eachother.
 
-Ideally you want to make as many separate requests as possible simultaneously in parallel, so the backend can work on retrieving these items. This sets a fix amount of higher resource usage (CPU+memory+network) while all the requests are being handled.
+Ideally you want to make as many separate requests as possible simultaneously in parallel, so the backend can work on retrieving these items with its multiple resources. This sets a fixed amount of higher resource usage (CPU+memory+network) while all the requests are being handled.
 
 Or you have an event stream that is constantly growing such as social media or social network feeds.
 
@@ -14,7 +22,19 @@ A bucket that refills.
 
 
 coroutine btree
-indexed computstion counted btrees
+indexed computation counted btrees
+
+Communication pattern
+Do these tasks as fast as you can, from any thread.
+
+select http_request from http_requests where url = /signup
+
+insert into event table
+
+insert into network_send values (0, "hello world")
+insert into read values(file1, 5050)
+
+might not be when it executes
 
 ```
 25 get-recent
@@ -24,14 +44,7 @@ indexed computstion counted btrees
 
 Specify the bottlenecks. Specify the indirections.
 
-this is a meant to be a swiss army knife tool for server parallelism.
-
-This is incomplete.
-
-This is an experimental project from my learning of assembly and C.
-
 What do you need to do in this context to change control flow to over here?
-
 
  * **Concurrent and parallel coroutines** 
  * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
@@ -63,9 +76,12 @@ Communication by control flow
 
 Endless streaming - buffer locations generated endlessly. No conflicts due to memory locations.
 
+is the latency too high ?
+
 Can use the available protocol
 the rotation CAN be arbitrary different rate threads
 
+SIMD and sql queries
 
 
 when to switch buffers.
@@ -79,9 +95,7 @@ can parallelize iteration of a big data set
 
 # single writer scheduler workqueue
 
-If there is multiple single writers. Each single writer can dispatch any number of threads 1-2 million messages a second.
-
-
+If there is multiple single writers. Each single writer can dispatch any number of threads 3 million messages a second.
 
 I want to distribute work to threads efficiently and at low latency.
 
@@ -89,7 +103,7 @@ LINQ parallel multiplicated parallel replicated parallel
 
 I want to fork work fast and process with low latency.
 
- defining an iterator
+ defining an iterator, join is an iterator
 
 monads coroutine iterators
 
@@ -100,7 +114,7 @@ how to model a work queue as communication patterns.
 
 multiple threads can enqueue
 single writer
-the binary protocol works
+the binary available protocol works
 
 
 ```

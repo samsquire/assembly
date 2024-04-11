@@ -11,9 +11,9 @@
 #include <limits.h>
 
 #define NEW_EPOCH 1
-#define DURATION 5
+#define DURATION 1
 #define SAMPLE 1
-#define THREADS 8
+#define THREADS 5
 struct Epoch {
   int thread;
   struct timespec time;
@@ -36,7 +36,6 @@ struct Chunk {
   int available;
   int owner;
   int index;
-  
 };
 #define FREE 1
 #define READING 2
@@ -385,17 +384,17 @@ int * threadwork(struct Data * data) {
   epoch->dest = x;
   epoch->buffer = buffer;
   epoch->set = 1;
-        data->main->works[buffer] = data->threadindex;
+  data->main->works[buffer] = data->threadindex;
         
   //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
         // data->readcursors[data->threadindex]++;
   // }
-         data->writecursor = (data->writecursor + 1) % 0xf;
+         
          
   //  data->prevread = data->main->currentread;
      }
      }
-    
+    data->writecursor = (data->writecursor + 1) % 0xf;
     __atomic_fetch_add(&data->main->writecursor, 1, __ATOMIC_ACQUIRE);
    //  __atomic_fetch_add(&data->main->totalwrites, 1, __ATOMIC_ACQUIRE);
     
@@ -431,8 +430,8 @@ int * threadwork(struct Data * data) {
                 thepoch->thread = x;
           thepoch->buffer = buffer;
           thepoch->set = 1;
-         // printf("%d received %d\n", data->threadindex, data->main->works[buffer]);
-          data->readcursor = (data->readcursor) % 0xf;
+          // printf("%d received %d\n", data->threadindex, data->main->works[buffer]);
+         
           //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
                 // data->readcursors[data->threadindex]++;
           // }
@@ -440,7 +439,7 @@ int * threadwork(struct Data * data) {
         }
           
         }
-    
+     data->readcursor = (data->readcursor + 1) % 0xf;
     //printf("%ld\n", data->main->currentread);
     
     __atomic_fetch_add(&data->main->readcursor, 1, __ATOMIC_ACQUIRE);
