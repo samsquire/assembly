@@ -179,6 +179,47 @@ int findavailable(struct Data * data, long * available, int * availableidx, int 
   return 0;
 }
 
+int singlewriter3(struct Data *data, long * available, int * readyreaders, int * readywriters) {
+  int completed = 0;
+  /*
+  for (int x = 1; x < data->threadsize; x++) {
+    struct Data * t = &data->threads[x];
+
+    if (t->readcursors[x] == t->middle) {
+    //printf("%d\n", t->readcursor);
+      int rc = t->oreadcursor;
+      t->readcursors[x] = 0;
+      completed++;
+    } else {
+
+    }
+
+    if (t->writecursors[x] == t->middle) {
+      int wc = t->owritecursor;
+      t->writecursors[x] = 0;
+
+    }
+
+
+  }
+  if (completed == data->threadsize) {
+     data->globalstep = (data->globalstep + 1) % data->threadsize;
+   }
+   */
+
+
+
+  //printf("%d %d\n", data->writecursor, data->writecursor % (data->threadsize - 1));
+  if (data->writecursor != 0 && (data->writecursor % (data->threadsize - 1)) == 0) {
+    //data->currentwrite++;
+    data->writecursor = 0;
+    //printf("writeepoch\n");
+  } else {
+
+  }
+
+}
+
 int singlewriter2(struct Data *data, long * available, int * readyreaders, int * readywriters) {
   int completed = 0;
   /*
@@ -206,10 +247,11 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
      data->globalstep = (data->globalstep + 1) % data->threadsize;
    }
    */
-   
+
+
 // if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
    if (data->readcursor != 0 && (data->readcursor % (data->threadsize - 1)) == 0) {
-    data->currentread++;
+    //data->currentread++;
     data->readcursor = 0;
     //printf("readepoch\n");
     
@@ -226,14 +268,7 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
   } else {
     
   }
-  //printf("%d %d\n", data->writecursor, data->writecursor % (data->threadsize - 1));
-  if (data->writecursor != 0 && (data->writecursor % (data->threadsize - 1)) == 0) {
-    data->currentwrite++;
-    data->writecursor = 0;
-    //printf("writeepoch\n");
-  } else {
-    
-  }
+
   
 }
 /*
@@ -369,7 +404,7 @@ int * threadwork(struct Data * data) {
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
    data->freq_writes++;
-     for (int x = 1; x < data->threadsize ; x++) {
+     for (int x = 2; x < data->threadsize ; x++) {
        
      if (x != data->threadindex) {
         
@@ -404,7 +439,7 @@ int * threadwork(struct Data * data) {
    //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
    data->prevread = lastread;
    data->freq++;
-  for (int y = 1 ; y < data->threadsize; y++) {
+  for (int y = 2 ; y < data->threadsize; y++) {
           int x = y;
           
           if (y != data->threadindex) {
@@ -533,7 +568,11 @@ void * work(void * arg) {
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
       singlewriter2(data, available, readyreaders, readywriters);
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swend);
-  
+    } else if (data->threadindex == 1) {
+      clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
+      singlewriter3(data, available, readyreaders, readywriters);
+      clock_gettime(CLOCK_MONOTONIC_RAW, &data->swend);
+    
     } else  {
       threadwork(data);
     }

@@ -6,6 +6,13 @@ This is incomplete.
 
 the goal is you can write a protocol and it is autoparallelised.
 
+file processes by independent parallelism buckets, different rates
+how to generate a stream that is fed to multiple programs
+
+collapse events
+continuation passing
+
+
 This is an experimental project from my learning of assembly and C.
 
 You're writing an application that serves requests on the web and you have a number of database queries to do to render a page. You want requests to the web page to be returned as fast as possible with minimum latency. Latency and throughput is a tradeoff with eachother.
@@ -32,9 +39,44 @@ select http_request from http_requests where url = /signup
 insert into event table
 
 insert into network_send values (0, "hello world")
+
 insert into read values(file1, 5050)
 
-might not be when it executes
+insert time might not be when it executes
+
+every line is async
+
+a coroutine per client
+
+"return" is an instruction to the runtime
+
+thread-1
+ client-5
+  -> parse-request
+  -> read
+  -> make-sql-requests
+    -> one
+    -> two
+    -> three
+ client-6
+  -> 
+
+send tasks to other threads
+rip current position
+
+explicit replies, no return values to functions. like a broadcast if multiple people want to be notified
+
+coroutine object spawns other parallel tasks
+
+just specify what you want to happen.
+replies are explicit.
+
+for item in items:
+  do something
+
+read file, send over network, events interleaved or batched.
+
+query that does the scheduling
 
 ```
 25 get-recent
@@ -45,6 +87,10 @@ might not be when it executes
 Specify the bottlenecks. Specify the indirections.
 
 What do you need to do in this context to change control flow to over here?
+
+a btree could be in the buffer endless streaming
+
+managing control flow streams
 
  * **Concurrent and parallel coroutines** 
  * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
