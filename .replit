@@ -1,5 +1,5 @@
-compile = "make bump-workqueue"
-run = "./bump-workqueue"
+compile = "make bump2-workqueue"
+run = "./bump2-workqueue"
 hidden = ["main", "**/*.o", "**/*.d", ".ccls-cache", "Makefile"]
 modules = ["python-3.10:v25-20230920-d4ad2e4"]
 
