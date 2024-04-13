@@ -305,7 +305,7 @@ main:
    movq	%rdx, %rcx
    leaq	threadstart(%rip), %rdx
    movq	%rax, %rdi
-   call	pthread_create@PLT
+    call	pthread_create@PLT
    movl	%eax, -180(%rbp)
 
    movq $2, %rsi
