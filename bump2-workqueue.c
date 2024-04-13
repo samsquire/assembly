@@ -11,9 +11,9 @@
 #include <limits.h>
 
 #define NEW_EPOCH 1
-#define DURATION 1
-#define SAMPLE 1
-#define THREADS 5
+#define DURATION 5
+#define SAMPLE 0
+#define THREADS 8
 struct Epoch {
   int thread;
   struct timespec time;
@@ -406,8 +406,8 @@ int * threadwork(struct Data * data) {
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
    data->freq_writes++;
-     for (int x = 2; x < data->threadsize ; x++) {
-       
+     for (int n = 0; n < 3 ; n++) {
+    int x = 2 + (data->threadindex + n) % data->threadsize - 2;
      if (x != data->threadindex) {
         
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
@@ -449,10 +449,11 @@ int * threadwork(struct Data * data) {
    //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
    data->prevread = lastread;
    data->freq++;
-  for (int y = 2 ; y < data->threadsize; y++) {
-          int x = y;
+  for (int y = 0; y < 3; y++) {
+    int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
+        
           
-          if (y != data->threadindex) {
+          if (x != data->threadindex) {
             
             long past = ((data->main->writecursor - 1) % 0xf);
             if (past < 0) {
@@ -730,6 +731,7 @@ printf("%ld chunks\n", chunkslen);
   printf("freq: %ld\n", freq/ seconds);
   printf("freq_ps: %ld\n", (freq*threadsize-1)/ seconds);
   printf("freq latency2: %ld\n", 1000000000/((freq/seconds)));
+  printf("freq per thread latency: %ld\n", ((1000000000/(freq/seconds))/threadsize));
   printf("freq latency: %ld\n", 1000000000/((freq*threadsize-1)/seconds));
   long freq_writes = 0;
   for (int x = 0; x < threadsize; x++) {
@@ -738,9 +740,10 @@ printf("%ld chunks\n", chunkslen);
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
 
-  printf("freq_writes_total: %ld\n", (freq_writes * threadsize - 1) / seconds);
+  printf("freq_writes_total: %ld\n", (freq_writes * threadsize - 2) / seconds);
   printf("freq_writes latency2: %ld\n", 1000000000/(freq_writes / seconds));
-  printf("freq_writes latency: %ld\n", 1000000000/((freq_writes * threadsize - 1) / seconds));
+  printf("freq_writes per thread latency: %ld\n", (1000000000/(freq_writes / seconds)) / threadsize);
+  printf("freq_writes latency: %ld\n", 1000000000/((freq_writes * threadsize - 2) / seconds));
   // printf("total_sent per second %ld\n", (freq * threadsize) / seconds);
   //printf("total_received per second %ld\n", (freq_writes * threadsize) / seconds);
   /*
