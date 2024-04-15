@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
   401361:	48 8b 6c 24 28       	mov    0x28(%rsp),%rbp
   401366:	4c 8b 7c 24 20       	mov    0x20(%rsp),%r15
   40136b:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
-  401370:	49 c7 c5 20 24 40 00 	mov    $0x402420,%r13
+  401370:	49 c7 c5 e0 1f 40 00 	mov    $0x401fe0,%r13
   401377:	48 8d 85 48 03 00 00 	lea    0x348(%rbp),%rax
   40137e:	4d 89 fc             	mov    %r15,%r12
   401381:	49 89 c6             	mov    %rax,%r14
@@ -1115,793 +1115,411 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 
 0000000000401cd0 <threadwork>:
 int * threadwork(struct Data * data) {
-  401cd0:	55                   	push   %rbp
-  401cd1:	53                   	push   %rbx
-  401cd2:	48 89 fb             	mov    %rdi,%rbx
-  401cd5:	48 83 ec 28          	sub    $0x28,%rsp
+  401cd0:	53                   	push   %rbx
+  401cd1:	48 89 fb             	mov    %rdi,%rbx
+  401cd4:	48 83 ec 20          	sub    $0x20,%rsp
   long lastwrite = data->main->totalwrites % (data->threadsize);
-  401cd9:	48 63 4f 68          	movslq 0x68(%rdi),%rcx
-  401cdd:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
-  401ce6:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
-  401ceb:	48 8b 47 28          	mov    0x28(%rdi),%rax
+  401cd8:	48 63 4f 68          	movslq 0x68(%rdi),%rcx
+  401cdc:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+  401ce5:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  401cea:	48 8b 47 28          	mov    0x28(%rdi),%rax
   long lastcursor = data->main->writecursor;
-  401cef:	8b b0 80 01 00 00    	mov    0x180(%rax),%esi
+  401cee:	8b b0 80 01 00 00    	mov    0x180(%rax),%esi
   long lastwrite = data->main->totalwrites % (data->threadsize);
-  401cf5:	48 8b 80 38 03 00 00 	mov    0x338(%rax),%rax
-  401cfc:	48 99                	cqto
+  401cf4:	48 8b 80 38 03 00 00 	mov    0x338(%rax),%rax
+  401cfb:	48 99                	cqto
     data->thiswrite = lastcursor;
-  401cfe:	89 b7 28 03 00 00    	mov    %esi,0x328(%rdi)
+  401cfd:	89 b7 28 03 00 00    	mov    %esi,0x328(%rdi)
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
-  401d04:	48 89 e6             	mov    %rsp,%rsi
+  401d03:	48 89 e6             	mov    %rsp,%rsi
   long lastwrite = data->main->totalwrites % (data->threadsize);
-  401d07:	48 f7 f9             	idiv   %rcx
+  401d06:	48 f7 f9             	idiv   %rcx
     data->prevwrite = lastwrite;
-  401d0a:	48 89 97 10 03 00 00 	mov    %rdx,0x310(%rdi)
+  401d09:	48 89 97 10 03 00 00 	mov    %rdx,0x310(%rdi)
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
-  401d11:	bf 04 00 00 00       	mov    $0x4,%edi
-  401d16:	e8 35 f3 ff ff       	call   401050 <clock_gettime@plt>
+  401d10:	bf 04 00 00 00       	mov    $0x4,%edi
+  401d15:	e8 36 f3 ff ff       	call   401050 <clock_gettime@plt>
     int x = 2 + (data->threadindex + n) % data->threadsize - 2;
-  401d1b:	8b 4b 64             	mov    0x64(%rbx),%ecx
+  401d1a:	8b 4b 64             	mov    0x64(%rbx),%ecx
    data->freq_writes++;
-  401d1e:	48 83 43 50 01       	addq   $0x1,0x50(%rbx)
+  401d1d:	48 83 43 50 01       	addq   $0x1,0x50(%rbx)
     int x = 2 + (data->threadindex + n) % data->threadsize - 2;
-  401d23:	89 c8                	mov    %ecx,%eax
-  401d25:	99                   	cltd
-  401d26:	f7 7b 68             	idivl  0x68(%rbx)
+  401d22:	89 c8                	mov    %ecx,%eax
+  401d24:	99                   	cltd
+  401d25:	f7 7b 68             	idivl  0x68(%rbx)
      if (x != data->threadindex) {
-  401d29:	39 d1                	cmp    %edx,%ecx
-  401d2b:	0f 84 eb 00 00 00    	je     401e1c <threadwork+0x14c>
+  401d28:	39 d1                	cmp    %edx,%ecx
+  401d2a:	0f 84 e8 00 00 00    	je     401e18 <threadwork+0x148>
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401d31:	48 63 83 80 01 00 00 	movslq 0x180(%rbx),%rax
-  401d38:	89 d6                	mov    %edx,%esi
-  401d3a:	48 8b 7b 28          	mov    0x28(%rbx),%rdi
+  401d30:	48 63 83 80 01 00 00 	movslq 0x180(%rbx),%rax
+  401d37:	89 d7                	mov    %edx,%edi
+  401d39:	48 8b 73 28          	mov    0x28(%rbx),%rsi
         epoch->time = time;
-  401d3e:	66 0f 6f 04 24       	movdqa (%rsp),%xmm0
+  401d3d:	66 0f 6f 04 24       	movdqa (%rsp),%xmm0
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401d43:	48 89 c2             	mov    %rax,%rdx
-  401d46:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401d4d:	41 89 d0             	mov    %edx,%r8d
-  401d50:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401d54:	48 c1 e8 20          	shr    $0x20,%rax
-  401d58:	01 d0                	add    %edx,%eax
-  401d5a:	c1 f8 03             	sar    $0x3,%eax
-  401d5d:	44 29 c0             	sub    %r8d,%eax
-  401d60:	41 89 c0             	mov    %eax,%r8d
-  401d63:	41 c1 e0 04          	shl    $0x4,%r8d
-  401d67:	41 29 c0             	sub    %eax,%r8d
-  401d6a:	89 c8                	mov    %ecx,%eax
-  401d6c:	44 29 c2             	sub    %r8d,%edx
-  401d6f:	c1 e0 18             	shl    $0x18,%eax
-  401d72:	09 c2                	or     %eax,%edx
-  401d74:	89 f0                	mov    %esi,%eax
-  401d76:	c1 e0 08             	shl    $0x8,%eax
-  401d79:	09 c2                	or     %eax,%edx
-  401d7b:	48 63 87 80 01 00 00 	movslq 0x180(%rdi),%rax
-  401d82:	41 89 d2             	mov    %edx,%r10d
-  401d85:	48 89 c2             	mov    %rax,%rdx
-  401d88:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401d8f:	41 89 d0             	mov    %edx,%r8d
-  401d92:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401d96:	48 c1 e8 20          	shr    $0x20,%rax
-  401d9a:	01 d0                	add    %edx,%eax
-  401d9c:	c1 f8 03             	sar    $0x3,%eax
-  401d9f:	44 29 c0             	sub    %r8d,%eax
-  401da2:	41 89 c0             	mov    %eax,%r8d
-  401da5:	41 c1 e0 04          	shl    $0x4,%r8d
-  401da9:	41 29 c0             	sub    %eax,%r8d
+  401d42:	48 89 c2             	mov    %rax,%rdx
+  401d45:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
+  401d4c:	41 89 d0             	mov    %edx,%r8d
+  401d4f:	41 c1 f8 1f          	sar    $0x1f,%r8d
+  401d53:	48 c1 e8 20          	shr    $0x20,%rax
+  401d57:	01 d0                	add    %edx,%eax
+  401d59:	c1 f8 03             	sar    $0x3,%eax
+  401d5c:	44 29 c0             	sub    %r8d,%eax
+  401d5f:	41 89 c0             	mov    %eax,%r8d
+  401d62:	41 c1 e0 04          	shl    $0x4,%r8d
+  401d66:	41 29 c0             	sub    %eax,%r8d
+  401d69:	89 c8                	mov    %ecx,%eax
+  401d6b:	44 29 c2             	sub    %r8d,%edx
+  401d6e:	c1 e0 18             	shl    $0x18,%eax
+  401d71:	09 c2                	or     %eax,%edx
+  401d73:	89 f8                	mov    %edi,%eax
+  401d75:	c1 e0 08             	shl    $0x8,%eax
+  401d78:	09 c2                	or     %eax,%edx
+  401d7a:	48 63 86 80 01 00 00 	movslq 0x180(%rsi),%rax
+  401d81:	41 89 d2             	mov    %edx,%r10d
+  401d84:	48 89 c2             	mov    %rax,%rdx
+  401d87:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
+  401d8e:	41 89 d0             	mov    %edx,%r8d
+  401d91:	41 c1 f8 1f          	sar    $0x1f,%r8d
+  401d95:	48 c1 e8 20          	shr    $0x20,%rax
+  401d99:	01 d0                	add    %edx,%eax
+  401d9b:	c1 f8 03             	sar    $0x3,%eax
+  401d9e:	44 29 c0             	sub    %r8d,%eax
+  401da1:	41 89 c0             	mov    %eax,%r8d
+  401da4:	41 c1 e0 04          	shl    $0x4,%r8d
+  401da8:	41 29 c0             	sub    %eax,%r8d
         struct Data * thread = &data->threads[data->threadindex];
-  401dac:	48 63 c1             	movslq %ecx,%rax
+  401dab:	48 63 c1             	movslq %ecx,%rax
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401daf:	44 29 c2             	sub    %r8d,%edx
+  401dae:	44 29 c2             	sub    %r8d,%edx
         struct Data * thread = &data->threads[data->threadindex];
-  401db2:	4c 8d 04 c5 00 00 00 00 	lea    0x0(,%rax,8),%r8
-  401dba:	49 29 c0             	sub    %rax,%r8
+  401db1:	4c 8d 04 c5 00 00 00 00 	lea    0x0(,%rax,8),%r8
+  401db9:	49 29 c0             	sub    %rax,%r8
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401dbd:	c1 e2 10             	shl    $0x10,%edx
+  401dbc:	c1 e2 10             	shl    $0x10,%edx
         struct Data * thread = &data->threads[data->threadindex];
-  401dc0:	49 c1 e0 07          	shl    $0x7,%r8
-  401dc4:	4c 03 43 30          	add    0x30(%rbx),%r8
+  401dbf:	49 c1 e0 07          	shl    $0x7,%r8
+  401dc3:	4c 03 43 30          	add    0x30(%rbx),%r8
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401dc8:	41 09 d2             	or     %edx,%r10d
+  401dc7:	41 09 d2             	or     %edx,%r10d
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401dcb:	49 63 90 24 03 00 00 	movslq 0x324(%r8),%rdx
+  401dca:	49 63 90 24 03 00 00 	movslq 0x324(%r8),%rdx
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401dd2:	4d 63 d2             	movslq %r10d,%r10
+  401dd1:	4d 63 d2             	movslq %r10d,%r10
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401dd5:	48 89 d0             	mov    %rdx,%rax
-  401dd8:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
+  401dd4:	48 89 d0             	mov    %rdx,%rax
+  401dd7:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401ddc:	83 c0 01             	add    $0x1,%eax
+  401ddb:	83 c0 01             	add    $0x1,%eax
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401ddf:	49 c1 e1 04          	shl    $0x4,%r9
-  401de3:	4d 03 88 18 03 00 00 	add    0x318(%r8),%r9
+  401dde:	49 c1 e1 04          	shl    $0x4,%r9
+  401de2:	4d 03 88 18 03 00 00 	add    0x318(%r8),%r9
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401dea:	99                   	cltd
+  401de9:	99                   	cltd
         epoch->time = time;
-  401deb:	41 0f 11 41 08       	movups %xmm0,0x8(%r9)
+  401dea:	41 0f 11 41 08       	movups %xmm0,0x8(%r9)
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401df0:	41 f7 b8 20 03 00 00 	idivl  0x320(%r8)
+  401def:	41 f7 b8 20 03 00 00 	idivl  0x320(%r8)
   data->main->works[buffer] = data->threadindex;
-  401df7:	48 8b 47 70          	mov    0x70(%rdi),%rax
+  401df6:	48 8b 46 70          	mov    0x70(%rsi),%rax
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401dfb:	41 89 90 24 03 00 00 	mov    %edx,0x324(%r8)
+  401dfa:	41 89 90 24 03 00 00 	mov    %edx,0x324(%r8)
         epoch->thread = data->threadindex;
-  401e02:	41 89 09             	mov    %ecx,(%r9)
+  401e01:	41 89 09             	mov    %ecx,(%r9)
   epoch->dest = x;
-  401e05:	41 89 71 28          	mov    %esi,0x28(%r9)
+  401e04:	41 89 79 28          	mov    %edi,0x28(%r9)
         long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401e09:	4d 89 51 18          	mov    %r10,0x18(%r9)
+  401e08:	4d 89 51 18          	mov    %r10,0x18(%r9)
   epoch->set = 1;
-  401e0d:	41 c7 41 24 01 00 00 00 	movl   $0x1,0x24(%r9)
+  401e0c:	41 c7 41 24 01 00 00 00 	movl   $0x1,0x24(%r9)
   data->main->works[buffer] = data->threadindex;
-  401e15:	42 88 0c 10          	mov    %cl,(%rax,%r10,1)
-  401e19:	8b 4b 64             	mov    0x64(%rbx),%ecx
-    int x = 2 + (data->threadindex + n) % data->threadsize - 2;
-  401e1c:	8d 41 01             	lea    0x1(%rcx),%eax
-  401e1f:	99                   	cltd
-  401e20:	f7 7b 68             	idivl  0x68(%rbx)
-  401e23:	89 d6                	mov    %edx,%esi
-     if (x != data->threadindex) {
-  401e25:	39 d1                	cmp    %edx,%ecx
-  401e27:	0f 84 ea 00 00 00    	je     401f17 <threadwork+0x247>
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401e2d:	48 63 83 80 01 00 00 	movslq 0x180(%rbx),%rax
-  401e34:	48 8b 7b 28          	mov    0x28(%rbx),%rdi
-        epoch->time = time;
-  401e38:	66 0f 6f 0c 24       	movdqa (%rsp),%xmm1
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401e3d:	48 89 c2             	mov    %rax,%rdx
-  401e40:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401e47:	41 89 d0             	mov    %edx,%r8d
-  401e4a:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401e4e:	48 c1 e8 20          	shr    $0x20,%rax
-  401e52:	01 d0                	add    %edx,%eax
-  401e54:	c1 f8 03             	sar    $0x3,%eax
-  401e57:	44 29 c0             	sub    %r8d,%eax
-  401e5a:	41 89 c0             	mov    %eax,%r8d
-  401e5d:	41 c1 e0 04          	shl    $0x4,%r8d
-  401e61:	41 29 c0             	sub    %eax,%r8d
-  401e64:	89 c8                	mov    %ecx,%eax
-  401e66:	44 29 c2             	sub    %r8d,%edx
-  401e69:	c1 e0 18             	shl    $0x18,%eax
-  401e6c:	09 c2                	or     %eax,%edx
-  401e6e:	48 63 87 80 01 00 00 	movslq 0x180(%rdi),%rax
-  401e75:	41 89 d2             	mov    %edx,%r10d
-  401e78:	48 89 c2             	mov    %rax,%rdx
-  401e7b:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401e82:	41 89 d0             	mov    %edx,%r8d
-  401e85:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401e89:	48 c1 e8 20          	shr    $0x20,%rax
-  401e8d:	01 d0                	add    %edx,%eax
-  401e8f:	c1 f8 03             	sar    $0x3,%eax
-  401e92:	44 29 c0             	sub    %r8d,%eax
-  401e95:	41 89 c0             	mov    %eax,%r8d
-  401e98:	41 c1 e0 04          	shl    $0x4,%r8d
-  401e9c:	41 29 c0             	sub    %eax,%r8d
-  401e9f:	89 f0                	mov    %esi,%eax
-  401ea1:	44 29 c2             	sub    %r8d,%edx
-  401ea4:	c1 e0 08             	shl    $0x8,%eax
-  401ea7:	c1 e2 10             	shl    $0x10,%edx
-  401eaa:	41 09 d2             	or     %edx,%r10d
-  401ead:	41 09 c2             	or     %eax,%r10d
-        struct Data * thread = &data->threads[data->threadindex];
-  401eb0:	48 63 c1             	movslq %ecx,%rax
-  401eb3:	4c 8d 04 c5 00 00 00 00 	lea    0x0(,%rax,8),%r8
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401ebb:	4d 63 d2             	movslq %r10d,%r10
-        struct Data * thread = &data->threads[data->threadindex];
-  401ebe:	49 29 c0             	sub    %rax,%r8
-  401ec1:	49 c1 e0 07          	shl    $0x7,%r8
-  401ec5:	4c 03 43 30          	add    0x30(%rbx),%r8
-        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401ec9:	49 63 90 24 03 00 00 	movslq 0x324(%r8),%rdx
-  401ed0:	48 89 d0             	mov    %rdx,%rax
-  401ed3:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401ed7:	83 c0 01             	add    $0x1,%eax
-        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401eda:	49 c1 e1 04          	shl    $0x4,%r9
-  401ede:	4d 03 88 18 03 00 00 	add    0x318(%r8),%r9
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401ee5:	99                   	cltd
-        epoch->time = time;
-  401ee6:	41 0f 11 49 08       	movups %xmm1,0x8(%r9)
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401eeb:	41 f7 b8 20 03 00 00 	idivl  0x320(%r8)
-  data->main->works[buffer] = data->threadindex;
-  401ef2:	48 8b 47 70          	mov    0x70(%rdi),%rax
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401ef6:	41 89 90 24 03 00 00 	mov    %edx,0x324(%r8)
-        epoch->thread = data->threadindex;
-  401efd:	41 89 09             	mov    %ecx,(%r9)
-  epoch->dest = x;
-  401f00:	41 89 71 28          	mov    %esi,0x28(%r9)
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401f04:	4d 89 51 18          	mov    %r10,0x18(%r9)
-  epoch->set = 1;
-  401f08:	41 c7 41 24 01 00 00 00 	movl   $0x1,0x24(%r9)
-  data->main->works[buffer] = data->threadindex;
-  401f10:	42 88 0c 10          	mov    %cl,(%rax,%r10,1)
-  401f14:	8b 4b 64             	mov    0x64(%rbx),%ecx
-    int x = 2 + (data->threadindex + n) % data->threadsize - 2;
-  401f17:	8d 41 02             	lea    0x2(%rcx),%eax
-  401f1a:	99                   	cltd
-  401f1b:	f7 7b 68             	idivl  0x68(%rbx)
-  401f1e:	89 d6                	mov    %edx,%esi
-     if (x != data->threadindex) {
-  401f20:	39 d1                	cmp    %edx,%ecx
-  401f22:	0f 84 e7 00 00 00    	je     40200f <threadwork+0x33f>
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401f28:	48 63 83 80 01 00 00 	movslq 0x180(%rbx),%rax
-  401f2f:	48 8b 7b 28          	mov    0x28(%rbx),%rdi
-        epoch->time = time;
-  401f33:	66 0f 6f 14 24       	movdqa (%rsp),%xmm2
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401f38:	48 89 c2             	mov    %rax,%rdx
-  401f3b:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401f42:	41 89 d0             	mov    %edx,%r8d
-  401f45:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401f49:	48 c1 e8 20          	shr    $0x20,%rax
-  401f4d:	01 d0                	add    %edx,%eax
-  401f4f:	c1 f8 03             	sar    $0x3,%eax
-  401f52:	44 29 c0             	sub    %r8d,%eax
-  401f55:	41 89 c0             	mov    %eax,%r8d
-  401f58:	41 c1 e0 04          	shl    $0x4,%r8d
-  401f5c:	41 29 c0             	sub    %eax,%r8d
-  401f5f:	89 c8                	mov    %ecx,%eax
-  401f61:	44 29 c2             	sub    %r8d,%edx
-  401f64:	c1 e0 18             	shl    $0x18,%eax
-  401f67:	09 c2                	or     %eax,%edx
-  401f69:	48 63 87 80 01 00 00 	movslq 0x180(%rdi),%rax
-  401f70:	41 89 d2             	mov    %edx,%r10d
-  401f73:	48 89 c2             	mov    %rax,%rdx
-  401f76:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  401f7d:	41 89 d0             	mov    %edx,%r8d
-  401f80:	41 c1 f8 1f          	sar    $0x1f,%r8d
-  401f84:	48 c1 e8 20          	shr    $0x20,%rax
-  401f88:	01 d0                	add    %edx,%eax
-  401f8a:	c1 f8 03             	sar    $0x3,%eax
-  401f8d:	44 29 c0             	sub    %r8d,%eax
-  401f90:	41 89 c0             	mov    %eax,%r8d
-  401f93:	41 c1 e0 04          	shl    $0x4,%r8d
-  401f97:	41 29 c0             	sub    %eax,%r8d
-  401f9a:	89 f0                	mov    %esi,%eax
-  401f9c:	44 29 c2             	sub    %r8d,%edx
-  401f9f:	c1 e0 08             	shl    $0x8,%eax
-  401fa2:	c1 e2 10             	shl    $0x10,%edx
-  401fa5:	41 09 d2             	or     %edx,%r10d
-  401fa8:	41 09 c2             	or     %eax,%r10d
-        struct Data * thread = &data->threads[data->threadindex];
-  401fab:	48 63 c1             	movslq %ecx,%rax
-  401fae:	4c 8d 04 c5 00 00 00 00 	lea    0x0(,%rax,8),%r8
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401fb6:	4d 63 d2             	movslq %r10d,%r10
-        struct Data * thread = &data->threads[data->threadindex];
-  401fb9:	49 29 c0             	sub    %rax,%r8
-  401fbc:	49 c1 e0 07          	shl    $0x7,%r8
-  401fc0:	4c 03 43 30          	add    0x30(%rbx),%r8
-        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401fc4:	49 63 90 24 03 00 00 	movslq 0x324(%r8),%rdx
-  401fcb:	48 89 d0             	mov    %rdx,%rax
-  401fce:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401fd2:	83 c0 01             	add    $0x1,%eax
-        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401fd5:	49 c1 e1 04          	shl    $0x4,%r9
-  401fd9:	4d 03 88 18 03 00 00 	add    0x318(%r8),%r9
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401fe0:	99                   	cltd
-        epoch->time = time;
-  401fe1:	41 0f 11 51 08       	movups %xmm2,0x8(%r9)
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401fe6:	41 f7 b8 20 03 00 00 	idivl  0x320(%r8)
-  data->main->works[buffer] = data->threadindex;
-  401fed:	48 8b 47 70          	mov    0x70(%rdi),%rax
-  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401ff1:	41 89 90 24 03 00 00 	mov    %edx,0x324(%r8)
-        epoch->thread = data->threadindex;
-  401ff8:	41 89 09             	mov    %ecx,(%r9)
-  epoch->dest = x;
-  401ffb:	41 89 71 28          	mov    %esi,0x28(%r9)
-        long buffer = (data->threadindex << 24) | (data->main->writecursor % 0xf) << 16 | (x << 8) | (data->writecursor % 0xf);
-  401fff:	4d 89 51 18          	mov    %r10,0x18(%r9)
-  epoch->set = 1;
-  402003:	41 c7 41 24 01 00 00 00 	movl   $0x1,0x24(%r9)
-  data->main->works[buffer] = data->threadindex;
-  40200b:	42 88 0c 10          	mov    %cl,(%rax,%r10,1)
+  401e14:	42 88 0c 10          	mov    %cl,(%rax,%r10,1)
     data->writecursor = (data->writecursor + 1) % 0xf;
-  40200f:	8b 83 80 01 00 00    	mov    0x180(%rbx),%eax
-  402015:	8d 50 01             	lea    0x1(%rax),%edx
-  402018:	48 63 c2             	movslq %edx,%rax
-  40201b:	89 d1                	mov    %edx,%ecx
-  40201d:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  402024:	c1 f9 1f             	sar    $0x1f,%ecx
-  402027:	48 c1 e8 20          	shr    $0x20,%rax
-  40202b:	01 d0                	add    %edx,%eax
-  40202d:	c1 f8 03             	sar    $0x3,%eax
-  402030:	29 c8                	sub    %ecx,%eax
-  402032:	89 c1                	mov    %eax,%ecx
-  402034:	c1 e1 04             	shl    $0x4,%ecx
-  402037:	29 c1                	sub    %eax,%ecx
-    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_ACQUIRE);
-  402039:	48 8b 43 28          	mov    0x28(%rbx),%rax
+  401e18:	8b 83 80 01 00 00    	mov    0x180(%rbx),%eax
+  401e1e:	8d 50 01             	lea    0x1(%rax),%edx
+  401e21:	48 63 c2             	movslq %edx,%rax
+  401e24:	89 d1                	mov    %edx,%ecx
+  401e26:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
+  401e2d:	c1 f9 1f             	sar    $0x1f,%ecx
+  401e30:	48 c1 e8 20          	shr    $0x20,%rax
+  401e34:	01 d0                	add    %edx,%eax
+  401e36:	c1 f8 03             	sar    $0x3,%eax
+  401e39:	29 c8                	sub    %ecx,%eax
+  401e3b:	89 c1                	mov    %eax,%ecx
+  401e3d:	c1 e1 04             	shl    $0x4,%ecx
+  401e40:	29 c1                	sub    %eax,%ecx
+    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_RELAXED);
+  401e42:	48 8b 43 28          	mov    0x28(%rbx),%rax
     data->writecursor = (data->writecursor + 1) % 0xf;
-  40203d:	29 ca                	sub    %ecx,%edx
-  40203f:	89 93 80 01 00 00    	mov    %edx,0x180(%rbx)
-    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_ACQUIRE);
-  402045:	f0 48 83 80 50 03 00 00 01 	lock addq $0x1,0x350(%rax)
+  401e46:	29 ca                	sub    %ecx,%edx
+  401e48:	89 93 80 01 00 00    	mov    %edx,0x180(%rbx)
+    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_RELAXED);
+  401e4e:	f0 48 83 80 50 03 00 00 01 	lock addq $0x1,0x350(%rax)
   long lastread = data->main->totalreads % data->threadsize;
-  40204e:	48 8b 73 28          	mov    0x28(%rbx),%rsi
-  402052:	48 63 4b 68          	movslq 0x68(%rbx),%rcx
+  401e57:	48 8b 73 28          	mov    0x28(%rbx),%rsi
+  401e5b:	48 63 4b 68          	movslq 0x68(%rbx),%rcx
     int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
-  402056:	8b 7b 64             	mov    0x64(%rbx),%edi
+  401e5f:	44 8b 4b 64          	mov    0x64(%rbx),%r9d
   long lastread = data->main->totalreads % data->threadsize;
-  402059:	48 8b 86 40 03 00 00 	mov    0x340(%rsi),%rax
-  402060:	49 89 c8             	mov    %rcx,%r8
+  401e63:	48 8b 86 40 03 00 00 	mov    0x340(%rsi),%rax
+  401e6a:	48 89 cf             	mov    %rcx,%rdi
    data->freq++;
-  402063:	48 83 43 48 01       	addq   $0x1,0x48(%rbx)
+  401e6d:	48 83 43 48 01       	addq   $0x1,0x48(%rbx)
   long lastread = data->main->totalreads % data->threadsize;
-  402068:	48 99                	cqto
-  40206a:	48 f7 f9             	idiv   %rcx
+  401e72:	48 99                	cqto
+  401e74:	48 f7 f9             	idiv   %rcx
     int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
-  40206d:	89 f8                	mov    %edi,%eax
+  401e77:	44 89 c8             	mov    %r9d,%eax
    data->prevread = lastread;
-  40206f:	48 89 93 08 03 00 00 	mov    %rdx,0x308(%rbx)
+  401e7a:	48 89 93 08 03 00 00 	mov    %rdx,0x308(%rbx)
     int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
-  402076:	99                   	cltd
-  402077:	f7 f9                	idiv   %ecx
-  402079:	41 89 d1             	mov    %edx,%r9d
+  401e81:	99                   	cltd
+  401e82:	f7 f9                	idiv   %ecx
+  401e84:	41 89 d0             	mov    %edx,%r8d
           if (x != data->threadindex) {
-  40207c:	39 d7                	cmp    %edx,%edi
-  40207e:	0f 84 fd 00 00 00    	je     402181 <threadwork+0x4b1>
+  401e87:	41 39 d1             	cmp    %edx,%r9d
+  401e8a:	0f 84 f7 00 00 00    	je     401f87 <threadwork+0x2b7>
             long past = ((data->main->writecursor - 1) % 0xf);
-  402084:	8b 86 80 01 00 00    	mov    0x180(%rsi),%eax
+  401e90:	8b 86 80 01 00 00    	mov    0x180(%rsi),%eax
               past = data->threadsize - 1;
-  40208a:	45 8d 50 ff          	lea    -0x1(%r8),%r10d
+  401e96:	83 ef 01             	sub    $0x1,%edi
+  401e99:	41 bb 0e 00 00 00    	mov    $0xe,%r11d
             long past = ((data->main->writecursor - 1) % 0xf);
-  40208e:	8d 50 ff             	lea    -0x1(%rax),%edx
-  402091:	48 63 c2             	movslq %edx,%rax
-  402094:	89 d1                	mov    %edx,%ecx
-  402096:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  40209d:	c1 f9 1f             	sar    $0x1f,%ecx
-  4020a0:	48 c1 e8 20          	shr    $0x20,%rax
-  4020a4:	01 d0                	add    %edx,%eax
-  4020a6:	c1 f8 03             	sar    $0x3,%eax
-  4020a9:	29 c8                	sub    %ecx,%eax
-  4020ab:	89 c1                	mov    %eax,%ecx
-  4020ad:	c1 e1 04             	shl    $0x4,%ecx
-  4020b0:	29 c1                	sub    %eax,%ecx
+  401e9f:	83 e8 01             	sub    $0x1,%eax
+  401ea2:	48 63 c8             	movslq %eax,%rcx
+  401ea5:	99                   	cltd
+  401ea6:	48 69 c9 89 88 88 88 	imul   $0xffffffff88888889,%rcx,%rcx
+  401ead:	48 c1 e9 20          	shr    $0x20,%rcx
+  401eb1:	01 c1                	add    %eax,%ecx
+  401eb3:	c1 f9 03             	sar    $0x3,%ecx
+  401eb6:	29 d1                	sub    %edx,%ecx
+  401eb8:	89 ca                	mov    %ecx,%edx
+  401eba:	c1 e2 04             	shl    $0x4,%edx
+  401ebd:	29 ca                	sub    %ecx,%edx
               past = data->threadsize - 1;
-  4020b2:	89 d0                	mov    %edx,%eax
+  401ebf:	29 d0                	sub    %edx,%eax
             int rc = data->threads[x].writecursor;
-  4020b4:	48 8b 53 30          	mov    0x30(%rbx),%rdx
+  401ec1:	48 8b 53 30          	mov    0x30(%rbx),%rdx
               past = data->threadsize - 1;
-  4020b8:	29 c8                	sub    %ecx,%eax
-  4020ba:	41 0f 48 c2          	cmovs  %r10d,%eax
+  401ec5:	89 c1                	mov    %eax,%ecx
+  401ec7:	0f 48 cf             	cmovs  %edi,%ecx
             int rc = data->threads[x].writecursor;
-  4020be:	4d 63 d1             	movslq %r9d,%r10
-  4020c1:	48 63 c8             	movslq %eax,%rcx
-  4020c4:	4a 8d 04 d5 00 00 00 00 	lea    0x0(,%r10,8),%rax
-  4020cc:	4c 29 d0             	sub    %r10,%rax
-  4020cf:	48 c1 e0 07          	shl    $0x7,%rax
-  4020d3:	44 8b 9c 02 80 01 00 00 	mov    0x180(%rdx,%rax,1),%r11d
+  401eca:	49 63 f8             	movslq %r8d,%rdi
+  401ecd:	48 8d 04 fd 00 00 00 00 	lea    0x0(,%rdi,8),%rax
+  401ed5:	48 29 f8             	sub    %rdi,%rax
+  401ed8:	48 63 c9             	movslq %ecx,%rcx
+  401edb:	48 c1 e0 07          	shl    $0x7,%rax
+  401edf:	8b bc 02 80 01 00 00 	mov    0x180(%rdx,%rax,1),%edi
             if (rc < 0) {
-  4020db:	45 85 db             	test   %r11d,%r11d
-  4020de:	0f 88 2c 03 00 00    	js     402410 <threadwork+0x740>
+  401ee6:	85 ff                	test   %edi,%edi
+  401ee8:	78 2d                	js     401f17 <threadwork+0x247>
          long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  4020e4:	49 63 c3             	movslq %r11d,%rax
-  4020e7:	45 89 da             	mov    %r11d,%r10d
-  4020ea:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  4020f1:	41 c1 fa 1f          	sar    $0x1f,%r10d
-  4020f5:	48 c1 e8 20          	shr    $0x20,%rax
-  4020f9:	44 01 d8             	add    %r11d,%eax
-  4020fc:	c1 f8 03             	sar    $0x3,%eax
-  4020ff:	44 29 d0             	sub    %r10d,%eax
-  402102:	41 89 c2             	mov    %eax,%r10d
-  402105:	41 c1 e2 04          	shl    $0x4,%r10d
-  402109:	41 29 c2             	sub    %eax,%r10d
-  40210c:	45 29 d3             	sub    %r10d,%r11d
-  40210f:	4d 63 db             	movslq %r11d,%r11
+  401eea:	48 63 c7             	movslq %edi,%rax
+  401eed:	41 89 fa             	mov    %edi,%r10d
+  401ef0:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
+  401ef7:	41 c1 fa 1f          	sar    $0x1f,%r10d
+  401efb:	48 c1 e8 20          	shr    $0x20,%rax
+  401eff:	01 f8                	add    %edi,%eax
+  401f01:	c1 f8 03             	sar    $0x3,%eax
+  401f04:	44 29 d0             	sub    %r10d,%eax
+  401f07:	41 89 c2             	mov    %eax,%r10d
+  401f0a:	41 c1 e2 04          	shl    $0x4,%r10d
+  401f0e:	41 29 c2             	sub    %eax,%r10d
+  401f11:	44 29 d7             	sub    %r10d,%edi
+  401f14:	4c 63 df             	movslq %edi,%r11
                 struct Data * thread = &data->threads[data->threadindex];
-  402112:	48 63 c7             	movslq %edi,%rax
-            thepoch->time = time; 
-  402115:	66 0f 6f 1c 24       	movdqa (%rsp),%xmm3
+  401f17:	49 63 c1             	movslq %r9d,%rax
          long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  40211a:	48 c1 e1 10          	shl    $0x10,%rcx
+  401f1a:	41 c1 e1 08          	shl    $0x8,%r9d
+            thepoch->time = time; 
+  401f1e:	66 0f 6f 0c 24       	movdqa (%rsp),%xmm1
                 struct Data * thread = &data->threads[data->threadindex];
-  40211e:	48 8d 2c c5 00 00 00 00 	lea    0x0(,%rax,8),%rbp
-  402126:	48 29 c5             	sub    %rax,%rbp
-  402129:	48 c1 e5 07          	shl    $0x7,%rbp
-  40212d:	48 01 d5             	add    %rdx,%rbp
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  402130:	48 63 95 24 03 00 00 	movslq 0x324(%rbp),%rdx
-  402137:	48 89 d0             	mov    %rdx,%rax
-  40213a:	4c 8d 14 52          	lea    (%rdx,%rdx,2),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  40213e:	83 c0 01             	add    $0x1,%eax
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  402141:	49 c1 e2 04          	shl    $0x4,%r10
-  402145:	4c 03 95 18 03 00 00 	add    0x318(%rbp),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  40214c:	99                   	cltd
-            thepoch->time = time; 
-  40214d:	41 0f 11 5a 08       	movups %xmm3,0x8(%r10)
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402152:	f7 bd 20 03 00 00    	idivl  0x320(%rbp)
+  401f23:	48 8d 3c c5 00 00 00 00 	lea    0x0(,%rax,8),%rdi
          long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402158:	89 f8                	mov    %edi,%eax
-  40215a:	c1 e0 08             	shl    $0x8,%eax
+  401f2b:	48 c1 e1 10          	shl    $0x10,%rcx
+                struct Data * thread = &data->threads[data->threadindex];
+  401f2f:	48 29 c7             	sub    %rax,%rdi
+  401f32:	48 c1 e7 07          	shl    $0x7,%rdi
+  401f36:	48 01 d7             	add    %rdx,%rdi
+                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
+  401f39:	48 63 97 24 03 00 00 	movslq 0x324(%rdi),%rdx
+  401f40:	48 89 d0             	mov    %rdx,%rax
+  401f43:	4c 8d 14 52          	lea    (%rdx,%rdx,2),%r10
           thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  40215d:	89 95 24 03 00 00    	mov    %edx,0x324(%rbp)
+  401f47:	83 c0 01             	add    $0x1,%eax
+                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
+  401f4a:	49 c1 e2 04          	shl    $0x4,%r10
+  401f4e:	4c 03 97 18 03 00 00 	add    0x318(%rdi),%r10
+          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+  401f55:	99                   	cltd
+            thepoch->time = time; 
+  401f56:	41 0f 11 4a 08       	movups %xmm1,0x8(%r10)
+          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+  401f5b:	f7 bf 20 03 00 00    	idivl  0x320(%rdi)
+         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
+  401f61:	44 89 c0             	mov    %r8d,%eax
+  401f64:	c1 e0 18             	shl    $0x18,%eax
+  401f67:	44 09 c8             	or     %r9d,%eax
+  401f6a:	48 98                	cltq
+  401f6c:	48 09 c1             	or     %rax,%rcx
+  401f6f:	4c 09 d9             	or     %r11,%rcx
+          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+  401f72:	89 97 24 03 00 00    	mov    %edx,0x324(%rdi)
                 thepoch->thread = x;
-  402163:	45 89 0a             	mov    %r9d,(%r10)
+  401f78:	45 89 02             	mov    %r8d,(%r10)
          long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402166:	41 c1 e1 18          	shl    $0x18,%r9d
-  40216a:	44 09 c8             	or     %r9d,%eax
+  401f7b:	49 89 4a 18          	mov    %rcx,0x18(%r10)
           thepoch->set = 1;
-  40216d:	41 c7 42 24 01 00 00 00 	movl   $0x1,0x24(%r10)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402175:	48 98                	cltq
-  402177:	48 09 c8             	or     %rcx,%rax
-  40217a:	4c 09 d8             	or     %r11,%rax
-  40217d:	49 89 42 18          	mov    %rax,0x18(%r10)
-    int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
-  402181:	8d 47 01             	lea    0x1(%rdi),%eax
-  402184:	99                   	cltd
-  402185:	41 f7 f8             	idiv   %r8d
-  402188:	41 89 d1             	mov    %edx,%r9d
-          if (x != data->threadindex) {
-  40218b:	39 fa                	cmp    %edi,%edx
-  40218d:	0f 84 01 01 00 00    	je     402294 <threadwork+0x5c4>
-            long past = ((data->main->writecursor - 1) % 0xf);
-  402193:	8b 86 80 01 00 00    	mov    0x180(%rsi),%eax
-              past = data->threadsize - 1;
-  402199:	45 8d 50 ff          	lea    -0x1(%r8),%r10d
-            long past = ((data->main->writecursor - 1) % 0xf);
-  40219d:	8d 50 ff             	lea    -0x1(%rax),%edx
-  4021a0:	48 63 c2             	movslq %edx,%rax
-  4021a3:	89 d1                	mov    %edx,%ecx
-  4021a5:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  4021ac:	c1 f9 1f             	sar    $0x1f,%ecx
-  4021af:	48 c1 e8 20          	shr    $0x20,%rax
-  4021b3:	01 d0                	add    %edx,%eax
-  4021b5:	c1 f8 03             	sar    $0x3,%eax
-  4021b8:	29 c8                	sub    %ecx,%eax
-  4021ba:	89 c1                	mov    %eax,%ecx
-  4021bc:	c1 e1 04             	shl    $0x4,%ecx
-  4021bf:	29 c1                	sub    %eax,%ecx
-              past = data->threadsize - 1;
-  4021c1:	89 d0                	mov    %edx,%eax
-            int rc = data->threads[x].writecursor;
-  4021c3:	48 8b 53 30          	mov    0x30(%rbx),%rdx
-              past = data->threadsize - 1;
-  4021c7:	29 c8                	sub    %ecx,%eax
-  4021c9:	41 0f 48 c2          	cmovs  %r10d,%eax
-            int rc = data->threads[x].writecursor;
-  4021cd:	4d 63 d1             	movslq %r9d,%r10
-  4021d0:	48 63 c8             	movslq %eax,%rcx
-  4021d3:	4a 8d 04 d5 00 00 00 00 	lea    0x0(,%r10,8),%rax
-  4021db:	4c 29 d0             	sub    %r10,%rax
-  4021de:	48 c1 e0 07          	shl    $0x7,%rax
-  4021e2:	44 8b 9c 02 80 01 00 00 	mov    0x180(%rdx,%rax,1),%r11d
-            if (rc < 0) {
-  4021ea:	45 85 db             	test   %r11d,%r11d
-  4021ed:	0f 88 0d 02 00 00    	js     402400 <threadwork+0x730>
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  4021f3:	49 63 c3             	movslq %r11d,%rax
-  4021f6:	45 89 da             	mov    %r11d,%r10d
-  4021f9:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  402200:	41 c1 fa 1f          	sar    $0x1f,%r10d
-  402204:	48 c1 e8 20          	shr    $0x20,%rax
-  402208:	44 01 d8             	add    %r11d,%eax
-  40220b:	c1 f8 03             	sar    $0x3,%eax
-  40220e:	44 29 d0             	sub    %r10d,%eax
-  402211:	41 89 c2             	mov    %eax,%r10d
-  402214:	41 c1 e2 04          	shl    $0x4,%r10d
-  402218:	41 29 c2             	sub    %eax,%r10d
-  40221b:	45 29 d3             	sub    %r10d,%r11d
-  40221e:	4d 63 db             	movslq %r11d,%r11
-                struct Data * thread = &data->threads[data->threadindex];
-  402221:	48 63 c7             	movslq %edi,%rax
-            thepoch->time = time; 
-  402224:	66 0f 6f 24 24       	movdqa (%rsp),%xmm4
-                struct Data * thread = &data->threads[data->threadindex];
-  402229:	48 8d 2c c5 00 00 00 00 	lea    0x0(,%rax,8),%rbp
-  402231:	48 29 c5             	sub    %rax,%rbp
-  402234:	48 c1 e5 07          	shl    $0x7,%rbp
-  402238:	48 01 d5             	add    %rdx,%rbp
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  40223b:	48 63 95 24 03 00 00 	movslq 0x324(%rbp),%rdx
-  402242:	48 89 d0             	mov    %rdx,%rax
-  402245:	4c 8d 14 52          	lea    (%rdx,%rdx,2),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402249:	83 c0 01             	add    $0x1,%eax
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  40224c:	49 c1 e2 04          	shl    $0x4,%r10
-  402250:	4c 03 95 18 03 00 00 	add    0x318(%rbp),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402257:	99                   	cltd
-            thepoch->time = time; 
-  402258:	41 0f 11 62 08       	movups %xmm4,0x8(%r10)
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  40225d:	f7 bd 20 03 00 00    	idivl  0x320(%rbp)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402263:	89 f8                	mov    %edi,%eax
-  402265:	c1 e0 08             	shl    $0x8,%eax
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402268:	89 95 24 03 00 00    	mov    %edx,0x324(%rbp)
-                thepoch->thread = x;
-  40226e:	45 89 0a             	mov    %r9d,(%r10)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402271:	41 c1 e1 18          	shl    $0x18,%r9d
-  402275:	41 09 c1             	or     %eax,%r9d
-  402278:	48 89 c8             	mov    %rcx,%rax
-          thepoch->set = 1;
-  40227b:	41 c7 42 24 01 00 00 00 	movl   $0x1,0x24(%r10)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402283:	4d 63 c9             	movslq %r9d,%r9
-  402286:	48 c1 e0 10          	shl    $0x10,%rax
-  40228a:	49 09 c1             	or     %rax,%r9
-  40228d:	4d 09 d9             	or     %r11,%r9
-  402290:	4d 89 4a 18          	mov    %r9,0x18(%r10)
-    int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
-  402294:	8d 47 02             	lea    0x2(%rdi),%eax
-  402297:	99                   	cltd
-  402298:	41 f7 f8             	idiv   %r8d
-  40229b:	41 89 d1             	mov    %edx,%r9d
-          if (x != data->threadindex) {
-  40229e:	39 fa                	cmp    %edi,%edx
-  4022a0:	0f 84 05 01 00 00    	je     4023ab <threadwork+0x6db>
-            long past = ((data->main->writecursor - 1) % 0xf);
-  4022a6:	8b 86 80 01 00 00    	mov    0x180(%rsi),%eax
-  4022ac:	41 bb 0e 00 00 00    	mov    $0xe,%r11d
-  4022b2:	8d 50 ff             	lea    -0x1(%rax),%edx
-  4022b5:	48 63 ca             	movslq %edx,%rcx
-  4022b8:	89 d0                	mov    %edx,%eax
-  4022ba:	48 69 c9 89 88 88 88 	imul   $0xffffffff88888889,%rcx,%rcx
-  4022c1:	c1 f8 1f             	sar    $0x1f,%eax
-  4022c4:	48 c1 e9 20          	shr    $0x20,%rcx
-  4022c8:	01 d1                	add    %edx,%ecx
-  4022ca:	c1 f9 03             	sar    $0x3,%ecx
-  4022cd:	29 c1                	sub    %eax,%ecx
-              past = data->threadsize - 1;
-  4022cf:	41 8d 40 ff          	lea    -0x1(%r8),%eax
-            int rc = data->threads[x].writecursor;
-  4022d3:	4d 63 c1             	movslq %r9d,%r8
-            long past = ((data->main->writecursor - 1) % 0xf);
-  4022d6:	41 89 ca             	mov    %ecx,%r10d
-  4022d9:	41 c1 e2 04          	shl    $0x4,%r10d
-  4022dd:	41 29 ca             	sub    %ecx,%r10d
-              past = data->threadsize - 1;
-  4022e0:	89 d1                	mov    %edx,%ecx
-            int rc = data->threads[x].writecursor;
-  4022e2:	48 8b 53 30          	mov    0x30(%rbx),%rdx
-              past = data->threadsize - 1;
-  4022e6:	44 29 d1             	sub    %r10d,%ecx
-  4022e9:	0f 48 c8             	cmovs  %eax,%ecx
-            int rc = data->threads[x].writecursor;
-  4022ec:	4a 8d 04 c5 00 00 00 00 	lea    0x0(,%r8,8),%rax
-  4022f4:	4c 29 c0             	sub    %r8,%rax
-  4022f7:	48 c1 e0 07          	shl    $0x7,%rax
-  4022fb:	48 63 c9             	movslq %ecx,%rcx
-  4022fe:	44 8b 84 02 80 01 00 00 	mov    0x180(%rdx,%rax,1),%r8d
-            if (rc < 0) {
-  402306:	45 85 c0             	test   %r8d,%r8d
-  402309:	78 2e                	js     402339 <threadwork+0x669>
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  40230b:	49 63 c0             	movslq %r8d,%rax
-  40230e:	45 89 c2             	mov    %r8d,%r10d
-  402311:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  402318:	41 c1 fa 1f          	sar    $0x1f,%r10d
-  40231c:	48 c1 e8 20          	shr    $0x20,%rax
-  402320:	44 01 c0             	add    %r8d,%eax
-  402323:	c1 f8 03             	sar    $0x3,%eax
-  402326:	44 29 d0             	sub    %r10d,%eax
-  402329:	41 89 c2             	mov    %eax,%r10d
-  40232c:	41 c1 e2 04          	shl    $0x4,%r10d
-  402330:	41 29 c2             	sub    %eax,%r10d
-  402333:	45 29 d0             	sub    %r10d,%r8d
-  402336:	4d 63 d8             	movslq %r8d,%r11
-                struct Data * thread = &data->threads[data->threadindex];
-  402339:	48 63 c7             	movslq %edi,%rax
-            thepoch->time = time; 
-  40233c:	66 0f 6f 2c 24       	movdqa (%rsp),%xmm5
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402341:	48 c1 e1 10          	shl    $0x10,%rcx
-                struct Data * thread = &data->threads[data->threadindex];
-  402345:	4c 8d 04 c5 00 00 00 00 	lea    0x0(,%rax,8),%r8
-  40234d:	49 29 c0             	sub    %rax,%r8
-  402350:	49 c1 e0 07          	shl    $0x7,%r8
-  402354:	49 01 d0             	add    %rdx,%r8
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  402357:	49 63 90 24 03 00 00 	movslq 0x324(%r8),%rdx
-  40235e:	48 89 d0             	mov    %rdx,%rax
-  402361:	4c 8d 14 52          	lea    (%rdx,%rdx,2),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402365:	83 c0 01             	add    $0x1,%eax
-                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  402368:	49 c1 e2 04          	shl    $0x4,%r10
-  40236c:	4d 03 90 18 03 00 00 	add    0x318(%r8),%r10
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402373:	99                   	cltd
-            thepoch->time = time; 
-  402374:	41 0f 11 6a 08       	movups %xmm5,0x8(%r10)
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402379:	41 f7 b8 20 03 00 00 	idivl  0x320(%r8)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  402380:	89 f8                	mov    %edi,%eax
-  402382:	c1 e0 08             	shl    $0x8,%eax
-          thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  402385:	41 89 90 24 03 00 00 	mov    %edx,0x324(%r8)
-                thepoch->thread = x;
-  40238c:	45 89 0a             	mov    %r9d,(%r10)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  40238f:	41 c1 e1 18          	shl    $0x18,%r9d
-  402393:	41 09 c1             	or     %eax,%r9d
-          thepoch->set = 1;
-  402396:	41 c7 42 24 01 00 00 00 	movl   $0x1,0x24(%r10)
-         long buffer = (x << 24) | (past << 16) | (data->threadindex << 8) | (rc) % 0xf;
-  40239e:	4d 63 c9             	movslq %r9d,%r9
-  4023a1:	49 09 c9             	or     %rcx,%r9
-  4023a4:	4d 09 d9             	or     %r11,%r9
-  4023a7:	4d 89 4a 18          	mov    %r9,0x18(%r10)
+  401f7f:	41 c7 42 24 01 00 00 00 	movl   $0x1,0x24(%r10)
      data->readcursor = (data->readcursor + 1) % 0xf;
-  4023ab:	8b 83 00 02 00 00    	mov    0x200(%rbx),%eax
-  4023b1:	8d 50 01             	lea    0x1(%rax),%edx
-  4023b4:	48 63 c2             	movslq %edx,%rax
-  4023b7:	89 d1                	mov    %edx,%ecx
-  4023b9:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
-  4023c0:	c1 f9 1f             	sar    $0x1f,%ecx
-  4023c3:	48 c1 e8 20          	shr    $0x20,%rax
-  4023c7:	01 d0                	add    %edx,%eax
-  4023c9:	c1 f8 03             	sar    $0x3,%eax
-  4023cc:	29 c8                	sub    %ecx,%eax
-  4023ce:	89 c1                	mov    %eax,%ecx
-  4023d0:	c1 e1 04             	shl    $0x4,%ecx
-  4023d3:	29 c1                	sub    %eax,%ecx
-  4023d5:	29 ca                	sub    %ecx,%edx
-  4023d7:	89 93 00 02 00 00    	mov    %edx,0x200(%rbx)
-    __atomic_fetch_add(&data->main->globalread, 1, __ATOMIC_ACQUIRE);
-  4023dd:	f0 48 83 86 48 03 00 00 01 	lock addq $0x1,0x348(%rsi)
+  401f87:	8b 83 00 02 00 00    	mov    0x200(%rbx),%eax
+  401f8d:	8d 50 01             	lea    0x1(%rax),%edx
+  401f90:	48 63 c2             	movslq %edx,%rax
+  401f93:	89 d1                	mov    %edx,%ecx
+  401f95:	48 69 c0 89 88 88 88 	imul   $0xffffffff88888889,%rax,%rax
+  401f9c:	c1 f9 1f             	sar    $0x1f,%ecx
+  401f9f:	48 c1 e8 20          	shr    $0x20,%rax
+  401fa3:	01 d0                	add    %edx,%eax
+  401fa5:	c1 f8 03             	sar    $0x3,%eax
+  401fa8:	29 c8                	sub    %ecx,%eax
+  401faa:	89 c1                	mov    %eax,%ecx
+  401fac:	c1 e1 04             	shl    $0x4,%ecx
+  401faf:	29 c1                	sub    %eax,%ecx
+  401fb1:	29 ca                	sub    %ecx,%edx
+  401fb3:	89 93 00 02 00 00    	mov    %edx,0x200(%rbx)
+    __atomic_fetch_add(&data->main->globalread, 1, __ATOMIC_RELAXED);
+  401fb9:	f0 48 83 86 48 03 00 00 01 	lock addq $0x1,0x348(%rsi)
 }
-  4023e6:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-  4023eb:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-  4023f4:	75 25                	jne    40241b <threadwork+0x74b>
-  4023f6:	48 83 c4 28          	add    $0x28,%rsp
-  4023fa:	31 c0                	xor    %eax,%eax
-  4023fc:	5b                   	pop    %rbx
-  4023fd:	5d                   	pop    %rbp
-  4023fe:	c3                   	ret
-  4023ff:	90                   	nop
-            if (rc < 0) {
-  402400:	41 bb 0e 00 00 00    	mov    $0xe,%r11d
-  402406:	e9 16 fe ff ff       	jmp    402221 <threadwork+0x551>
-  40240b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-  402410:	41 bb 0e 00 00 00    	mov    $0xe,%r11d
-  402416:	e9 f7 fc ff ff       	jmp    402112 <threadwork+0x442>
-}
-  40241b:	e8 40 ec ff ff       	call   401060 <__stack_chk_fail@plt>
+  401fc2:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  401fc7:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+  401fd0:	75 08                	jne    401fda <threadwork+0x30a>
+  401fd2:	48 83 c4 20          	add    $0x20,%rsp
+  401fd6:	31 c0                	xor    %eax,%eax
+  401fd8:	5b                   	pop    %rbx
+  401fd9:	c3                   	ret
+  401fda:	e8 81 f0 ff ff       	call   401060 <__stack_chk_fail@plt>
+  401fdf:	90                   	nop
 
-0000000000402420 <work>:
+0000000000401fe0 <work>:
 void * work(void * arg) {
-  402420:	41 56                	push   %r14
-  402422:	48 8d 35 db 0b 00 00 	lea    0xbdb(%rip),%rsi        # 403004 <_IO_stdin_used+0x4>
-  402429:	31 c0                	xor    %eax,%eax
-  40242b:	41 55                	push   %r13
-  40242d:	41 54                	push   %r12
-  40242f:	55                   	push   %rbp
-  402430:	53                   	push   %rbx
-  402431:	8b 57 64             	mov    0x64(%rdi),%edx
-  402434:	48 89 fb             	mov    %rdi,%rbx
-  402437:	bf 01 00 00 00       	mov    $0x1,%edi
-  40243c:	e8 4f ec ff ff       	call   401090 <__printf_chk@plt>
+  401fe0:	41 56                	push   %r14
+  401fe2:	48 8d 35 1b 10 00 00 	lea    0x101b(%rip),%rsi        # 403004 <_IO_stdin_used+0x4>
+  401fe9:	31 c0                	xor    %eax,%eax
+  401feb:	41 55                	push   %r13
+  401fed:	41 54                	push   %r12
+  401fef:	55                   	push   %rbp
+  401ff0:	53                   	push   %rbx
+  401ff1:	8b 57 64             	mov    0x64(%rdi),%edx
+  401ff4:	48 89 fb             	mov    %rdi,%rbx
+  401ff7:	bf 01 00 00 00       	mov    $0x1,%edi
+  401ffc:	e8 8f f0 ff ff       	call   401090 <__printf_chk@plt>
   long * available = calloc(data->chunkslen + 1, sizeof(long));
-  402441:	48 8b 83 b8 00 00 00 	mov    0xb8(%rbx),%rax
+  402001:	48 8b 83 b8 00 00 00 	mov    0xb8(%rbx),%rax
   int currentbucket = (data->threadindex + 1) % data->threadsize;
-  402448:	4c 63 6b 68          	movslq 0x68(%rbx),%r13
+  402008:	4c 63 6b 68          	movslq 0x68(%rbx),%r13
   long * available = calloc(data->chunkslen + 1, sizeof(long));
-  40244c:	be 08 00 00 00       	mov    $0x8,%esi
-  402451:	48 8d 78 01          	lea    0x1(%rax),%rdi
-  402455:	e8 26 ec ff ff       	call   401080 <calloc@plt>
+  40200c:	be 08 00 00 00       	mov    $0x8,%esi
+  402011:	48 8d 78 01          	lea    0x1(%rax),%rdi
+  402015:	e8 66 f0 ff ff       	call   401080 <calloc@plt>
   int * readyreaders = calloc(data->threadsize, sizeof(int));
-  40245a:	be 04 00 00 00       	mov    $0x4,%esi
-  40245f:	4c 89 ef             	mov    %r13,%rdi
+  40201a:	be 04 00 00 00       	mov    $0x4,%esi
+  40201f:	4c 89 ef             	mov    %r13,%rdi
   long * available = calloc(data->chunkslen + 1, sizeof(long));
-  402462:	48 89 c5             	mov    %rax,%rbp
+  402022:	48 89 c5             	mov    %rax,%rbp
   int * readyreaders = calloc(data->threadsize, sizeof(int));
-  402465:	e8 16 ec ff ff       	call   401080 <calloc@plt>
+  402025:	e8 56 f0 ff ff       	call   401080 <calloc@plt>
   int * readywriters = calloc(data->threadsize, sizeof(int));
-  40246a:	be 04 00 00 00       	mov    $0x4,%esi
-  40246f:	4c 89 ef             	mov    %r13,%rdi
+  40202a:	be 04 00 00 00       	mov    $0x4,%esi
+  40202f:	4c 89 ef             	mov    %r13,%rdi
   int * readyreaders = calloc(data->threadsize, sizeof(int));
-  402472:	49 89 c4             	mov    %rax,%r12
+  402032:	49 89 c4             	mov    %rax,%r12
   int * readywriters = calloc(data->threadsize, sizeof(int));
-  402475:	e8 06 ec ff ff       	call   401080 <calloc@plt>
+  402035:	e8 46 f0 ff ff       	call   401080 <calloc@plt>
   while (data->running == 1) {
-  40247a:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
-  40247e:	75 5f                	jne    4024df <work+0xbf>
-  402480:	49 89 c5             	mov    %rax,%r13
+  40203a:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
+  40203e:	75 5f                	jne    40209f <work+0xbf>
+  402040:	49 89 c5             	mov    %rax,%r13
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
-  402483:	4c 8d b3 28 01 00 00 	lea    0x128(%rbx),%r14
-  40248a:	eb 17                	jmp    4024a3 <work+0x83>
-  40248c:	0f 1f 40 00          	nopl   0x0(%rax)
+  402043:	4c 8d b3 28 01 00 00 	lea    0x128(%rbx),%r14
+  40204a:	eb 17                	jmp    402063 <work+0x83>
+  40204c:	0f 1f 40 00          	nopl   0x0(%rax)
     } else if (data->threadindex == 1) {
-  402490:	83 f8 01             	cmp    $0x1,%eax
-  402493:	74 6b                	je     402500 <work+0xe0>
+  402050:	83 f8 01             	cmp    $0x1,%eax
+  402053:	74 6b                	je     4020c0 <work+0xe0>
       threadwork(data);
-  402495:	48 89 df             	mov    %rbx,%rdi
-  402498:	e8 33 f8 ff ff       	call   401cd0 <threadwork>
+  402055:	48 89 df             	mov    %rbx,%rdi
+  402058:	e8 73 fc ff ff       	call   401cd0 <threadwork>
   while (data->running == 1) {
-  40249d:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
-  4024a1:	75 3c                	jne    4024df <work+0xbf>
+  40205d:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
+  402061:	75 3c                	jne    40209f <work+0xbf>
    if (data->threadindex == 0) {
-  4024a3:	8b 43 64             	mov    0x64(%rbx),%eax
-  4024a6:	85 c0                	test   %eax,%eax
-  4024a8:	75 e6                	jne    402490 <work+0x70>
+  402063:	8b 43 64             	mov    0x64(%rbx),%eax
+  402066:	85 c0                	test   %eax,%eax
+  402068:	75 e6                	jne    402050 <work+0x70>
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
-  4024aa:	4c 89 f6             	mov    %r14,%rsi
-  4024ad:	bf 04 00 00 00       	mov    $0x4,%edi
-  4024b2:	e8 99 eb ff ff       	call   401050 <clock_gettime@plt>
+  40206a:	4c 89 f6             	mov    %r14,%rsi
+  40206d:	bf 04 00 00 00       	mov    $0x4,%edi
+  402072:	e8 d9 ef ff ff       	call   401050 <clock_gettime@plt>
       singlewriter2(data, available, readyreaders, readywriters);
-  4024b7:	4c 89 e9             	mov    %r13,%rcx
-  4024ba:	4c 89 e2             	mov    %r12,%rdx
-  4024bd:	48 89 ee             	mov    %rbp,%rsi
-  4024c0:	48 89 df             	mov    %rbx,%rdi
-  4024c3:	e8 48 f5 ff ff       	call   401a10 <singlewriter2>
+  402077:	4c 89 e9             	mov    %r13,%rcx
+  40207a:	4c 89 e2             	mov    %r12,%rdx
+  40207d:	48 89 ee             	mov    %rbp,%rsi
+  402080:	48 89 df             	mov    %rbx,%rdi
+  402083:	e8 88 f9 ff ff       	call   401a10 <singlewriter2>
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swend);
-  4024c8:	48 8d b3 38 01 00 00 	lea    0x138(%rbx),%rsi
-  4024cf:	bf 04 00 00 00       	mov    $0x4,%edi
-  4024d4:	e8 77 eb ff ff       	call   401050 <clock_gettime@plt>
+  402088:	48 8d b3 38 01 00 00 	lea    0x138(%rbx),%rsi
+  40208f:	bf 04 00 00 00       	mov    $0x4,%edi
+  402094:	e8 b7 ef ff ff       	call   401050 <clock_gettime@plt>
   while (data->running == 1) {
-  4024d9:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
-  4024dd:	74 c4                	je     4024a3 <work+0x83>
-  4024df:	8b 53 64             	mov    0x64(%rbx),%edx
-  4024e2:	48 8d 35 2e 0b 00 00 	lea    0xb2e(%rip),%rsi        # 403017 <_IO_stdin_used+0x17>
-  4024e9:	bf 01 00 00 00       	mov    $0x1,%edi
-  4024ee:	31 c0                	xor    %eax,%eax
-  4024f0:	e8 9b eb ff ff       	call   401090 <__printf_chk@plt>
+  402099:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
+  40209d:	74 c4                	je     402063 <work+0x83>
+  40209f:	8b 53 64             	mov    0x64(%rbx),%edx
+  4020a2:	48 8d 35 6e 0f 00 00 	lea    0xf6e(%rip),%rsi        # 403017 <_IO_stdin_used+0x17>
+  4020a9:	bf 01 00 00 00       	mov    $0x1,%edi
+  4020ae:	31 c0                	xor    %eax,%eax
+  4020b0:	e8 db ef ff ff       	call   401090 <__printf_chk@plt>
 }
-  4024f5:	5b                   	pop    %rbx
-  4024f6:	5d                   	pop    %rbp
-  4024f7:	41 5c                	pop    %r12
-  4024f9:	41 5d                	pop    %r13
-  4024fb:	41 5e                	pop    %r14
-  4024fd:	c3                   	ret
-  4024fe:	66 90                	xchg   %ax,%ax
+  4020b5:	5b                   	pop    %rbx
+  4020b6:	5d                   	pop    %rbp
+  4020b7:	41 5c                	pop    %r12
+  4020b9:	41 5d                	pop    %r13
+  4020bb:	41 5e                	pop    %r14
+  4020bd:	c3                   	ret
+  4020be:	66 90                	xchg   %ax,%ax
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swstart);
-  402500:	4c 89 f6             	mov    %r14,%rsi
-  402503:	bf 04 00 00 00       	mov    $0x4,%edi
-  402508:	e8 43 eb ff ff       	call   401050 <clock_gettime@plt>
+  4020c0:	4c 89 f6             	mov    %r14,%rsi
+  4020c3:	bf 04 00 00 00       	mov    $0x4,%edi
+  4020c8:	e8 83 ef ff ff       	call   401050 <clock_gettime@plt>
       singlewriter3(data, available, readyreaders, readywriters);
-  40250d:	48 89 ee             	mov    %rbp,%rsi
-  402510:	48 89 df             	mov    %rbx,%rdi
-  402513:	4c 89 e9             	mov    %r13,%rcx
-  402516:	4c 89 e2             	mov    %r12,%rdx
-  402519:	e8 c2 f4 ff ff       	call   4019e0 <singlewriter3>
+  4020cd:	48 89 ee             	mov    %rbp,%rsi
+  4020d0:	48 89 df             	mov    %rbx,%rdi
+  4020d3:	4c 89 e9             	mov    %r13,%rcx
+  4020d6:	4c 89 e2             	mov    %r12,%rdx
+  4020d9:	e8 02 f9 ff ff       	call   4019e0 <singlewriter3>
       clock_gettime(CLOCK_MONOTONIC_RAW, &data->swend);
-  40251e:	48 8d b3 38 01 00 00 	lea    0x138(%rbx),%rsi
-  402525:	bf 04 00 00 00       	mov    $0x4,%edi
-  40252a:	e8 21 eb ff ff       	call   401050 <clock_gettime@plt>
-  40252f:	e9 69 ff ff ff       	jmp    40249d <work+0x7d>
-  402534:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
-  40253f:	90                   	nop
+  4020de:	48 8d b3 38 01 00 00 	lea    0x138(%rbx),%rsi
+  4020e5:	bf 04 00 00 00       	mov    $0x4,%edi
+  4020ea:	e8 61 ef ff ff       	call   401050 <clock_gettime@plt>
+  4020ef:	e9 69 ff ff ff       	jmp    40205d <work+0x7d>
+  4020f4:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  4020ff:	90                   	nop
 
-0000000000402540 <work2>:
+0000000000402100 <work2>:
   while (data->running == 1) {
-  402540:	eb 0b                	jmp    40254d <work2+0xd>
-  402542:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  402100:	eb 0b                	jmp    40210d <work2+0xd>
+  402102:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
       data->freq++;
-  402548:	48 83 47 48 01       	addq   $0x1,0x48(%rdi)
+  402108:	48 83 47 48 01       	addq   $0x1,0x48(%rdi)
   while (data->running == 1) {
-  40254d:	83 7f 5c 01          	cmpl   $0x1,0x5c(%rdi)
-  402551:	74 f5                	je     402548 <work2+0x8>
+  40210d:	83 7f 5c 01          	cmpl   $0x1,0x5c(%rdi)
+  402111:	74 f5                	je     402108 <work2+0x8>
 }
-  402553:	c3                   	ret
+  402113:	c3                   	ret
 
 Disassembly of section .fini:
 
-0000000000402554 <_fini>:
-  402554:	f3 0f 1e fa          	endbr64
-  402558:	48 83 ec 08          	sub    $0x8,%rsp
-  40255c:	48 83 c4 08          	add    $0x8,%rsp
-  402560:	c3                   	ret
+0000000000402114 <_fini>:
+  402114:	f3 0f 1e fa          	endbr64
+  402118:	48 83 ec 08          	sub    $0x8,%rsp
+  40211c:	48 83 c4 08          	add    $0x8,%rsp
+  402120:	c3                   	ret

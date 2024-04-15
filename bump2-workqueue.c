@@ -251,7 +251,7 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
    */
 
 
-// if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
+//if ((__atomic_load_n(&data->readcursor, __ATOMIC_SEQ_CST) % data->threadsize) == 0) {
    if (data->readcursor != 0 && (data->readcursor % (data->threadsize - 1)) == 0) {
     //data->currentread++;
     data->readcursor = 0;
@@ -406,7 +406,7 @@ int * threadwork(struct Data * data) {
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
    data->freq_writes++;
-    for (int n = 0; n < 3 ; n++) {
+    for (int n = 0; n < 1 ; n++) {
     int x = 2 + (data->threadindex + n) % data->threadsize - 2;
      if (x != data->threadindex) {
         
@@ -432,7 +432,7 @@ int * threadwork(struct Data * data) {
      }
      }
     data->writecursor = (data->writecursor + 1) % 0xf;
-    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_ACQUIRE);
+    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_RELAXED);
    //  __atomic_fetch_add(&data->main->totalwrites, 1, __ATOMIC_ACQUIRE);
   /*
     if (data->main->globalwrite != 0 && (data->main->globalwrite % (data->threadsize)) == 0) {
@@ -449,7 +449,7 @@ int * threadwork(struct Data * data) {
    //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
    data->prevread = lastread;
    data->freq++;
-  for (int y = 0; y < 3; y++) {
+  for (int y = 0; y < 1; y++) {
     int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
         
           
@@ -488,7 +488,7 @@ int * threadwork(struct Data * data) {
      data->readcursor = (data->readcursor + 1) % 0xf;
     //printf("%ld\n", data->main->currentread);
     
-    __atomic_fetch_add(&data->main->globalread, 1, __ATOMIC_ACQUIRE);
+    __atomic_fetch_add(&data->main->globalread, 1, __ATOMIC_RELAXED);
  // __atomic_fetch_add(&data->main->totalreads, 1, __ATOMIC_ACQUIRE);
  // }
   /*
