@@ -472,7 +472,7 @@ int * threadwork(struct Data * data) {
               //  thepoch->thread = x;
           thepoch->buffer = buffer;
           thepoch->set = 1;
-        printf("%d received bcast %d from %d\n", data->threadindex, data->main->works[buffer], data->readcursor);
+      //  printf("%d received bcast %d from %d\n", data->threadindex, data->main->works[buffer], data->readcursor);
          
           //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
                 // data->readcursors[data->threadindex]++;

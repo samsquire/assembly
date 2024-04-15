@@ -84,7 +84,7 @@ printf (const char *__restrict __fmt, ...)
   return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
   4010c2:	ba 08 00 00 00       	mov    $0x8,%edx
   4010c7:	bf 01 00 00 00       	mov    $0x1,%edi
-  4010cc:	48 8d 35 72 0f 00 00 	lea    0xf72(%rip),%rsi        # 402045 <_IO_stdin_used+0x45>
+  4010cc:	48 8d 35 54 0f 00 00 	lea    0xf54(%rip),%rsi        # 402027 <_IO_stdin_used+0x27>
   4010d3:	41 56                	push   %r14
   long offset = 0;
   long chunkslen = 0xffffffff;
@@ -112,17 +112,17 @@ int main(int argc, char **argv) {
   4010f6:	31 c0                	xor    %eax,%eax
   4010f8:	e8 93 ff ff ff       	call   401090 <__printf_chk@plt>
   4010fd:	ba 04 00 00 00       	mov    $0x4,%edx
-  401102:	48 8d 35 4e 0f 00 00 	lea    0xf4e(%rip),%rsi        # 402057 <_IO_stdin_used+0x57>
+  401102:	48 8d 35 30 0f 00 00 	lea    0xf30(%rip),%rsi        # 402039 <_IO_stdin_used+0x39>
   401109:	31 c0                	xor    %eax,%eax
   40110b:	bf 01 00 00 00       	mov    $0x1,%edi
   401110:	e8 7b ff ff ff       	call   401090 <__printf_chk@plt>
   401115:	ba 20 00 00 00       	mov    $0x20,%edx
-  40111a:	48 8d 35 32 0f 00 00 	lea    0xf32(%rip),%rsi        # 402053 <_IO_stdin_used+0x53>
+  40111a:	48 8d 35 14 0f 00 00 	lea    0xf14(%rip),%rsi        # 402035 <_IO_stdin_used+0x35>
   401121:	31 c0                	xor    %eax,%eax
   401123:	bf 01 00 00 00       	mov    $0x1,%edi
   401128:	e8 63 ff ff ff       	call   401090 <__printf_chk@plt>
   40112d:	ba 0f 00 00 00       	mov    $0xf,%edx
-  401132:	48 8d 35 2d 0f 00 00 	lea    0xf2d(%rip),%rsi        # 402066 <_IO_stdin_used+0x66>
+  401132:	48 8d 35 0f 0f 00 00 	lea    0xf0f(%rip),%rsi        # 402048 <_IO_stdin_used+0x48>
   401139:	31 c0                	xor    %eax,%eax
   40113b:	bf 01 00 00 00       	mov    $0x1,%edi
   401140:	e8 4b ff ff ff       	call   401090 <__printf_chk@plt>
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
   401187:	e8 f4 fe ff ff       	call   401080 <calloc@plt>
   40118c:	4c 89 f2             	mov    %r14,%rdx
   40118f:	bf 01 00 00 00       	mov    $0x1,%edi
-  401194:	48 8d 35 e0 0e 00 00 	lea    0xee0(%rip),%rsi        # 40207b <_IO_stdin_used+0x7b>
+  401194:	48 8d 35 c2 0e 00 00 	lea    0xec2(%rip),%rsi        # 40205d <_IO_stdin_used+0x5d>
   40119b:	49 89 c4             	mov    %rax,%r12
   40119e:	31 c0                	xor    %eax,%eax
   4011a0:	e8 eb fe ff ff       	call   401090 <__printf_chk@plt>
@@ -163,14 +163,14 @@ int main(int argc, char **argv) {
   4011af:	e8 cc fe ff ff       	call   401080 <calloc@plt>
   4011b4:	31 d2                	xor    %edx,%edx
   4011b6:	bf 01 00 00 00       	mov    $0x1,%edi
-  4011bb:	48 8d 35 ca 0e 00 00 	lea    0xeca(%rip),%rsi        # 40208c <_IO_stdin_used+0x8c>
+  4011bb:	48 8d 35 ac 0e 00 00 	lea    0xeac(%rip),%rsi        # 40206e <_IO_stdin_used+0x6e>
   4011c2:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
   4011c7:	31 c0                	xor    %eax,%eax
   4011c9:	e8 c2 fe ff ff       	call   401090 <__printf_chk@plt>
   4011ce:	4c 89 f2             	mov    %r14,%rdx
   4011d1:	bf 01 00 00 00       	mov    $0x1,%edi
   4011d6:	31 c0                	xor    %eax,%eax
-  4011d8:	48 8d 35 b8 0e 00 00 	lea    0xeb8(%rip),%rsi        # 402097 <_IO_stdin_used+0x97>
+  4011d8:	48 8d 35 9a 0e 00 00 	lea    0xe9a(%rip),%rsi        # 402079 <_IO_stdin_used+0x79>
   int * readies __attribute__((aligned (128))) = calloc(threadsize, sizeof(int));
   data[0].works = works;
   4011df:	49 89 de             	mov    %rbx,%r14
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
     CPU_SET(cpu += 1, data[x].cpu_set);
   40122e:	44 89 e9             	mov    %r13d,%ecx
   401231:	ba 01 00 00 00       	mov    $0x1,%edx
-  401236:	48 8d 35 6b 0f 00 00 	lea    0xf6b(%rip),%rsi        # 4021a8 <_IO_stdin_used+0x1a8>
+  401236:	48 8d 35 4b 0f 00 00 	lea    0xf4b(%rip),%rsi        # 402188 <_IO_stdin_used+0x188>
   40123d:	48 d3 e2             	shl    %cl,%rdx
   401240:	48 09 10             	or     %rdx,(%rax)
   401243:	44 89 e9             	mov    %r13d,%ecx
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
     data[x].readies = readies;
   401264:	66 0f 6f 4c 24 10    	movdqa 0x10(%rsp),%xmm1
     data[x].running = 1;
-  40126a:	48 8b 05 87 0f 00 00 	mov    0xf87(%rip),%rax        # 4021f8 <_IO_stdin_used+0x1f8>
+  40126a:	48 8b 05 67 0f 00 00 	mov    0xf67(%rip),%rax        # 4021d8 <_IO_stdin_used+0x1d8>
     data[x].bucketstart = x * buckets ;
   401271:	45 89 a6 18 fd ff ff 	mov    %r12d,-0x2e8(%r14)
     data[x].readies[x] = 0;
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
     data[x].threads = data;
     
     data[x].read = 0;
-  401278:	66 0f 6f 15 90 0f 00 00 	movdqa 0xf90(%rip),%xmm2        # 402210 <_IO_stdin_used+0x210>
+  401278:	66 0f 6f 15 70 0f 00 00 	movdqa 0xf70(%rip),%xmm2        # 4021f0 <_IO_stdin_used+0x1f0>
     data[x].newmask = 0;
     data[x].prevread = threadsize;
     data[x].prevwrite = threadsize;
@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
     data[x].epochs = calloc(epochs, sizeof(struct Epoch));
   401280:	be 30 00 00 00       	mov    $0x30,%esi
     data[x].chunkslen = chunkslen;
-  401285:	66 0f 6f 1d 93 0f 00 00 	movdqa 0xf93(%rip),%xmm3        # 402220 <_IO_stdin_used+0x220>
+  401285:	66 0f 6f 1d 73 0f 00 00 	movdqa 0xf73(%rip),%xmm3        # 402200 <_IO_stdin_used+0x200>
     data[x].loglevel = debug;
   40128d:	41 c7 86 00 fd ff ff 00 00 00 00 	movl   $0x0,-0x300(%r14)
     data[x].running = 1;
@@ -248,11 +248,11 @@ int main(int argc, char **argv) {
     data[x].epochs = calloc(epochs, sizeof(struct Epoch));
   40129f:	bf 80 96 98 00       	mov    $0x989680,%edi
     data[x].buckets = buckets;
-  4012a4:	48 8b 05 55 0f 00 00 	mov    0xf55(%rip),%rax        # 402200 <_IO_stdin_used+0x200>
+  4012a4:	48 8b 05 35 0f 00 00 	mov    0xf35(%rip),%rax        # 4021e0 <_IO_stdin_used+0x1e0>
   for (int x = 0; x < threadsize ; x++) {
   4012ab:	41 81 c4 11 11 11 11 	add    $0x11111111,%r12d
     data[x].prevread = threadsize;
-  4012b2:	66 0f 6f 25 76 0f 00 00 	movdqa 0xf76(%rip),%xmm4        # 402230 <_IO_stdin_used+0x230>
+  4012b2:	66 0f 6f 25 56 0f 00 00 	movdqa 0xf56(%rip),%xmm4        # 402210 <_IO_stdin_used+0x210>
     data[x].threadindex = x;
   4012ba:	45 89 be e4 fc ff ff 	mov    %r15d,-0x31c(%r14)
     data[x].buckets = buckets;
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
   401361:	48 8b 6c 24 28       	mov    0x28(%rsp),%rbp
   401366:	4c 8b 7c 24 20       	mov    0x20(%rsp),%r15
   40136b:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
-  401370:	49 c7 c5 10 1f 40 00 	mov    $0x401f10,%r13
+  401370:	49 c7 c5 c0 1e 40 00 	mov    $0x401ec0,%r13
   401377:	48 8d 85 48 03 00 00 	lea    0x348(%rbp),%rax
   40137e:	4d 89 fc             	mov    %r15,%r12
   401381:	49 89 c6             	mov    %rax,%r14
@@ -343,7 +343,7 @@ int main(int argc, char **argv) {
   4013c3:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi
   4013c8:	48 8d 7c 24 40       	lea    0x40(%rsp),%rdi
   struct timespec time = {
-  4013cd:	66 0f 6f 05 6b 0e 00 00 	movdqa 0xe6b(%rip),%xmm0        # 402240 <_IO_stdin_used+0x240>
+  4013cd:	66 0f 6f 05 4b 0e 00 00 	movdqa 0xe4b(%rip),%xmm0        # 402220 <_IO_stdin_used+0x220>
   4013d5:	4c 8d 6c 24 38       	lea    0x38(%rsp),%r13
   4013da:	0f 29 44 24 40       	movaps %xmm0,0x40(%rsp)
   struct timespec rem = {
@@ -386,7 +386,7 @@ int main(int argc, char **argv) {
   for (int x = 0; x < threadsize; x++) {
   4014a0:	49 39 ec             	cmp    %rbp,%r12
   4014a3:	75 eb                	jne    401490 <main+0x3d0>
-  4014a5:	48 8d 3d f7 0b 00 00 	lea    0xbf7(%rip),%rdi        # 4020a3 <_IO_stdin_used+0xa3>
+  4014a5:	48 8d 3d d9 0b 00 00 	lea    0xbd9(%rip),%rdi        # 402085 <_IO_stdin_used+0x85>
   4014ac:	48 8d 6b 48          	lea    0x48(%rbx),%rbp
   }
   asm volatile ("" ::: "memory");
@@ -397,7 +397,7 @@ int main(int argc, char **argv) {
   long sends = 8;
   for (int x = 0; x < threadsize; x++) {
   4014b8:	4c 8d b3 c8 34 00 00 	lea    0x34c8(%rbx),%r14
-  4014bf:	4c 8d 2d f2 0b 00 00 	lea    0xbf2(%rip),%r13        # 4020b8 <_IO_stdin_used+0xb8>
+  4014bf:	4c 8d 2d d4 0b 00 00 	lea    0xbd4(%rip),%r13        # 40209a <_IO_stdin_used+0x9a>
   4014c6:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
   4014d0:	48 8b 55 00          	mov    0x0(%rbp),%rdx
   4014d4:	4c 89 ee             	mov    %r13,%rsi
@@ -414,7 +414,7 @@ int main(int argc, char **argv) {
   }
   printf("freq: %ld\n", freq/ seconds);
   4014f6:	4c 89 e0             	mov    %r12,%rax
-  4014f9:	48 8d 35 c3 0b 00 00 	lea    0xbc3(%rip),%rsi        # 4020c3 <_IO_stdin_used+0xc3>
+  4014f9:	48 8d 35 a5 0b 00 00 	lea    0xba5(%rip),%rsi        # 4020a5 <_IO_stdin_used+0xa5>
   401500:	48 bd 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rbp
   40150a:	bf 01 00 00 00       	mov    $0x1,%edi
   40150f:	48 f7 ed             	imul   %rbp
@@ -432,7 +432,7 @@ int main(int argc, char **argv) {
   printf("freq_ps: %ld\n", (freq*sends)/ seconds);
   401534:	4c 89 e0             	mov    %r12,%rax
   401537:	49 c1 fc 3f          	sar    $0x3f,%r12
-  40153b:	48 8d 35 8c 0b 00 00 	lea    0xb8c(%rip),%rsi        # 4020ce <_IO_stdin_used+0xce>
+  40153b:	48 8d 35 6e 0b 00 00 	lea    0xb6e(%rip),%rsi        # 4020b0 <_IO_stdin_used+0xb0>
   401542:	48 f7 ed             	imul   %rbp
   401545:	bf 01 00 00 00       	mov    $0x1,%edi
   40154a:	31 c0                	xor    %eax,%eax
@@ -445,7 +445,7 @@ int main(int argc, char **argv) {
   40155e:	e8 2d fb ff ff       	call   401090 <__printf_chk@plt>
   401563:	4c 89 e0             	mov    %r12,%rax
   401566:	bf 01 00 00 00       	mov    $0x1,%edi
-  40156b:	48 8d 35 6a 0b 00 00 	lea    0xb6a(%rip),%rsi        # 4020dc <_IO_stdin_used+0xdc>
+  40156b:	48 8d 35 4c 0b 00 00 	lea    0xb4c(%rip),%rsi        # 4020be <_IO_stdin_used+0xbe>
   401572:	48 99                	cqto
   401574:	49 f7 fd             	idiv   %r13
   401577:	49 89 c5             	mov    %rax,%r13
@@ -455,11 +455,11 @@ int main(int argc, char **argv) {
   printf("freq per thread latency: %ld\n", ((1000000000/(freq/seconds))/sends));
   401584:	4d 85 ed             	test   %r13,%r13
   401587:	49 8d 55 07          	lea    0x7(%r13),%rdx
-  40158b:	48 8d 35 5e 0b 00 00 	lea    0xb5e(%rip),%rsi        # 4020f0 <_IO_stdin_used+0xf0>
+  40158b:	48 8d 35 40 0b 00 00 	lea    0xb40(%rip),%rsi        # 4020d2 <_IO_stdin_used+0xd2>
   401592:	49 0f 49 d5          	cmovns %r13,%rdx
   401596:	bf 01 00 00 00       	mov    $0x1,%edi
   40159b:	31 c0                	xor    %eax,%eax
-  40159d:	4c 8d 2d 7d 0b 00 00 	lea    0xb7d(%rip),%r13        # 402121 <_IO_stdin_used+0x121>
+  40159d:	4c 8d 2d 5f 0b 00 00 	lea    0xb5f(%rip),%r13        # 402103 <_IO_stdin_used+0x103>
   4015a4:	48 c1 fa 03          	sar    $0x3,%rdx
   4015a8:	e8 e3 fa ff ff       	call   401090 <__printf_chk@plt>
   printf("freq latency: %ld\n", 1000000000/((freq*sends)/seconds));
@@ -469,7 +469,7 @@ int main(int argc, char **argv) {
   4015b5:	45 31 e4             	xor    %r12d,%r12d
   printf("freq latency: %ld\n", 1000000000/((freq*sends)/seconds));
   4015b8:	48 99                	cqto
-  4015ba:	48 8d 35 4d 0b 00 00 	lea    0xb4d(%rip),%rsi        # 40210e <_IO_stdin_used+0x10e>
+  4015ba:	48 8d 35 2f 0b 00 00 	lea    0xb2f(%rip),%rsi        # 4020f0 <_IO_stdin_used+0xf0>
   4015c1:	48 f7 fd             	idiv   %rbp
   4015c4:	48 8d 6b 50          	lea    0x50(%rbx),%rbp
   4015c8:	48 89 c2             	mov    %rax,%rdx
@@ -495,7 +495,7 @@ int main(int argc, char **argv) {
   }
   printf("freq_writes: %ld\n", freq_writes / seconds);
   4015fa:	4c 89 e0             	mov    %r12,%rax
-  4015fd:	48 8d 35 29 0b 00 00 	lea    0xb29(%rip),%rsi        # 40212d <_IO_stdin_used+0x12d>
+  4015fd:	48 8d 35 0b 0b 00 00 	lea    0xb0b(%rip),%rsi        # 40210f <_IO_stdin_used+0x10f>
   401604:	bf 01 00 00 00       	mov    $0x1,%edi
   401609:	48 bd 67 66 66 66 66 66 66 66 	movabs $0x6666666666666667,%rbp
   401613:	48 f7 ed             	imul   %rbp
@@ -513,7 +513,7 @@ int main(int argc, char **argv) {
   printf("freq_writes_total: %ld\n", (freq_writes * sends) / seconds);
   401631:	4c 89 e0             	mov    %r12,%rax
   401634:	49 c1 fc 3f          	sar    $0x3f,%r12
-  401638:	48 8d 35 00 0b 00 00 	lea    0xb00(%rip),%rsi        # 40213f <_IO_stdin_used+0x13f>
+  401638:	48 8d 35 e2 0a 00 00 	lea    0xae2(%rip),%rsi        # 402121 <_IO_stdin_used+0x121>
   40163f:	48 f7 ed             	imul   %rbp
   401642:	bf 01 00 00 00       	mov    $0x1,%edi
   401647:	31 c0                	xor    %eax,%eax
@@ -526,7 +526,7 @@ int main(int argc, char **argv) {
   40165b:	e8 30 fa ff ff       	call   401090 <__printf_chk@plt>
   401660:	4c 89 e0             	mov    %r12,%rax
   401663:	bf 01 00 00 00       	mov    $0x1,%edi
-  401668:	48 8d 35 e8 0a 00 00 	lea    0xae8(%rip),%rsi        # 402157 <_IO_stdin_used+0x157>
+  401668:	48 8d 35 ca 0a 00 00 	lea    0xaca(%rip),%rsi        # 402139 <_IO_stdin_used+0x139>
   40166f:	48 99                	cqto
   401671:	49 f7 fd             	idiv   %r13
   401674:	49 89 c5             	mov    %rax,%r13
@@ -536,7 +536,7 @@ int main(int argc, char **argv) {
   printf("freq_writes per thread latency: %ld\n", (1000000000/(freq_writes / seconds)) / sends);
   401681:	4d 85 ed             	test   %r13,%r13
   401684:	49 8d 55 07          	lea    0x7(%r13),%rdx
-  401688:	48 8d 35 39 0b 00 00 	lea    0xb39(%rip),%rsi        # 4021c8 <_IO_stdin_used+0x1c8>
+  401688:	48 8d 35 19 0b 00 00 	lea    0xb19(%rip),%rsi        # 4021a8 <_IO_stdin_used+0x1a8>
   40168f:	49 0f 49 d5          	cmovns %r13,%rdx
   401693:	bf 01 00 00 00       	mov    $0x1,%edi
   401698:	31 c0                	xor    %eax,%eax
@@ -545,14 +545,14 @@ int main(int argc, char **argv) {
   printf("freq_writes latency: %ld\n", 1000000000/((freq_writes * sends) / seconds));
   4016a3:	4c 89 e0             	mov    %r12,%rax
   4016a6:	bf 01 00 00 00       	mov    $0x1,%edi
-  4016ab:	48 8d 35 c0 0a 00 00 	lea    0xac0(%rip),%rsi        # 402172 <_IO_stdin_used+0x172>
+  4016ab:	48 8d 35 a2 0a 00 00 	lea    0xaa2(%rip),%rsi        # 402154 <_IO_stdin_used+0x154>
   4016b2:	48 99                	cqto
   4016b4:	48 f7 fd             	idiv   %rbp
-  4016b7:	48 8d 2d 2d 0a 00 00 	lea    0xa2d(%rip),%rbp        # 4020eb <_IO_stdin_used+0xeb>
+  4016b7:	48 8d 2d 0f 0a 00 00 	lea    0xa0f(%rip),%rbp        # 4020cd <_IO_stdin_used+0xcd>
   4016be:	48 89 c2             	mov    %rax,%rdx
   4016c1:	31 c0                	xor    %eax,%eax
   4016c3:	e8 c8 f9 ff ff       	call   401090 <__printf_chk@plt>
-  4016c8:	48 8d 3d bd 0a 00 00 	lea    0xabd(%rip),%rdi        # 40218c <_IO_stdin_used+0x18c>
+  4016c8:	48 8d 3d 9f 0a 00 00 	lea    0xa9f(%rip),%rdi        # 40216e <_IO_stdin_used+0x16e>
   4016cf:	e8 6c f9 ff ff       	call   401040 <puts@plt>
   4016d4:	48 89 ee             	mov    %rbp,%rsi
   4016d7:	bf 01 00 00 00       	mov    $0x1,%edi
@@ -605,7 +605,7 @@ int main(int argc, char **argv) {
   401782:	48 8b 93 40 01 00 00 	mov    0x140(%rbx),%rdx
   401789:	31 c0                	xor    %eax,%eax
   40178b:	48 2b 93 30 01 00 00 	sub    0x130(%rbx),%rdx
-  401792:	48 8d 35 00 0a 00 00 	lea    0xa00(%rip),%rsi        # 402199 <_IO_stdin_used+0x199>
+  401792:	48 8d 35 e2 09 00 00 	lea    0x9e2(%rip),%rsi        # 40217b <_IO_stdin_used+0x17b>
   401799:	bf 01 00 00 00       	mov    $0x1,%edi
   40179e:	e8 ed f8 ff ff       	call   401090 <__printf_chk@plt>
         fprintf(out_file, "%s", buf);
@@ -890,7 +890,7 @@ int singlewriter2(struct Data *data, long * available, int * readyreaders, int *
         epoch->thread = data->threadindex;
   401a75:	41 89 04 24          	mov    %eax,(%r12)
         epoch->kind = NEW_EPOCH;
-  401a79:	48 8b 05 70 07 00 00 	mov    0x770(%rip),%rax        # 4021f0 <_IO_stdin_used+0x1f0>
+  401a79:	48 8b 05 50 07 00 00 	mov    0x750(%rip),%rax        # 4021d0 <_IO_stdin_used+0x1d0>
   401a80:	49 89 44 24 20       	mov    %rax,0x20(%r12)
 }
   401a85:	5b                   	pop    %rbx
@@ -1130,8 +1130,8 @@ int * threadwork(struct Data * data) {
         long buffer = ( (data->main->globalwrite / (data->threadsize)) % 0xff) << 16 | data->threadindex;
   401cf2:	4c 8b 53 28          	mov    0x28(%rbx),%r10
   401cf6:	48 63 4b 68          	movslq 0x68(%rbx),%rcx
-  401cfa:	49 b9 81 80 80 80 80 80 80 80 	movabs $0x8080808080808081,%r9
-  401d04:	44 8b 43 64          	mov    0x64(%rbx),%r8d
+  401cfa:	48 bf 81 80 80 80 80 80 80 80 	movabs $0x8080808080808081,%rdi
+  401d04:	44 8b 4b 64          	mov    0x64(%rbx),%r9d
    data->freq_writes++;
   401d08:	48 83 43 50 01       	addq   $0x1,0x50(%rbx)
         long buffer = ( (data->main->globalwrite / (data->threadsize)) % 0xff) << 16 | data->threadindex;
@@ -1142,7 +1142,7 @@ int * threadwork(struct Data * data) {
   401d19:	48 99                	cqto
   401d1b:	48 f7 f9             	idiv   %rcx
   401d1e:	48 89 c1             	mov    %rax,%rcx
-  401d21:	49 f7 e9             	imul   %r9
+  401d21:	48 f7 ef             	imul   %rdi
   401d24:	48 89 c8             	mov    %rcx,%rax
   401d27:	48 c1 f8 3f          	sar    $0x3f,%rax
   401d2b:	48 01 ca             	add    %rcx,%rdx
@@ -1152,212 +1152,198 @@ int * threadwork(struct Data * data) {
   401d38:	48 c1 e0 08          	shl    $0x8,%rax
   401d3c:	48 29 d0             	sub    %rdx,%rax
   401d3f:	48 29 c1             	sub    %rax,%rcx
-  401d42:	49 63 c0             	movslq %r8d,%rax
+  401d42:	49 63 c1             	movslq %r9d,%rax
         struct Data * thread = &data->threads[data->threadindex];
-  401d45:	48 8d 3c c5 00 00 00 00 	lea    0x0(,%rax,8),%rdi
+  401d45:	48 8d 34 c5 00 00 00 00 	lea    0x0(,%rax,8),%rsi
         long buffer = ( (data->main->globalwrite / (data->threadsize)) % 0xff) << 16 | data->threadindex;
   401d4d:	48 c1 e1 10          	shl    $0x10,%rcx
         struct Data * thread = &data->threads[data->threadindex];
-  401d51:	48 29 c7             	sub    %rax,%rdi
+  401d51:	48 29 c6             	sub    %rax,%rsi
         long buffer = ( (data->main->globalwrite / (data->threadsize)) % 0xff) << 16 | data->threadindex;
   401d54:	48 09 c1             	or     %rax,%rcx
         struct Data * thread = &data->threads[data->threadindex];
-  401d57:	48 c1 e7 07          	shl    $0x7,%rdi
-  401d5b:	48 03 7b 30          	add    0x30(%rbx),%rdi
+  401d57:	48 c1 e6 07          	shl    $0x7,%rsi
+  401d5b:	48 03 73 30          	add    0x30(%rbx),%rsi
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401d5f:	48 63 97 24 03 00 00 	movslq 0x324(%rdi),%rdx
+  401d5f:	48 63 96 24 03 00 00 	movslq 0x324(%rsi),%rdx
   401d66:	48 89 d0             	mov    %rdx,%rax
-  401d69:	48 8d 34 52          	lea    (%rdx,%rdx,2),%rsi
+  401d69:	4c 8d 04 52          	lea    (%rdx,%rdx,2),%r8
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
   401d6d:	83 c0 01             	add    $0x1,%eax
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
-  401d70:	48 c1 e6 04          	shl    $0x4,%rsi
-  401d74:	48 03 b7 18 03 00 00 	add    0x318(%rdi),%rsi
+  401d70:	49 c1 e0 04          	shl    $0x4,%r8
+  401d74:	4c 03 86 18 03 00 00 	add    0x318(%rsi),%r8
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
   401d7b:	99                   	cltd
         epoch->time = time;
-  401d7c:	0f 11 46 08          	movups %xmm0,0x8(%rsi)
+  401d7c:	41 0f 11 40 08       	movups %xmm0,0x8(%r8)
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401d80:	f7 bf 20 03 00 00    	idivl  0x320(%rdi)
+  401d81:	f7 be 20 03 00 00    	idivl  0x320(%rsi)
   data->main->works[buffer] = data->threadindex;
-  401d86:	49 8b 42 70          	mov    0x70(%r10),%rax
+  401d87:	49 8b 42 70          	mov    0x70(%r10),%rax
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401d8a:	89 97 24 03 00 00    	mov    %edx,0x324(%rdi)
+  401d8b:	89 96 24 03 00 00    	mov    %edx,0x324(%rsi)
         epoch->thread = data->threadindex;
-  401d90:	44 89 06             	mov    %r8d,(%rsi)
+  401d91:	45 89 08             	mov    %r9d,(%r8)
   epoch->buffer = buffer;
-  401d93:	48 89 4e 18          	mov    %rcx,0x18(%rsi)
+  401d94:	49 89 48 18          	mov    %rcx,0x18(%r8)
   epoch->set = 1;
-  401d97:	c7 46 24 01 00 00 00 	movl   $0x1,0x24(%rsi)
+  401d98:	41 c7 40 24 01 00 00 00 	movl   $0x1,0x24(%r8)
   data->main->works[buffer] = data->threadindex;
-  401d9e:	44 88 04 08          	mov    %r8b,(%rax,%rcx,1)
+  401da0:	44 88 0c 08          	mov    %r9b,(%rax,%rcx,1)
     __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_RELAXED);
-  401da2:	48 8b 43 28          	mov    0x28(%rbx),%rax
-  401da6:	f0 48 83 80 50 03 00 00 01 	lock addq $0x1,0x350(%rax)
+  401da4:	48 8b 43 28          	mov    0x28(%rbx),%rax
+  401da8:	f0 48 83 80 50 03 00 00 01 	lock addq $0x1,0x350(%rax)
   long lastread = data->main->totalreads % data->threadsize;
-  401daf:	48 8b 73 28          	mov    0x28(%rbx),%rsi
-  401db3:	48 63 4b 68          	movslq 0x68(%rbx),%rcx
-  401db7:	48 8b 86 40 03 00 00 	mov    0x340(%rsi),%rax
+  401db1:	48 8b 43 28          	mov    0x28(%rbx),%rax
+  401db5:	4c 63 43 68          	movslq 0x68(%rbx),%r8
+      if (data->globalread < thiswrite) {  
+  401db9:	48 8b 8b 48 03 00 00 	mov    0x348(%rbx),%rcx
+  long lastread = data->main->totalreads % data->threadsize;
+  401dc0:	48 8b 80 40 03 00 00 	mov    0x340(%rax),%rax
    data->freq++;
-  401dbe:	48 83 43 48 01       	addq   $0x1,0x48(%rbx)
+  401dc7:	48 83 43 48 01       	addq   $0x1,0x48(%rbx)
   long lastread = data->main->totalreads % data->threadsize;
-  401dc3:	48 99                	cqto
-  401dc5:	48 f7 f9             	idiv   %rcx
-      if (data->globalread < thiswrite) {  
-  401dc8:	48 8b 83 48 03 00 00 	mov    0x348(%rbx),%rax
+  401dcc:	48 99                	cqto
+  401dce:	49 f7 f8             	idiv   %r8
    data->prevread = lastread;
-  401dcf:	48 89 93 08 03 00 00 	mov    %rdx,0x308(%rbx)
+  401dd1:	48 89 93 08 03 00 00 	mov    %rdx,0x308(%rbx)
       if (data->globalread < thiswrite) {  
-  401dd6:	48 39 e8             	cmp    %rbp,%rax
-  401dd9:	7c 25                	jl     401e00 <threadwork+0x160>
-}
-  401ddb:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
-  401de0:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
-  401de9:	0f 85 11 01 00 00    	jne    401f00 <threadwork+0x260>
-  401def:	48 83 c4 28          	add    $0x28,%rsp
-  401df3:	31 c0                	xor    %eax,%eax
-  401df5:	5b                   	pop    %rbx
-  401df6:	5d                   	pop    %rbp
-  401df7:	c3                   	ret
-  401df8:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
-  401e00:	48 99                	cqto
-         buffer = (past << 16) | data->readcursor;
-  401e02:	44 8b 83 00 02 00 00 	mov    0x200(%rbx),%r8d
+  401dd8:	48 39 e9             	cmp    %rbp,%rcx
+  401ddb:	0f 8d bf 00 00 00    	jge    401ea0 <threadwork+0x200>
+                struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
+  401de1:	48 63 96 24 03 00 00 	movslq 0x324(%rsi),%rdx
             thepoch->time = time; 
-  401e09:	66 0f 6f 0c 24       	movdqa (%rsp),%xmm1
-            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
-  401e0e:	48 f7 f9             	idiv   %rcx
+  401de8:	66 0f 6f 0c 24       	movdqa (%rsp),%xmm1
+         buffer = (past << 16) | data->readcursor;
+  401ded:	44 8b 93 00 02 00 00 	mov    0x200(%rbx),%r10d
                 &data->threads[data->threadindex];
-  401e11:	44 8b 53 64          	mov    0x64(%rbx),%r10d
-            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
-  401e15:	48 8d 48 fe          	lea    -0x2(%rax),%rcx
-  401e19:	48 89 c8             	mov    %rcx,%rax
-  401e1c:	49 f7 e9             	imul   %r9
-  401e1f:	48 89 c8             	mov    %rcx,%rax
-  401e22:	48 c1 f8 3f          	sar    $0x3f,%rax
-  401e26:	48 01 ca             	add    %rcx,%rdx
-  401e29:	48 c1 fa 07          	sar    $0x7,%rdx
-  401e2d:	48 29 c2             	sub    %rax,%rdx
-  401e30:	48 89 d0             	mov    %rdx,%rax
-  401e33:	48 c1 e0 08          	shl    $0x8,%rax
-  401e37:	48 29 d0             	sub    %rdx,%rax
-  401e3a:	48 29 c1             	sub    %rax,%rcx
-         buffer = (past << 16) | data->readcursor;
-  401e3d:	b8 00 00 00 00       	mov    $0x0,%eax
-            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
-  401e42:	48 89 ca             	mov    %rcx,%rdx
-         buffer = (past << 16) | data->readcursor;
-  401e45:	48 0f 48 d0          	cmovs  %rax,%rdx
-  401e49:	49 63 c0             	movslq %r8d,%rax
-  401e4c:	48 c1 e2 10          	shl    $0x10,%rdx
-  401e50:	48 09 c2             	or     %rax,%rdx
-  401e53:	49 89 d1             	mov    %rdx,%r9
+  401df4:	8b 6b 64             	mov    0x64(%rbx),%ebp
                 struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  401e56:	48 63 97 24 03 00 00 	movslq 0x324(%rdi),%rdx
-  401e5d:	48 89 d0             	mov    %rdx,%rax
-  401e60:	48 8d 0c 52          	lea    (%rdx,%rdx,2),%rcx
+  401df7:	48 89 d0             	mov    %rdx,%rax
+  401dfa:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
           thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401e64:	83 c0 01             	add    $0x1,%eax
+  401dfe:	83 c0 01             	add    $0x1,%eax
                 struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
-  401e67:	48 c1 e1 04          	shl    $0x4,%rcx
-  401e6b:	48 03 8f 18 03 00 00 	add    0x318(%rdi),%rcx
+  401e01:	49 c1 e1 04          	shl    $0x4,%r9
+  401e05:	4c 03 8e 18 03 00 00 	add    0x318(%rsi),%r9
           thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401e72:	99                   	cltd
+  401e0c:	99                   	cltd
             thepoch->time = time; 
-  401e73:	0f 11 49 08          	movups %xmm1,0x8(%rcx)
+  401e0d:	41 0f 11 49 08       	movups %xmm1,0x8(%r9)
           thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401e77:	f7 bf 20 03 00 00    	idivl  0x320(%rdi)
-        printf("%d received bcast %d from %d\n", data->threadindex, data->main->works[buffer], data->readcursor);
-  401e7d:	48 8b 46 70          	mov    0x70(%rsi),%rax
-  401e81:	48 8d 35 7c 01 00 00 	lea    0x17c(%rip),%rsi        # 402004 <_IO_stdin_used+0x4>
+  401e12:	f7 be 20 03 00 00    	idivl  0x320(%rsi)
+            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
+  401e18:	48 89 c8             	mov    %rcx,%rax
           thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
-  401e88:	89 97 24 03 00 00    	mov    %edx,0x324(%rdi)
-  401e8e:	44 89 d2             	mov    %r10d,%edx
-  401e91:	bf 01 00 00 00       	mov    $0x1,%edi
-          thepoch->buffer = buffer;
-  401e96:	4c 89 49 18          	mov    %r9,0x18(%rcx)
+  401e1b:	89 96 24 03 00 00    	mov    %edx,0x324(%rsi)
+            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
+  401e21:	48 99                	cqto
+  401e23:	49 f7 f8             	idiv   %r8
           thepoch->set = 1;
-  401e9a:	c7 41 24 01 00 00 00 	movl   $0x1,0x24(%rcx)
-        printf("%d received bcast %d from %d\n", data->threadindex, data->main->works[buffer], data->readcursor);
-  401ea1:	42 0f be 0c 08       	movsbl (%rax,%r9,1),%ecx
-  401ea6:	31 c0                	xor    %eax,%eax
-  401ea8:	e8 e3 f1 ff ff       	call   401090 <__printf_chk@plt>
+  401e26:	41 c7 41 24 01 00 00 00 	movl   $0x1,0x24(%r9)
+            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
+  401e2e:	48 8d 70 fe          	lea    -0x2(%rax),%rsi
+  401e32:	48 89 f0             	mov    %rsi,%rax
+  401e35:	48 f7 ef             	imul   %rdi
+  401e38:	48 89 f0             	mov    %rsi,%rax
+  401e3b:	48 c1 f8 3f          	sar    $0x3f,%rax
+  401e3f:	48 01 f2             	add    %rsi,%rdx
+  401e42:	48 c1 fa 07          	sar    $0x7,%rdx
+  401e46:	48 29 c2             	sub    %rax,%rdx
+  401e49:	48 89 d0             	mov    %rdx,%rax
+  401e4c:	48 c1 e0 08          	shl    $0x8,%rax
+  401e50:	48 29 d0             	sub    %rdx,%rax
+  401e53:	48 29 c6             	sub    %rax,%rsi
+         buffer = (past << 16) | data->readcursor;
+  401e56:	b8 00 00 00 00       	mov    $0x0,%eax
+            long past = (((data->globalread) / (data->threadsize)) - 2) % 0xff;
+  401e5b:	48 89 f2             	mov    %rsi,%rdx
+         buffer = (past << 16) | data->readcursor;
+  401e5e:	48 0f 48 d0          	cmovs  %rax,%rdx
+  401e62:	49 63 c2             	movslq %r10d,%rax
+  401e65:	48 c1 e2 10          	shl    $0x10,%rdx
+  401e69:	48 09 c2             	or     %rax,%rdx
      data->readcursor = (data->readcursor + 1) % data->threadsize;
-  401ead:	8b 83 00 02 00 00    	mov    0x200(%rbx),%eax
-  401eb3:	48 63 4b 68          	movslq 0x68(%rbx),%rcx
-  401eb7:	83 c0 01             	add    $0x1,%eax
-  401eba:	99                   	cltd
-  401ebb:	f7 f9                	idiv   %ecx
-  401ebd:	89 93 00 02 00 00    	mov    %edx,0x200(%rbx)
-         if (data->readcursor == data->threadindex) {
-  401ec3:	3b 53 64             	cmp    0x64(%rbx),%edx
-  401ec6:	75 09                	jne    401ed1 <threadwork+0x231>
-           data->readcursor++;
-  401ec8:	83 c2 01             	add    $0x1,%edx
-  401ecb:	89 93 00 02 00 00    	mov    %edx,0x200(%rbx)
+  401e6c:	41 8d 42 01          	lea    0x1(%r10),%eax
+         buffer = (past << 16) | data->readcursor;
+  401e70:	49 89 51 18          	mov    %rdx,0x18(%r9)
+     data->readcursor = (data->readcursor + 1) % data->threadsize;
+  401e74:	99                   	cltd
+  401e75:	41 f7 f8             	idiv   %r8d
+  401e78:	8d 45 01             	lea    0x1(%rbp),%eax
+  401e7b:	39 d5                	cmp    %edx,%ebp
+  401e7d:	0f 45 c2             	cmovne %edx,%eax
+  401e80:	89 c6                	mov    %eax,%esi
       data->globalread++;
-  401ed1:	48 8b 83 48 03 00 00 	mov    0x348(%rbx),%rax
-  401ed8:	48 83 c0 01          	add    $0x1,%rax
+  401e82:	48 8d 41 01          	lea    0x1(%rcx),%rax
         if (data->globalread % data->threadsize == 0) {
-  401edc:	48 99                	cqto
+  401e86:	48 99                	cqto
       data->globalread++;
-  401ede:	48 89 83 48 03 00 00 	mov    %rax,0x348(%rbx)
+  401e88:	48 89 83 48 03 00 00 	mov    %rax,0x348(%rbx)
         if (data->globalread % data->threadsize == 0) {
-  401ee5:	48 f7 f9             	idiv   %rcx
-  401ee8:	48 85 d2             	test   %rdx,%rdx
-  401eeb:	0f 85 ea fe ff ff    	jne    401ddb <threadwork+0x13b>
+  401e8f:	49 f7 f8             	idiv   %r8
           data->readcursor = 0;
-  401ef1:	c7 83 00 02 00 00 00 00 00 00 	movl   $0x0,0x200(%rbx)
-  401efb:	e9 db fe ff ff       	jmp    401ddb <threadwork+0x13b>
+  401e92:	31 c0                	xor    %eax,%eax
+  401e94:	48 85 d2             	test   %rdx,%rdx
+  401e97:	0f 45 c6             	cmovne %esi,%eax
+  401e9a:	89 83 00 02 00 00    	mov    %eax,0x200(%rbx)
 }
-  401f00:	e8 5b f1 ff ff       	call   401060 <__stack_chk_fail@plt>
-  401f05:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  401ea0:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  401ea5:	64 48 2b 04 25 28 00 00 00 	sub    %fs:0x28,%rax
+  401eae:	75 09                	jne    401eb9 <threadwork+0x219>
+  401eb0:	48 83 c4 28          	add    $0x28,%rsp
+  401eb4:	31 c0                	xor    %eax,%eax
+  401eb6:	5b                   	pop    %rbx
+  401eb7:	5d                   	pop    %rbp
+  401eb8:	c3                   	ret
+  401eb9:	e8 a2 f1 ff ff       	call   401060 <__stack_chk_fail@plt>
+  401ebe:	66 90                	xchg   %ax,%ax
 
-0000000000401f10 <work>:
+0000000000401ec0 <work>:
 void * work(void * arg) {
-  401f10:	53                   	push   %rbx
-  401f11:	8b 57 64             	mov    0x64(%rdi),%edx
-  401f14:	48 89 fb             	mov    %rdi,%rbx
-  401f17:	31 c0                	xor    %eax,%eax
-  401f19:	48 8d 35 02 01 00 00 	lea    0x102(%rip),%rsi        # 402022 <_IO_stdin_used+0x22>
-  401f20:	bf 01 00 00 00       	mov    $0x1,%edi
-  401f25:	e8 66 f1 ff ff       	call   401090 <__printf_chk@plt>
+  401ec0:	53                   	push   %rbx
+  401ec1:	8b 57 64             	mov    0x64(%rdi),%edx
+  401ec4:	48 89 fb             	mov    %rdi,%rbx
+  401ec7:	31 c0                	xor    %eax,%eax
+  401ec9:	48 8d 35 34 01 00 00 	lea    0x134(%rip),%rsi        # 402004 <_IO_stdin_used+0x4>
+  401ed0:	bf 01 00 00 00       	mov    $0x1,%edi
+  401ed5:	e8 b6 f1 ff ff       	call   401090 <__printf_chk@plt>
   while (data->running == 1) {
-  401f2a:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
-  401f2e:	75 0e                	jne    401f3e <work+0x2e>
+  401eda:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
+  401ede:	75 0e                	jne    401eee <work+0x2e>
       threadwork(data);
-  401f30:	48 89 df             	mov    %rbx,%rdi
-  401f33:	e8 68 fd ff ff       	call   401ca0 <threadwork>
+  401ee0:	48 89 df             	mov    %rbx,%rdi
+  401ee3:	e8 b8 fd ff ff       	call   401ca0 <threadwork>
   while (data->running == 1) {
-  401f38:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
-  401f3c:	74 f2                	je     401f30 <work+0x20>
-  401f3e:	8b 53 64             	mov    0x64(%rbx),%edx
-  401f41:	48 8d 35 ed 00 00 00 	lea    0xed(%rip),%rsi        # 402035 <_IO_stdin_used+0x35>
-  401f48:	bf 01 00 00 00       	mov    $0x1,%edi
-  401f4d:	31 c0                	xor    %eax,%eax
-  401f4f:	e8 3c f1 ff ff       	call   401090 <__printf_chk@plt>
+  401ee8:	83 7b 5c 01          	cmpl   $0x1,0x5c(%rbx)
+  401eec:	74 f2                	je     401ee0 <work+0x20>
+  401eee:	8b 53 64             	mov    0x64(%rbx),%edx
+  401ef1:	48 8d 35 1f 01 00 00 	lea    0x11f(%rip),%rsi        # 402017 <_IO_stdin_used+0x17>
+  401ef8:	bf 01 00 00 00       	mov    $0x1,%edi
+  401efd:	31 c0                	xor    %eax,%eax
+  401eff:	e8 8c f1 ff ff       	call   401090 <__printf_chk@plt>
 }
-  401f54:	5b                   	pop    %rbx
-  401f55:	c3                   	ret
-  401f56:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+  401f04:	5b                   	pop    %rbx
+  401f05:	c3                   	ret
+  401f06:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
 
-0000000000401f60 <work2>:
+0000000000401f10 <work2>:
   while (data->running == 1) {
-  401f60:	eb 0b                	jmp    401f6d <work2+0xd>
-  401f62:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  401f10:	eb 0b                	jmp    401f1d <work2+0xd>
+  401f12:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
       data->freq++;
-  401f68:	48 83 47 48 01       	addq   $0x1,0x48(%rdi)
+  401f18:	48 83 47 48 01       	addq   $0x1,0x48(%rdi)
   while (data->running == 1) {
-  401f6d:	83 7f 5c 01          	cmpl   $0x1,0x5c(%rdi)
-  401f71:	74 f5                	je     401f68 <work2+0x8>
+  401f1d:	83 7f 5c 01          	cmpl   $0x1,0x5c(%rdi)
+  401f21:	74 f5                	je     401f18 <work2+0x8>
 }
-  401f73:	c3                   	ret
+  401f23:	c3                   	ret
 
 Disassembly of section .fini:
 
-0000000000401f74 <_fini>:
-  401f74:	f3 0f 1e fa          	endbr64
-  401f78:	48 83 ec 08          	sub    $0x8,%rsp
-  401f7c:	48 83 c4 08          	add    $0x8,%rsp
-  401f80:	c3                   	ret
+0000000000401f24 <_fini>:
+  401f24:	f3 0f 1e fa          	endbr64
+  401f28:	48 83 ec 08          	sub    $0x8,%rsp
+  401f2c:	48 83 c4 08          	add    $0x8,%rsp
+  401f30:	c3                   	ret
