@@ -13,7 +13,7 @@
 #define NEW_EPOCH 1
 #define DURATION 5
 #define SAMPLE 0
-#define THREADS 15
+#define THREADS 14
 struct Epoch {
   int thread;
   struct timespec time;
