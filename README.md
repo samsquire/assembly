@@ -4,7 +4,9 @@ this is a meant to be a swiss army knife tool for server parallelism.
 
 This is incomplete.
 
-the goal is you can write a protocol and it is autoparallelised.
+The goal is you can write a protocol and it is autoparallelised.
+
+a data structure for a record, a btree
 
 file processes by independent parallelism buckets, different rates
 how to generate a stream that is fed to multiple programs
@@ -61,6 +63,13 @@ thread-1
  client-6
   -> 
 
+iterators and tables and buffers and chunks
+
+memory
+control flow
+protocols
+
+
 send tasks to other threads
 rip current position
 
@@ -76,7 +85,7 @@ for item in items:
 
 read file, send over network, events interleaved or batched.
 
-query that does the scheduling
+sql imquery that does the scheduling
 
 ```
 25 get-recent
