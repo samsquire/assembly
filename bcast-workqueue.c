@@ -405,7 +405,7 @@ int * threadwork(struct Data * data) {
     data->prevwrite = lastwrite;
     data->thiswrite = lastcursor;
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
-   clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+   //clock_gettime(CLOCK_MONOTONIC_RAW, &time);
    data->freq_writes++;
     
     
@@ -463,7 +463,7 @@ int * threadwork(struct Data * data) {
          buffer = (past << 16) | data->readcursor;
                // printf("%x\n", buffer);
                 // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
-                &data->threads[data->threadindex];
+                //&data->threads[data->threadindex];
                 struct Epoch * thepoch = &thread->epochs[thread->currentepoch];
             
             thepoch->time = time; 
@@ -721,7 +721,7 @@ printf("%ld chunks\n", chunkslen);
   asm volatile ("" ::: "memory");
   printf("finished simulation.\n");
   long freq = 0;
-  long sends = 8;
+  long sends = 1;
   for (int x = 0; x < threadsize; x++) {
     printf("%ld reads\n", data[x].freq);
     freq += data[x].freq;

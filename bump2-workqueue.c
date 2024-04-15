@@ -406,7 +406,7 @@ int * threadwork(struct Data * data) {
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
    data->freq_writes++;
-    for (int n = 0; n < 1 ; n++) {
+    for (int n = 0; n < 7 ; n++) {
     int x = 2 + (data->threadindex + n) % data->threadsize - 2;
      if (x != data->threadindex) {
         
@@ -449,7 +449,7 @@ int * threadwork(struct Data * data) {
    //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
    data->prevread = lastread;
    data->freq++;
-  for (int y = 0; y < 1; y++) {
+  for (int y = 0; y < 7; y++) {
     int x = 2 + ((data->threadindex + y) % data->threadsize - 2);
         
           
