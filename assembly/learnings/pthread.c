@@ -17,12 +17,15 @@ struct data {
 
 int main() {
   ssize_t             stack_size;
-  pthread_attr_t      attr = {0};
+  pthread_attr_t      attr;;
   pthread_attr_t      attr2 = {0};
   pthread_t thread = {0};
   pthread_t thread2 = {0};
+  
   struct data data; 
 
+   memset(&attr, 0, sizeof(pthread_attr_t));
+  
   int s = pthread_create(&thread, &attr,
 
                             func, &data); 

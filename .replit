@@ -1,5 +1,5 @@
-compile = "make bcast-workqueue"
-run = "./bcast-workqueue"
+compile = "make run"
+run = "./assembly/coroutinesdirect"
 hidden = ["main", "**/*.o", "**/*.d", ".ccls-cache", "Makefile"]
 modules = ["python-3.10:v25-20230920-d4ad2e4"]
 
@@ -54,7 +54,7 @@ name = "g++ - Build and debug active file"
 program = "./main-debug"
 request = "launch"
 setupCommands = [
-	{ description = "Enable pretty-printing for gdb", ignoreFailures = true, text = "-enable-pretty-printing" }
+  { description = "Enable pretty-printing for gdb", ignoreFailures = true, text = "-enable-pretty-printing" },
 ]
 stopAtEntry = false
 type = "cppdbg"

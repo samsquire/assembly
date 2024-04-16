@@ -1,7 +1,5 @@
-.PHONY: run
-SHELL := /bin/bash
 CC=gcc
-CFLAGS=-lm -O3 -g
+CFLAGS=-lm -g
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
@@ -28,11 +26,10 @@ checkst:
 clean:
 	rm $(OBJ)
 
+coroutinesdirect: coroutinesdirect.S
+	gcc -o coroutinesdirect coroutinesdirect.S -lpthread -g
+
 cxx:
 #	g++ multibarrier-split-io-cxx.c -o multibarrier-split-io-cxx -std=c++17 -luring -g -pg -lrocksdb -lzstd -lsnappy -llz4 -lz -lbz2 -O3 -lm -Lrocksdb/ 2> errors
 	g++ tree234.c multibarrier-split-io-cxx.c -o multibarrier-split-io-cxx -std=c++17 -luring -lrocksdb -lzstd -lsnappy -llz4 -lz -lbz2 -O3 -lm -Lrocksdb/ 2> errors
 	# g++ multibarrier-split-io.o rocksdb/librocksdb.a -std=c++17 -fpermissive -luring -O3 -lm -Lrocksdb/ 2>> errors
-
-run:
-	( cd assembly/learnings && make pthread; ) ; \
-	( cd assembly; make coroutinesdirect && ./coroutinesdirect ; )
