@@ -1,5 +1,5 @@
 recs = []
-for line in open("samples5").read().split("\n"):
+for line in open("samples4").read().split("\n"):
   comps = line.split(" ")
   #print(comps)
   if comps[0] == "":
