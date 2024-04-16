@@ -1,6 +1,6 @@
 
 
-value = 0x10 * 20
+value = 64
 size = 16
 
 item = value

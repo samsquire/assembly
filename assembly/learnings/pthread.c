@@ -25,7 +25,7 @@ int main() {
   struct data data; 
 
    memset(&attr, 0, sizeof(pthread_attr_t));
-  
+  printf("atrr %d %d\n", sizeof(pthread_t), sizeof(pthread_attr_t));
   int s = pthread_create(&thread, &attr,
 
                             func, &data); 

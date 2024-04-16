@@ -1,5 +1,6 @@
 
 .global main
+.align 16
 .JOINED:
 	.string	"Joined thread... %d\n"
 	.text
@@ -243,8 +244,8 @@ main:
 .LFB7:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$256, %rsp
-
+	subq	$1024, %rsp
+  # sub $, %rsp
 	xorl	%eax, %eax
   movq %rbp, %rsi
 	leaq	.STARTED(%rip), %rdi
@@ -259,14 +260,20 @@ main:
    movq %rax, -96(%rbp)         
    leaq .codata1(%rip), %rax
    movq %rax, -88(%rbp)
+   pxor %xmm0, %xmm0
+   movq %xmm0, -100(%rbp)
+   movq %xmm0, -208(%rbp)
    leaq	-88(%rbp), %rdx
-   leaq	-64(%rbp), %rsi
-   leaq	-80(%rbp), %rax
+   leaq	-100(%rbp), %rsi
+   leaq	-208(%rbp), %rax
    movq	%rdx, %rcx
    leaq	threadstart(%rip), %rdx
    movq	%rax, %rdi
    call	pthread_create@PLT
+   
    # movl	%eax, -84(%rbp)
+
+
 
  #  movq $1, %rsi
  #  movq -80(%rbp), %rdx
@@ -274,7 +281,7 @@ main:
  #  call	printf@PLT
  #  movl	$0, %eax
 
-   movq	-80(%rbp), %rax
+   movq	-208(%rbp), %rax
    leaq	-72(%rbp), %rdx
    movq	%rdx, %rsi
    movq	%rax, %rdi
@@ -294,20 +301,22 @@ main:
 
 
 
-
+   # sub $8, %rsp
    leaq .end_data_stack2(%rip), %rax
    movq %rax, -192(%rbp)         
    leaq .codata2(%rip), %rax
    movq %rax, -184(%rbp)
    leaq	-184(%rbp), %rdx
-   leaq	-160(%rbp), %rsi
+   leaq	-300(%rbp), %rsi
    leaq	-176(%rbp), %rax
    movq	%rdx, %rcx
    leaq	threadstart(%rip), %rdx
    movq	%rax, %rdi
-    call	pthread_create@PLT
+   movq %xmm0, -160(%rbp)
+   movq %xmm0, -176(%rbp)
+  # call	pthread_create@PLT
    movl	%eax, -180(%rbp)
-
+   
    movq $2, %rsi
    leaq	.CREATED(%rip), %rdi
    call	printf@PLT
@@ -317,7 +326,7 @@ main:
    leaq	-168(%rbp), %rdx
    movq	%rdx, %rsi
    movq	%rax, %rdi
-   call	pthread_join@PLT
+   #call	pthread_join@PLT
    movl	$0, %eax
    movq	-8(%rbp), %rdx
 
@@ -365,7 +374,9 @@ program:
 	pushq	%rbp
   movq %rsp, %rbp
   sub $1024, %rsp
+  sub $8, %rsp
   pushq %rdi
+  
   movq %rdi, %rsi 
 	leaq	.TDATA(%rip), %rax
 	movq	%rax, %rdi
@@ -377,10 +388,10 @@ program:
 print2:
   popq %rdi
   pushq %rdi
-  # movq %rdi, %rdx
-  # addq $8, %rdx
+  #movq %rdi, %rdx
+  addq $8, %rdx
   movq %rdi, %rdx
-  subq $8, %rdx
+  # subq $8, %rdx
   movq (%rdx), %rdx 
   mov %rdx, %rsi
 	leaq .TDATA2(%rip), %rax
@@ -393,15 +404,15 @@ print2:
     movq %rdi, %rcx         
     movq %rcx, (%rcx)
   pushq %rcx 
-
+  subq $8, %rsp
   mov %rcx, %rsi
 	leaq .TDATA3(%rip), %rax
 	movq %rax, %rdi
 	movl $0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-    # sub     $8, %rbp
-
+  addq $8, %rsp
+ # addq $8, %rsp
   popq %rcx
   
 
@@ -459,14 +470,14 @@ print:
     pushq %rcx
     pushq %rdx
     pushq %rbx
-
+  subq $8, %rsp
   movq %rbx, %rsi
   movl    %ebx, %esi
 	leaq	.LC4(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  add $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
