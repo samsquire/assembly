@@ -103,6 +103,7 @@
 	call	printf@PLT
 	movl	$0, %eax
     add $8, %rsp
+    
     popq %rbx
     popq %rdx
     popq %rcx
@@ -247,9 +248,9 @@ loop:
 	movl	$0, %eax
   add $8, %rsp
   popq %rcx
-
+  sub $8, %rsp
   YIELD
-
+  
   
 	JUMP loop
 main:
@@ -615,7 +616,7 @@ co_initialized:
 _loop:
 	# yield to the coroutine
 
-  #movq 32(%rcx), %rsp
+  movq 32(%rcx), %rsp
 	YIELD
 
   movq 32(%rcx), %rsp
@@ -657,7 +658,7 @@ _loop:
   mov 32(%rcx), %rsp
   addq $1024, %rsp
 
-  
+  addq $8, %rsp
 	leaq	.FINISHED(%rip), %rdi
     movl    %edx, %esi
 	movl	$0, %eax
