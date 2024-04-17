@@ -68,12 +68,13 @@
     pushq %rbx
 
 	# movq	%rsp, %rbp
+  sub $8, %rsp
   movq    (%rcx), %rsi
 	leaq	.LC8(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  add $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
@@ -88,13 +89,14 @@
     pushq %rdx
     pushq %rbx
 
+   sub $8, %rsp
     movq    %rcx, %rsi
 	leaq	.LC6(%rip), %rax
 	movq	%rax, %rdi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+    add $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
@@ -108,13 +110,14 @@
     pushq %rcx
     pushq %rdx
     pushq %rbx
+  sub $8, %rsp
   movq    24(%rcx), %rsi
 	leaq	.COR(%rip), %rax
 	movq	%rax, %rdi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  add $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
@@ -207,15 +210,17 @@ me:
 .data
 .align 32
 .codata2:
-.align 32
+.align 16
     .skip 1000000
 .data_stack1:
+  .align 16
 	.zero 1000000, 0
 .end_data_stack1:
 .codata1:
-.align 32
+.align 16
     .skip 1000000
 .data_stack2:
+  .align 16
 	.zero 1000000, 0
 .end_data_stack2:
 
@@ -391,7 +396,7 @@ print2:
   #movq %rdi, %rdx
   addq $8, %rdx
   movq %rdi, %rdx
-  # subq $8, %rdx
+  #subq $8, %rdx
   movq (%rdx), %rdx 
   mov %rdx, %rsi
 	leaq .TDATA2(%rip), %rax
@@ -411,18 +416,19 @@ print2:
 	movl $0, %eax
 	call	printf@PLT
 	movl	$0, %eax
+  
   addq $8, %rsp
- # addq $8, %rsp
   popq %rcx
   
-
+#addq $8, %rsp
   mov %rcx, %rsi
+  #sub $8, %rsp
  	leaq	.LC0(%rip), %rax
  	movq	%rax, %rdi
     movq    %rcx, %rsi
  	movl	$0, %eax
  	call	printf@PLT
-
+  #addq $8, %rsp
 
   popq %rdi
 prepare:
@@ -492,13 +498,14 @@ print:
     pushq %rdx
     pushq %rbx
 
+  sub $8, %rsp
 	# movq	%rsp, %rbp
 	leaq	.LC1(%rip), %rdi
     movl    %ebx, %esi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  add $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
@@ -513,13 +520,13 @@ print:
     pushq %rdx
     pushq %rbx
 
-  
+  subq $8, %rsp
 	leaq	.LC5(%rip), %rdi
     movq    %rdx, %rsi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  addq $8, %rsp
     popq %rbx
     popq %rdx
     popq %rcx
@@ -531,13 +538,15 @@ init_co_loop2:
 	cmp $10, %rbx 
 	jl init_co_loop
   pushq %rdi
+  #sub $8, %rsp
 	leaq	.LC10(%rip), %rax
 	movq	%rax, %rdi
     movl    %edx, %esi
 	movl	$0, %eax
+  #sub $8, %rsp
 	call	printf@PLT
 	movl	$0, %eax
-
+  # add $8, %rsp
 	# movq	%rsp, %rbp
 	movl	$0, %eax
   popq %rdi
@@ -559,12 +568,13 @@ _loop:
     pushq %rdi
     pushq %rdx
 
+   sub $8, %rsp
 	leaq	.LC9(%rip), %rdi
     movl    %edx, %esi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax
-
+  add $8, %rsp
   popq %rdx
   popq %rdi
   popq %rcx
@@ -590,6 +600,7 @@ _loop:
   mov 32(%rcx), %rsp
   addq $1024, %rsp
 
+  
 	leaq	.FINISHED(%rip), %rdi
     movl    %edx, %esi
 	movl	$0, %eax
