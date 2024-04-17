@@ -25,6 +25,9 @@
 .INIT:
 	.string	"INIT RCX is %p\n"
 	.text
+.INITL:
+	.string	"Start INIT RCX is %p RDX is %p\n"
+	.text
 .STARTED:
 	.string	"Starting... %p\n"
 	.text
@@ -183,7 +186,7 @@ me:
 	.globl	main
 	.type	main, @function
 .LC6:
-	.string	"YIELD (RCX): %p\n"
+	.string	"YIELD RCX: %p\n"
 	.text
 	.globl	main
 	.type	main, @function
@@ -193,7 +196,7 @@ me:
 	.globl	main
 	.type	threadstart, @function
 .LC8:
-	.string	"YIELD RCX: %p\n"
+	.string	"YIELD (RCX): %p\n"
 	.text
 	.globl	main
 	.type	main, @function
@@ -232,13 +235,13 @@ loop:
 	# pushs $1
 	# ADDCO
   pushq %rcx
+  sub $8, %rsp
   movq    %rcx, %rsi
 	leaq	.LC7(%rip), %rax
 	movq	%rax, %rdi
 	movl	$0, %eax
 	call	printf@PLT
-	movl	$0, %eax
-
+	movl	$0, %eaadd $8, %rsp
   popq %rcx
 
   YIELD
@@ -260,7 +263,7 @@ main:
    movq $1, %rsi
    movq	%rax, -8(%rbp)
 
-   
+   # 1-6	RDI, RSI, RDX, RCX, R8, R9
    leaq .end_data_stack1(%rip), %rax
    movq %rax, -96(%rbp)         
    leaq .codata1(%rip), %rax
@@ -268,7 +271,7 @@ main:
    pxor %xmm0, %xmm0
    movq %xmm0, -100(%rbp)
    movq %xmm0, -208(%rbp)
-   leaq	-88(%rbp), %rdx
+   leaq	-96(%rbp), %rdx
    leaq	-100(%rbp), %rsi
    leaq	-208(%rbp), %rax
    movq	%rdx, %rcx
@@ -394,8 +397,9 @@ print2:
   popq %rdi
   pushq %rdi
   #movq %rdi, %rdx
-  addq $8, %rdx
+  # 1-6	RDI, RSI, RDX, RCX, R8, R9
   movq %rdi, %rdx
+  addq $8, %rdx
   #subq $8, %rdx
   movq (%rdx), %rdx 
   mov %rdx, %rsi
@@ -405,10 +409,13 @@ print2:
 	call	printf@PLT
 	movl	$0, %eax
   popq %rdi
+  
   pushq %rdi
     movq %rdi, %rcx         
     movq %rcx, (%rcx)
   pushq %rcx 
+  
+  
   subq $8, %rsp
   mov %rcx, %rsi
 	leaq .TDATA3(%rip), %rax
@@ -418,42 +425,72 @@ print2:
 	movl	$0, %eax
   
   addq $8, %rsp
+  
   popq %rcx
+  popq %rdi
+  
+  pushq %rcx
+  pushq %rdi
   
 #addq $8, %rsp
   mov %rcx, %rsi
-  #sub $8, %rsp
+  sub $8, %rsp
  	leaq	.LC0(%rip), %rax
  	movq	%rax, %rdi
     movq    %rcx, %rsi
  	movl	$0, %eax
  	call	printf@PLT
-  #addq $8, %rsp
+  addq $8, %rsp
 
   popq %rdi
+  popq %rcx
+  
 prepare:
 	movl	$0, %eax
   movq %rdi, %rcx         
   movq %rdi, %rdx
-  subq $8, %rdx
-  movq (%rdx), %rdx 
+  # rdi is data, rdx is stack pointer, rcx is data
+
+
+  addq $8, %rdx
+  # address of the stack or data
+  # dereference 
+ movq (%rdx), %rdx 
     # sub $8, %rsp
+
+  pushq %rcx
+  pushq %rdi
+  pushq %rdx
+  # 1-6	RDI, RSI, RDX, RCX, R8, R9
+leaq	.INITL(%rip), %rax
+ 	movq	%rax, %rdi
+  
+  movq    %rcx, %rsi
+  
+ 	movl	$0, %eax
+ 	call	printf@PLT
+  popq %rdx
+  popq %rdi
+  popq %rcx
+  
   movq $0, %rbx
 init_co_loop:
   pushq %rcx
   pushq %rdi
   pushq %rdx
+  #sub $8, %rsp
  	leaq	.INIT(%rip), %rax
  	movq	%rax, %rdi
+  
   movq    %rcx, %rsi
  	movl	$0, %eax
  	call	printf@PLT
-
+  #add $8, %rsp
 	# Initialize the rsp
   movl $0, %esi
-  pop %rdx
-  pop %rdi
-  pop %rcx
+  popq %rdx
+  popq %rdi
+  popq %rcx
 
 	movq %rdx, (%rcx)
 
@@ -537,8 +574,8 @@ print:
 init_co_loop2:
 	cmp $10, %rbx 
 	jl init_co_loop
-  pushq %rdi
-  #sub $8, %rsp
+  #pushq %rdi
+  sub $8, %rsp
 	leaq	.LC10(%rip), %rax
 	movq	%rax, %rdi
     movl    %edx, %esi
@@ -546,7 +583,7 @@ init_co_loop2:
   #sub $8, %rsp
 	call	printf@PLT
 	movl	$0, %eax
-  # add $8, %rsp
+  #add $8, %rsp
 	# movq	%rsp, %rbp
 	movl	$0, %eax
   popq %rdi
