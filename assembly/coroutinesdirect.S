@@ -241,7 +241,8 @@ loop:
 	movq	%rax, %rdi
 	movl	$0, %eax
 	call	printf@PLT
-	movl	$0, %eaadd $8, %rsp
+	movl	$0, %eax
+  add $8, %rsp
   popq %rcx
 
   YIELD
