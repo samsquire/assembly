@@ -10,11 +10,14 @@
 .FINISHED:
 	.string	"finished coroutines\n"
 	.text
+.TINPUT:
+	.string	"thread struct %p %p\n"
+	.text
 .TDATA:
 	.string	"thread received data %p\n"
 	.text
 .TDATA2:
-	.string	"thread data %p\n"
+	.string	"thread data %p %p\n"
 	.text
 .TDATA3:
 	.string	"thread's thread data is at %p\n"
@@ -266,13 +269,22 @@ main:
 
    # 1-6	RDI, RSI, RDX, RCX, R8, R9
    leaq .end_data_stack1(%rip), %rax
-   movq %rax, -96(%rbp)         
+   
+   movq %rax, -300(%rbp)   
+   movq %rax, %rdx
    leaq .codata1(%rip), %rax
-   movq %rax, -88(%rbp)
+   movq %rax, %rsi
+   movq %rax, -308(%rbp)
+
+   leaq	.TINPUT(%rip), %rdi
+   
+	  call	printf@PLT
+	movl	$0, %eax
+   
    pxor %xmm0, %xmm0
    movq %xmm0, -100(%rbp)
    movq %xmm0, -208(%rbp)
-   leaq	-96(%rbp), %rdx
+   leaq	-308(%rbp), %rdx
    leaq	-100(%rbp), %rsi
    leaq	-208(%rbp), %rax
    movq	%rdx, %rcx
@@ -400,10 +412,13 @@ print2:
   #movq %rdi, %rdx
   # 1-6	RDI, RSI, RDX, RCX, R8, R9
   movq %rdi, %rdx
-  addq $8, %rdx
+  movq %rdi, %rsi
   #subq $8, %rdx
-  movq (%rdx), %rdx 
-  mov %rdx, %rsi
+  addq $8, %rsi
+  #, %rsi
+  movq (%rdx), %rdx
+  movq (%rsi), %rsi
+  # mov %rdx, %rsi
 	leaq .TDATA2(%rip), %rax
 	movq %rax, %rdi
 	movl $0, %eax
@@ -412,8 +427,8 @@ print2:
   popq %rdi
   
   pushq %rdi
-    movq %rdi, %rcx         
-    movq %rcx, (%rcx)
+  movq %rdi, %rcx         
+  movq (%rcx), %rcx
   pushq %rcx 
   
   
@@ -456,7 +471,10 @@ prepare:
   addq $8, %rdx
   # address of the stack or data
   # dereference 
- movq (%rdx), %rdx 
+ movq (%rdx), %rdx
+ movq (%rcx), %rcx
+
+
     # sub $8, %rsp
 
   pushq %rcx
@@ -592,11 +610,12 @@ co_initialized:
 	# i = 0
 	xor %rax, %rax
 	# we will start with the first co-routine
-	mov %rdi, %rcx         
+	mov %rdi, %rcx
+  mov (%rcx), %rcx
 _loop:
 	# yield to the coroutine
 
-  movq 32(%rcx), %rsp
+  #movq 32(%rcx), %rsp
 	YIELD
 
   movq 32(%rcx), %rsp
