@@ -1,8 +1,710 @@
 # parallel data race server
 
-this is a meant to be a swiss army knife tool for server parallelism.
+How do you implement a high performance low latency concurrency and asynchronous userspace parallel server programs? How does async work?
+
+How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution.
+
+This is a GitHub repository of components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down to assembly, compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
+
+I am building a high performance low latency async parallel runtime as a hobby.
+
+This is designed for low latency and high throughput parallelism on large multicore machines such as 96 core or 192 core machines.
+
+You can speed up computation by doing things at the same time - paralellism. Amdahls law means the speedup expectation is limited by the serialised portion of the work. Thread safety by mutexes suffer from contention when used by lots of threads and restrict useful parallelism. Atomics and compare and swap are tools that also suffer from contention.
+
+Lock free algorithms don't use mutexes but use atomics or compare and swap.
+
+Here's a parallel version of this graph:
+
+![parallel program one](diagramspng/exampleone.png)
+
+```
+
+```
+
+
+I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
+
+
+
+One way to think of async tasks is to think of some code that has two sides to it - the task and then the code that temporally runs after the task is completed. This is typically a callback in other languages. Or a state machine rewritten async/await. LMAX splits IO into three parts - the part before the IO, the IO and the part to happen afterwards.
+
+You can think of an await command as a pause command and the allowing the runtime to do something different while waiting for the Kernel.
+
+Note that an async runtime that uses callbacks will use threads or asynchronous IO. So it would spawn a thread or send a message to a threadpool queue and then the thread pool will send a message to the main thread to tell it to execute the user's callback.
+
+How I think of async tasks is that there is a deliberate ordered sequence of desired tasks and this sequence is instanced (and turing complete) but at any point an alternative task could be scheduled if the desired task in the sequence is not ready which means there is a partial order to the async runtime. The runtime always runs the sequences in order but each instance of the sequence can be overlapping and/or interspersed with others. 
+
+
+You might want to run task-a then task-b then task-c - in that order.
+
+This pipeline looks like this
+
+```
+task-a | task-b | task-c
+```
+
+You have a table of different instances of tasks-a tasks. The task-a instances might look like this: 
+
+```
+task-a-1 task-a-2 task-a-3
+```
+
+And task-b and task-c tasks:
+
+```
+task-b-1 task-b-2 task-b-3
+task-c-1 task-c-2 task-c-3
+```
+
+At any point any task from any table of tasks can be scheduled. So you could be completing tasks at a different lifecycle stage, interleaved and interspersed.
+
+Now if we add parallelism to this. You could be executing a task-c at the same time as a task-a but for different instances of the pipeline.
+
+Now imagine a server that processes user sessions in paralllel.
+
+The global pipeline is also turing complete.
+
+Your server is fully parallel. It has a coroutine for each connection and each request that the server makes is also in its own coroutine.
+
+```
+read-socket-data | parse-socket-data | dispatch-to-handler
+```
+
+A chat room might want to broadcast messages in parallel without waiting for messages from a client.
+
+
+How I have chosen to think of async tasks is that there is events that are recorded when starting tasks and completions are matched to the event list when completed:
+
+ * an event represents the completion of some action or completion of an coroutine task state/step
+ * an event can indicate IO completion or compute completion or coroutine state change
+
+I've written a toy JIT compiler and a number of parallel  lockfree runtimes for message passing: a phaser barrier inspired by bulk synchronous parallel, an LMAX Disruptor inspired ringbuffer, a single writer data mover and a parallel buffer manager (called atomic bcast). I have implemented a toy SQL database and am inspired by relational algebra and RocksDB.
+
+Each of these subprojects had a different performance profile.
+ * atomic bcast gets 9-10 million requests per second with 15 threads with latency around 100 nanoseconds
+* the starbarrier multibarrier gets 30 million requests per second with lafency around 60
+* the LMAX Disruptor gets latency around 50-120 depending on topology
+
+To put this into perspective: this allows the number of parallel splits (or forks) to occur per second.
+
+One important thing is that the more threads that can write, the more contention you will have if they all want to write at the same time.
+
+# Problems to solve in Parallel Asynchrony
+
+There are the problems I shall talk about and this repository tries to make solutions to:
+
+ * code generation for coroutines. Do ee genrrate assembly with labels and need an assembler or do we write a linker?
+ * cheap runtime scheduler
+ * thread safe data streams
+ * arbitrary turing completr iterators
+ * calling convention between asynchronous tasks/coroutine to asynchronous task/coroutine. How does data go between tasks? Its not by the stack since the stack changes and there could be on a different thread so thread safety is needed
+ * a syntax or API to define the ordering of asynchronous tasks. In Javascript this might be async library tools that allow chaining together promises or `.then`
+ * switching stacks when changing coroutines
+ * storing the stack RSP register somewhere when pausing
+ * storing the instruction pointer somewhere when pausing
+ * restoring the stack and instruction pointer when resuming
+ * an API for imperative control of the running coroutine (yield data, pause until event, sleep)
+ * handling return values from coroutines that yield and sending values back to them once resumed
+ * do you need a reference to the corourine to send data to it? in Python you have a reference to the generator to send data to it
+ * being able to implement **any grid of work** (support different models of parallel programming)
+ * implementing a programming model that is easy to understand
+ * deciding whether to parallelise data (and give it to the same or pipelined code) or paralellise control flow
+ * designed for high number of threads
+ * low latency
+ * high throughput
+ * low contention on the thread safe parts
+ * how to have turing complete parallelism
+
+In the nodejs world which uses libuv and handles IO and compute tasks. Nodejs and browser engines use promises and async await to specify task sequences.
+
+In single threaded designs there is also data flow, control flow and direction which program structure encodes. Who asks for what and who sends what where. Then you have logistics moving data to where it is needed or moving variables between and in parameters. If you refactor large code bases you are familiar with moving parameters around and making things available in different places. (Aside: this grouping style of "things" is an organisation could be a useful data structure)
+
+You can think of code converging on a memory location or register from different control flows.
+
+For example, a compiler pipeline has multiple stages. You can call the lexer from the tokeniser or run them as independent tasks and coordinate them from above in one place - this is composition. It can be desirable to decouple components for reuseability by other people or extension permutation.
+
+I need to communicate, orchestrate and coordinate control flow across different threads but the number of threads involved in an exchange determines the efficiency of the cross thread mechanism due to coordination and thread safety costs. The more potential simultaneous writers the slower it will be.
+
+In the Linux kernel there is io_uring which is a ringbuffer which regulates async access by userspace applications to make IO requests (read/write file or network) to the kernel and the kernel to receieve requests by the application and the application to get responses from the kernel. This crosses the kernel app barrier efficiently in bulk and scales.
+
+Coroutines allow multiple separate execution sequences to coexist on a single thread and switched between alternately. They allow greater efficiency because multiple tasks can be in progress at the same time while waiting for things.
+
+Stackful coroutines can call regular functions and stackless coroutines can only use a predefined block of memory.
+
+Direction in control flow can limit design flexibility.
+
+If you think of a microservice archirecture you might sometimes want to be called when things happen or to call yourself.
+
+Its the insertion point of indirection where you change direction of control or flow. From push to pull or pull to push or sync to async or async to sync.
+
+Message passing is one approach.
+In a message passing design you handle messages with different identities and the identity of the message determines what you do.
+
+Actors is another approach.
+
+Message passed control flow is an approach to coroutine scheduling which allows threads to direct control flow of other threads.
+
+# Coroutine states
+
+
+
+A data structure of control flows.
+graph of coroutine states
+coroutine basic blocks
+
+# Calling convention
+
+The C calling convention determines how machine code control flow sequences are switched between. CALL puts the EIP onto the stack AND JMPs elsewhere.
+
+The C calling convention on my operating system (Ubuntu) is System V. The first 6 parameters are passed in rdi, %rsi, %rdx, %rcx, %r8 and %r9.
+
+Coroutine calling convention is massively important for efficiency and thread safety.
+
+When a coroutine is called it needs to look somewhere for data, it could even be in registers.
+but if its on a different thread it is in main memory.
+
+Data can be sent between thread topologies in 4 communication patterns that I have thought of listed below.
+
+With multithreading and coroutines we have the following things to solve:
+
+ * Memory management
+ * Memory ownership
+ * Thread safety
+ * Ideal parallelism
+
+I have a solution to memory ownership and memory management that is the generation of non overlapping sequence numbers that are thread safe called Atomic sequence number memory buffer management. This could be used for all coroutine communication.
+
+Coroutines that nest are like transposed lanes. It provides nested parallelism. It is a bit like something that could move while youre moving it. It has separate independent states that change in parallel and independently.
+
+move data into a cmp table
+computer loop fast code buffers moving data around and then render it
+
+collections for things
+
+if statement 1 << 24 << if statememt 2
+
+# Nested parallelism
+
+You might have two or more processes that are independently parallel but want to interact.
+
+This could be nested queues that also do things independently.
+
+ process1
+  queue1 | process2
+ process2
+  queue2 | process1
+
+# 1-1
+
+If we want to do something with some data and then hand if off to the next stage of the pipeline we have a 1 to 1 relationship between threads.
+
+We can implement this by moving data into a free sequence number data buffer in atomic-bcast and indicate buffer readiness with a flag. (availability protocol)
+
+With starbarrier, this is just sending data to a single mailbox.
+
+This can even be used for multiple threads by load balancing which buffers are sent to so this is 1-*-1.
+
+Equivalent to a fork
+
+# 1-*
+
+We want to broadcast the same data to multiple threads. We can arrange the data into a collection and each thread can pick up data for itself if required.
+
+We move data into visible sequence number and each thread has its own consumption check to see if its seen that sequence number. This is like a cursor.
+
+# *-1
+
+We have multiple threads generating data and want to read all their input in one thread.
+
+1 reader checks all mailboxes of other threads toward itself
+
+Ordering?
+
+# *-*
+
+many to many broadcast
+everyone keeps track of seen on self
+visible sequence numbers
+every thread checks visible sequence numbers
+
+
+is this a limitation?
+struct Value {
+  void * data;
+  int available;
+};
+
+generation number for wraparound detection
+
+btree to index generator
+rewriting btree on a split
+compile parser for event checking
+
+# Example topology
+
+Topologies are turing complete
+Both the coroutine and the data buffers being sent down can occur in any direction and order.
+
+Deadline on real time kernels.
+
+Data flow is not single direction like a pipeline.
+
+send-thread1
+ send-coroutine-
+recv-thread1
+ recv-coroutine
+worker-thread-1
+ worker-coroutine
+ request-coroutine2
+worker-thread-2
+ worker-coroutine
+ request-coroutine-1
+
+
+
+# Scheduling and events: Latency of scheduling, checking for readiness
+
+A coroutine runs and writes to a buffer and indicates buffer readiness with a memory flag.
+
+The scheduler has a list of events in a trie, the events correspond to buffers permutations.
+
+Since different threads can write to buffers but we might want to handle events in parallel, for handling on different threads we need the mechanism to be threadsafe. We don't use priority like a operating system scheduler.
+
+We can sum the event buffer arrival counts to detect if a buffer has been written to.
+
+If a buffer matches its preconditions it shall be scheduled to run.
+
+We want coroutine execution to be turing complete.
+
+A Buffer block is equivalent to control flow to another block on a another thread but is parallel.
+
+# Messaging
+
+A buffer event can force a coroutine to execute from a position, this is like an actor.
+
+Execute 10 times.
+
+# Sequential, queuing
+
+For sequential scheduling.
+
+Do we have buffers event states for coroutine start and end and create the dependency chain that way?
+
+# Coroutine Select
+
+We might want to race code against eachother
+
+```
+runtime.either(a, b);
+```
+
+The scheduler has to check if either can run and then run one of them.
+
+# Types of parallelism
+
+I want to handle the kinds of parallelism that are useful.
+
+How do we representing turing complete parallelism that can be turned on and off.
+
+s1 -> s2
+   -> s2
+
+s2 -> s1
+
+with regard to independence
+split IO
+recv independent with send
+
+Specify all the states and nest them. It cartedian product ?
+
+move a moving thing
+runtime H
+causality lines
+
+Scaled coroutines for handling load/throughput
+replicated parallel
+Separated parallelism
+GUIs
+Network app split io parallelism
+
+Thered a parallelism where body of loop is divided into pieces and each segment is replicated across threads.
+
+Blocks are replicated across threads
+
+# Integer calculation to memory location
+
+
+# Protocols
+
+# Block iterator fusion
+
+APL
+
+# Chunking
+
+outer_chunk:
+inner_chunk:
+
+# Wait statement
+
+
+
+# Message handling semantics
+
+When I send a message to another thread there is a number of different scenarios I might want to handle:
+
+ * **Wait 1** wait for receiver to acknowledge message. This is synchronous style. This puts the coroutine to sleep.
+ * **Dont wait** don't wait for receiver to acknowledge message (parallelism)
+ * **Wait multi** receieve multiple messages from receiver
+ * **Wait message** wait for message from receiever
+ * **Wait pattern** wait for multiple messages from receiver
+
+state progressions and control flow progressions
+
+the pattern of messages is parsed
+
+# Turing completeness of the running code
+
+Being able to jump to any state in parallel.
+letter H is a join
+
+# Join patterns: Waiting for events to complete
+
+When threads have completed their task they need to move to the next task. Or a sequence that is split across threads needs to resume processing.
+
+Control flow is turing complete.
+
+Control flow is defined across multiple async tasks that can arrive in any order.
+
+Future control flow can depend on current control flow AND state.
+
+This is parsing.
+
+We can use counting to identify when things are finished. This is what starbarrier does.
+
+Atomic-bcast uses an atomic integer.
+
+http client parsing along consume-char
+
+# Runtime or compile time? Both at the same time
+
+Some way to detect if something can be compiled or runtime based on the program that generates the control flow sequence and if its a basic graph. We can detect properties in the block relationships to see what needs to be checked at runtime.
+
+We can use blocks for this.
+
+Data parallelism.
+
+
+
+# Coroutine calling convention
+
+Coroutines communicate data with eachother and they may pass data between different threads.
+
+The basic blocks of a coroutine could be anything with loops and conditionals. This means data could be yielded in any order.
+
+A coroutine requests a buffer and it is stable within that thread before it changes owners.
+
+ * An incrementing buffer, is like a stream of values by the same buffer.
+ * Different buffers have different identities. This is essentially message passing.
+
+Newbuffer creates a sequenced buffer.
+
+```
+b = newbuffer();
+while True:
+  b.data = "6";
+  runtime.yield(b);
+```
+
+When a coroutine yields, upon resuming the coroutine must restore state such as all local variables and registers.
+
+coroutinesdirect
+yield takes coroutine id and looks up the coroutine list and jumps to the eip in the table
+
+the runtime
+needs to invoke a scheduler that parses based on event rules, this could be barrier runtime
+
+Coroutine table is Lateral control flow
+
+
+
+# Iterators and basic blocks
+
+You can think of an iterator as basic blocks.
+
+Basic blocks are remembered and constitute state of the coroutine.
+
+mov $CONSTANT, %r11
+
+the topology is automatic
+chunks are iterator blocks
+
+blocks are iterators
+
+computer path finding between stack position synchronization
+
+the blocks need to interleave in the right order. the data can be logistically filled
+
+Sequence doesn't have to match exactly to be compatible
+graph ismorphism
+
+Control flow is stateful. you specify all the state WITH control flow block names and thats its type of that block.
+
+which blocks alias on state
+
+yield 1
+yield 2
+yield 3
+
+This sequence has no stateful type of control flow.
+
+you write you want something before after or around
+
+block1:
+while i < 6:
+  yield 6
+  i++
+  
+block2:
+while i > 6:
+  i < 6.block2:
+  yield -6
+  --+;
+
+parameterized control flow
+
+how blocks fit together and interleave
+you specify the behaviour and the computer works out the logistics
+
+the control flow sequence can be reordered like data (which is a program)
+
+the type is block successors
+
+bind with equal symbol
+
+monads
+the blocks do the same things they compatible
+
+the values in the blocks refer to are blocks too
+
+context, whats on the stack at a point
+blocks can keep track of what is on the stack
+
+block binding (variables, data)
+
+parsing trees and graphs to blocks
+the tree structure prevents flexibility
+
+refer to predecessors in a typed control flow
+
+what is a tree as a block?
+
+
+paginate | rate-limit | 
+
+check:
+if requests_in_bucket > limit:
+  do_nothing
+else:
+  do_request
+  requests_in_bucket++
+
+generate:
+items = []
+do_again:
+for item in range(0, pagesize):
+  items += data[item]
+
+
+movq $0, %ebx
+movq $100, %rdx
+do_again:
+addq $1, %ebx
+cmp x, max
+je finished
+jmp do_again
+
+movq $100, %ebx
+movq $0, %rdx
+cmp
+jgt do_nothing
+jmp do_it
+
+binding to compose these codes is
+
+paginate × ratelimit
+subsume do_request=do_again
+
+just specify the control flow types
+
+block plurality.
+if theres multiples at different points 
+software architecture as a data structure
+
+shape of blocks holes
+
+groups of data from a memory address block compatibility
+
+references to offsets such as stack or heap memory pointer
+
+mov $CONSTANT, %r11
+
+Tape SIMD
+
+Iterators: a page chunk can just be a type of parameterized control flow.
+
+control flow is a data structure, with labels
+if its a graph there might need to be runtime dispatch
+
+its a flat sequence flow chart, each block has a name, loops are parameterized
+
+assembly has the detail of the return point
+a nested loop depends on state, parameterized by state
+
+is the scope for this block lexical or dynamic that determines the dispatch,
+holes in the sequence, monads
+
+parameterized block
+while True: 
+  for items in range(0, items):
+    page()
+  yield
+
+dependency graph of an iterator what state is dependent
+
+A nested switch statement is a tree
+depends on state
+
+loops
+
+return to point with new state, assembly
+
+State()
+rate limiting
+chunking
+
+Amusingly, a lot of value is in fast dispatch to IO and fast dispatch to control flow.
+
+recv side needs to send data
+recv thread sends to send thread, with atomic bcast sequence numbers?
+
+thread pair, the if statement mutex, barrier
+
+waiting for things to be ready
+test dependencies
+topology comes into play
+coroutine toplology links to thread topology
+
+send-coroutine fact
+  recv-coroutine
+recv-coroutine fact
+  send-coroutine
+
+send-coroutine waits on recv-coroutine to send some data to it
+
+sequential code generation when number of items grows to certain amount then use parallel executor
+
+the intuitive idea of side by side tables collections processed by an async runtime... the intuition over what is fast
+
+everything is data parallelism, and tables
+
+control flow parallelism isnt as effective maybe ?
+
+the parallel functions in rust for a pipeline step is too small
+
+either the function is split into stages and multithreaded or the data is split and each thread does a bit
+
+a stream logic is broken into chunks that process but the data is divided so its always even
+
+block filling monads
+join statement
+map a imperative program to a stream
+
+wait for reply syntax
+
+nested list with references can express many relationships like a graph
+
+graph colouring
+
+monad
+
+arrange the block sequence over threads
+
+struct as a relational row
+
+socket 
+ request-coroutine
+ send-coroutine
+ recv-coroutine
+
+communicate by memory
+
+sql query to control flow
+blocks are objects
+
+parsing is a powerful traversal
+state machine formulation provides that
+parsing is an event stream
+
+plurality
+
+autoparallelization, of data going in PLUS control flow
+
+generate all C code in a single C method
+
+recv-coroutine hosted by ioring-recv thread
+data = socket.read()
+send-coroutine.send(data) # cross thread com
+
+atomic bcast, sending to a coroutine sets a flag in the active sequence number mailbox and the data
+
+coroutines have read cursors for every other coroutine, like a stream
+
+barrier, each coroutine is a task in the task list?
+factgroup, coroutines
+
+request | recv | send
+ > each of these component can be scaled independently.
+
+if two coroutines communicate, you dont want to run a paused coroutine.
+
+the barrier protects the communication, with a queue, coroutine inboxes, independent in time pointer swaps
+
+lookup thread of coroutine and send to that thread
+
+the program control flow is a state!! the state machine formulation describes the valid states of the control flow
+
+program is inverted. this programs reads from recv-coroutine, reads a method call
+
+if theres no logic between the steps they can be hard wired
+
+counted btree turing machine, not instructions tape but btree nodes
+
+a program that is not quite imperative but reflects control flow
+
+control flow blocks
+
+yield writes a row into database, that can go somewhere else later
+
+slow request permission, reserved capacity
+pipelines code view, see the expected sequence callflow near the code in view 
+
+Programs can be thought of protocols or conversations, where multiple components talk to eachother.
+
+For example, a HTTP protocol is a conversation between a client and a server.
+
+A web server such as nginx is optimised for lots of concurrent and parallel requests.
+
+The goal of this project is that I can describe high level semantics of what should happen and the computer parallelises it.
 
 This is incomplete.
+
+git data structures and control flow
+
+layout compiler - not a sequence that a programmer writes but is autogenerated.
+
+working out the movement logic through swaps and positional questions and algebra
 
 The goal is you can write a protocol and it is autoparallelised.
 
@@ -14,6 +716,24 @@ how to generate a stream that is fed to multiple programs
 collapse events
 continuation passing
 
+Everything is a coroutine
+
+the types of data output by each stage of coroutine are different
+
+interleaved code
+
+
+stack stack stack stack
+
+setstack
+call
+
+
+yield 3, "blah"
+
+each yield is an insert into a table
+
+memory buffer for each coroutine state
 
 This is an experimental project from my learning of assembly and C.
 
@@ -36,6 +756,9 @@ indexed computation counted btrees
 Communication pattern
 Do these tasks as fast as you can, from any thread.
 
+send to one thread
+send to any thread
+
 select http_request from http_requests where url = /signup
 
 insert into event table
@@ -52,6 +775,7 @@ a coroutine per client
 
 "return" is an instruction to the runtime
 
+```
 thread-1
  client-5
   -> parse-request
@@ -62,6 +786,7 @@ thread-1
     -> three
  client-6
   -> 
+```
 
 iterators and tables and buffers and chunks
 
@@ -101,6 +826,14 @@ a btree could be in the buffer endless streaming
 
 managing control flow streams
 
+# Efficient kernels
+
+Patterns abstracted so most work is in the kernel
+
+Destination is wired directly. No data passing cost.
+
+
+
  * **Concurrent and parallel coroutines** 
  * **Linux io_uring** Network IO is done using Jens Axboe's io_uring
  * **Split IO** We run two io_urings in two separate threads: one for **send** and one for **recv** This means you can parallelise reading and sending.
@@ -125,11 +858,13 @@ managing control flow streams
 |Large amounts of data with the same operation||
 |A large amount of data with many expensive steps||
 |Many different disparate queries||
+|Any thread can submit a task, One thread does the work|Contention on the workqueue|
+
 
 
 Communication by control flow
 
-Endless streaming - buffer locations generated endlessly. No conflicts due to memory locations.
+Endless streaming - buffer locations generated endlessly. No conflicts due to isolated memory locations.
 
 is the latency too high ?
 
@@ -609,6 +1344,8 @@ To run
 ./barrier-runtime
 ```
 
+
+
 # TLA Notes
 
 This is my understanding of how TLA+ works.
@@ -647,3 +1384,95 @@ Copyright (C) 2023 by Samuel Michael Squire sam@samsquire.com
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.                               
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.   
+
+ # Idea Journal
+
+ target, ctrl+r
+
+ n body reflection
+
+ why dont authors of websites do some optimisation on the code and generate optimised ast data files for fetching with sourcecode for machine generation?
+
+ btree as a linear buffer and simd traversal with cmp and multithreading
+
+ book generator
+
+(Aside notes)
+(High level data movement kernels, low intepreter overhead, sqlite vm)
+(Multiple joins)
+(Comm patterns control flow patterns, data patterns)
+
+gui microops, transform UI from one state to another but not based on trees
+
+double relative
+**numbers
+you can fabricate the target shape
+0, 5, 10
+
+you can have identities at the destination
+
+a cross symbol
+
+i was thinking of assembly and blocks to handle IO as a pipeline for state machine formulation and filling the variables for data
+
+mov %6, √Data
+
+relative to
+
+addresses, names, identity
+
+data that is relative to data struct fields
+
+images ***numbers
+line direct to identity or indirection
+
+pointer to pointer doesnt require space in between
+
+numbers to items in lists to items in lists
+can go around another number in a circle. can turn
+
+can represent turning around a circle and multiple circles with 3 layers of pointers
+
+sin and cos work out relation between coordinates in x and y
+
+shape on other side can be according to a pattern, like a mirror image
+
+circles and trees, names
+
+wind around
+
+relativity
+
+relations tables
+
+its not a cordinate
+its relativity
+
+0
+ a
+  u
+  v
+  c
+ b
+  x
+  d
+  k
+1
+ c
+ d
+2
+ e
+ f
+
+if the same object is at both locations
+
+tree join is powerful paired eith traversal
+
+dfs select from blah = 6 dfs select * from
+along
+up
+down
+join
+relativise
+
+ 

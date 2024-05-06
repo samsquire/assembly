@@ -1,0 +1,6 @@
+digraph G {
+  middle [label="middle (wait all)"]
+  one -> middle;
+  two -> middle;
+  middle -> three -> four;
+}

@@ -1,23 +1,31 @@
 .PHONY: run
 SHELL := /bin/bash
 CC=gcc
-CFLAGS=-lm -O3 -g
+CFLAGS=-lm -O3 -g -luring
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
+DIAGRAMS=$(wildcard diagrams/*.dot)
 IMGS=$(patsubst %.dot,%.svg,$(DOTFILES))
+DIAGRAMIMGS=$(patsubst diagrams/%.dot,diagramspng/%.png,$(DIAGRAMS))
 OBJ=$(patsubst %.c,%,$(CFILES))
-all: $(OBJ) $(IMGS)
+
+all: $(DIAGRAMIMGS) $(IMGS)
 %: %.c 
 	$(CC) -o $@  $< $(CFLAGS)
 	objdump -drwC  -S $@ > output-assembly/$@.S
 
 ringbuffer-tla/%.svg: ringbuffer-tla/%.dot
-	# dot -Tsvg -o $@ $<
+	 #dot -Tsvg -o $@ $<
 
-default: $(OBJ) $(IMGS)
+diagramspng/%.png: diagrams/%.dot
+	dot -Tpng -o $@ $<
+
+
+#default: $(DIAGRAMIMGS) $(OBJ) $(IMGS) 
+default: $(DIAGRAMIMGS) $(IMGS) 
 	echo $(CFILES); echo $(OBJ) \;
-	$(CC) -o $@ $^ $(CFLAGS)
+	#$(CC) -o $@ $^ $(CFLAGS)
 
 check:
 	sort mailbox2 | uniq -c | sort -nr	

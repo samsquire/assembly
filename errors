@@ -16,6 +16,5 @@ multibarrier-split-io-cxx.c:1236:16: warning: too many arguments for format [-Wf
 /nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lzstd: No such file or directory
 /nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lsnappy: No such file or directory
 /nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -llz4: No such file or directory
-/nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lz: No such file or directory
 /nix/store/039g378vc3pc3dvi9dzdlrd0i4q93qwf-binutils-2.39/bin/ld: cannot find -lbz2: No such file or directory
 collect2: error: ld returned 1 exit status

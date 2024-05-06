@@ -1176,9 +1176,9 @@ int receive(struct BarrierTask *data) {
     }
     // printf("startreceive %d %d\n", n, data->thread->real_thread_index); 
     int min = me->messages_limit;
-    for (; me->messages_count > 0 ; ) {
-      int x = me->messages_count - 1;
-      me->messages_count--;
+    for (int x = 0; x < me->messages_count ; x++ ) {
+      //int x = me->messages_count - 1;
+      
       data->sends++;
       data->n++;
       me->received++;
@@ -1191,10 +1191,11 @@ int receive(struct BarrierTask *data) {
         // printf("Received a foreign message\n");
       }
       if (me->messages[x]->task_index == data->task_index && me->messages[x]->thread_index == data->thread->real_thread_index) {
-        printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread->thread_index);
+        //printf("Received message from self %b %b\n", me->messages[x]->task_index == data->task_index, me->messages[x]->thread_index == data->thread->thread_index);
         exit(1);
       }
     }
+    me->messages_count = 0;
     // me->messages_count = 0;
       // mailbox is available for sending again
       me->available_reading = 0;

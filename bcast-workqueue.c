@@ -13,7 +13,7 @@
 #define NEW_EPOCH 1
 #define DURATION 1
 #define SAMPLE 0
-#define THREADS 15
+#define THREADS 4
 #define PRINT 0
 
 struct Epoch {

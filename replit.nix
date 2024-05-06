@@ -11,5 +11,7 @@
 		pkgs.gnumake
 		pkgs.liburing
 		pkgs.openssh
+    pkgs.liburing
+     pkgs.graphviz
 	];
 }
