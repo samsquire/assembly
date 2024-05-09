@@ -1,5 +1,5 @@
-compile = "make stream-workqueue"
-run = "./stream-workqueue"
+compile = "make stream2-workqueue"
+run = "./stream2-workqueue"
 hidden = ["main", "**/*.o", "**/*.d", ".ccls-cache", "Makefile"]
 modules = ["python-3.10:v25-20230920-d4ad2e4"]
 

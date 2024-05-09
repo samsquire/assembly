@@ -1,7 +1,7 @@
 .PHONY: run
 SHELL := /bin/bash
 CC=gcc
-CFLAGS=-lm -Ofast
+CFLAGS=-lm -Ofast -g
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)

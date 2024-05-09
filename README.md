@@ -478,7 +478,53 @@ needs to invoke a scheduler that parses based on event rules, this could be barr
 
 Coroutine table is Lateral control flow
 
+# Barrier bcast and stream workqueue
 
+If you have 96 threads, you 24 streams with 4 threads each.
+
+The global atomic integer prevents
+
+Reading is always behind writing, so the last stream is stream 0, which isn't used.
+
+|Bit position|Name|Meaning|
+|---|---|---|
+|24-32|Stream|The subgroup for threads|
+|16-32|Globalwrite|The thing that keeps threads synchronized|
+|0-8|Readcursor||
+
+The reading stream is behind all the streams at 0, it starts at 0.
+All the other streams start at their group.
+
+so these two loops are in parallel:
+
+// reading
+for (int readstream = 0 ; readstream < (threadsize / 4); readstream++) {
+  buffer = readstream << 24 | myglobalread << 16 | readcursor;
+}
+// writing
+for (int x = 0 ; x < 0xff; x++) {
+  buffer = threadindex << 24 | globalwrite << 16 | x;
+}
+
+You would think that the reader could catch up with the writer, because of readstream. But the read is gated by an if statement check checks myglobalread < globalwrite.
+
+Write stream starts at their thread group
+
+1 1 1 1
+1 1 1 1
+2 2 2 2
+2 2 2 2
+
+0 1 2 3
+0 1 2 3
+
+It occurred to me that each thread's readstream is starting at 0 and going up. So it's a true broadcast.
+
+Independent for loops - you specify how they overlap in sequence numbers
+Join of a for loop - it's a relation, each iteration is a line
+
+
+High level semantic Data flow analysis 
 
 # Iterators and basic blocks
 
