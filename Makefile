@@ -1,7 +1,7 @@
 .PHONY: run
 SHELL := /bin/bash
 CC=gcc
-CFLAGS=-lm -O3 -g -luring
+CFLAGS=-lm -Ofast
 DEPS = 
 CFILES=$(wildcard *.c)
 DOTFILES=$(wildcard ringbuffer-tla/*.dot)
@@ -10,10 +10,11 @@ IMGS=$(patsubst %.dot,%.svg,$(DOTFILES))
 DIAGRAMIMGS=$(patsubst diagrams/%.dot,diagramspng/%.png,$(DIAGRAMS))
 OBJ=$(patsubst %.c,%,$(CFILES))
 
-all: $(DIAGRAMIMGS) $(IMGS)
+all: $(DIAGRAMIMGS) $(OBJ) $(IMGS)
 %: %.c 
-	$(CC) -o $@  $< $(CFLAGS)
-	objdump -drwC  -S $@ > output-assembly/$@.S
+	-$(CC) -o $@  $< $(CFLAGS)
+	-$(CC) -S -o output-assembly/$@-gcc.S  $< $(CFLAGS)
+	-objdump -drwC  -S $@ > output-assembly/$@.S
 
 ringbuffer-tla/%.svg: ringbuffer-tla/%.dot
 	 #dot -Tsvg -o $@ $<

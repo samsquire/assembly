@@ -2,9 +2,9 @@
 
 How do you implement a high performance low latency concurrency and asynchronous userspace parallel server programs? How does async work?
 
-How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution.
+How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution for things such as parallel joins?
 
-This is a GitHub repository of components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down to assembly, compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
+This is a GitHub repository of components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
 I am building a high performance low latency async parallel runtime as a hobby.
 
@@ -14,14 +14,65 @@ You can speed up computation by doing things at the same time - paralellism. Amd
 
 Lock free algorithms don't use mutexes but use atomics or compare and swap.
 
-Here's a parallel version of this graph:
+Here's a parallel version of this graph in assembly. Parallel control flow.
 
 ![parallel program one](diagramspng/exampleone.png)
 
 ```
+one:
+one_loop:
 
+# pushq %eip (if use jmps)
+movq $128, %rdi # buffer size
+call get_buffer
+# we can use other registers besides eax
+# eax has buffer pointer in
+# move some data into buffer
+movq 1(%rdi), %rax
+move %rax, 1(%eax)
+
+movq $1, 1(%rsi)
+# move buffer readiness flag
+
+# give data
+movq $ONE_LOOP, %rsi
+movq %eip, %rdi
+movq %rsp, %rdx
+movq %rdi, %rcx
+jmp yield
+
+two:
+middle:
+three:
+four:
 ```
 
+Do all buffers yield ?
+Can a buffer be ready without a yield?
+
+# Why I am unsatisfied with existing technology
+
+I want to be able to run a tool and see this information:
+
+```
+$ asyncps
+   cpu tasks:io ratio 20:30
+
+ request
+  [+] client
+   [+] send-request
+   [+] read-request
+   
+ 
+```
+
++]
+[+
+
+
+# Where do you draw the horizontal line ?
+
+In any multithreaded system there is a horizontal line.
 
 I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
 
@@ -1475,4 +1526,26 @@ down
 join
 relativise
 
- 
+a kernel maps data from one place to another place.
+
+compile codegen the changey glue code between the kernels
+maps integers 
+loop striding and tiling
+
+nested dfs/bfs traversals and joins
+
+shape of computation data flow
+moving things into place just as something leaves 
+
+if a value passes through a particular index it means something.. symbolic movement.
+
+apl of io, network tables, mappings of integers
+
+twocode - one identifier to what the the user said and a number
+
+gpu sink, sink identities at different multi dimensional matrixes 
+transformation matrix
+
+interpreter
+interpreter for traversals
+buffer coordinate mapper

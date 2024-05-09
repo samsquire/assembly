@@ -1,5 +1,5 @@
 recs = []
-for line in open("samples5").read().split("\n"):
+for line in open("samples12").read().split("\n"):
   comps = line.split(" ")
   #print(comps)
   if comps[0] == "":
@@ -12,6 +12,7 @@ for line in open("samples5").read().split("\n"):
   comps = None
   #print(data)
 
+print("read")
 recs.sort(key= lambda x: x[0])
 
 print("loaded")

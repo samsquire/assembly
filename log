@@ -1,0 +1,106 @@
+read mask 8
+write mask 4
+prepwrite mask 32
+Starting 16 workers
+Buffer size 4294967295
+offset 0
+4294967295 chunks
+assigning thread 0 to cpu 1
+assigning thread 1 to cpu 2
+assigning thread 2 to cpu 3
+assigning thread 3 to cpu 4
+assigning thread 4 to cpu 5
+assigning thread 5 to cpu 6
+assigning thread 6 to cpu 7
+assigning thread 7 to cpu 8
+assigning thread 8 to cpu 9
+assigning thread 9 to cpu 10
+assigning thread 10 to cpu 11
+assigning thread 11 to cpu 12
+assigning thread 12 to cpu 13
+assigning thread 13 to cpu 14
+assigning thread 14 to cpu 15
+assigning thread 15 to cpu 16
+started thread 0
+started thread 1
+started thread 2
+started thread 3
+started thread 5
+started thread 9
+started thread 10
+started thread 11
+started thread 12
+started thread 14
+started thread 4
+started thread 8
+started thread 6
+started thread 15
+started thread 13
+started thread 7
+7 thread exit
+8 thread exit
+0 thread exit
+9 thread exit
+4 thread exit
+14 thread exit
+11 thread exit
+5 thread exit
+13 thread exit
+15 thread exit
+12 thread exit
+3 thread exit
+6 thread exit
+2 thread exit
+1 thread exit
+10 thread exit
+finished simulation.
+585424 reads
+341654 reads
+376129 reads
+1346035 reads
+794836 reads
+1550586 reads
+605161 reads
+449688 reads
+603325 reads
+474991 reads
+610378 reads
+403669 reads
+755838 reads
+390637 reads
+1070597 reads
+358514 reads
+freq: 10717462
+freq_ps: 10717462
+freq latency2: 93
+freq per thread latency: 93
+freq latency: 93
+585425 writes
+341654 writes
+376129 writes
+1346035 writes
+794836 writes
+1550586 writes
+605161 writes
+449688 writes
+603325 writes
+474991 writes
+610378 writes
+403669 writes
+755838 writes
+390637 writes
+1070597 writes
+358514 writes
+freq_writes: 10717463
+freq_writes_total: 10717463
+freq_writes latency2: 93
+freq_writes per thread latency: 93
+freq_writes latency: 93
+writer speed
+0
+0
+0
+0
+0
+0
+sw 0

@@ -12,8 +12,8 @@
 
 #define NEW_EPOCH 1
 #define DURATION 1
-#define SAMPLE 0
-#define THREADS 6
+#define SAMPLE 1
+#define THREADS 12
 #define PRINT 0
 
 struct Epoch {
@@ -118,9 +118,10 @@ struct Data {
   long totalwrites;
   long totalreads;
   long globalread;
-  long globalwrite;
-   int lastgroup;
-
+  long * globalwrite __attribute__((aligned (128)));
+  int lastgroup;
+  int mystream;
+  int laststream;
 
 };
 
@@ -399,7 +400,7 @@ int * threadwork(struct Data * data) {
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
   struct timespec time;
-  long thiswrite = data->main->globalwrite;
+  long thiswrite = data->main->globalwrite[data->mystream * 128];
   long buffer;
   //printf("pw %ld %ld\n", data->main->currentwrite, data->prevwrite);
   //long lastwrite = __atomic_load_n(&data->main->currentwrite, __ATOMIC_ACQUIRE);
@@ -410,12 +411,12 @@ int * threadwork(struct Data * data) {
     
     
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
-   //clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+   clock_gettime(CLOCK_MONOTONIC_RAW, &time);
   //if (data ->threadindex == 0 ) {
    data->freq_writes++;
     
     
-        buffer = ( (data->main->globalwrite / (data->threadsize)) % 0xff) << 16 | data->threadindex;
+        buffer = data->mystream << 24 | ( (data->main->globalwrite[data->mystream * 128] / (data->threadsize)) % 0xff) << 16 | data->threadindex;
       // printf("%x\n", buffer);
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
   struct Data * thread = &data->threads[data->threadindex];
@@ -440,9 +441,11 @@ int * threadwork(struct Data * data) {
      
      
     //data->writecursor = (data->writecursor + 1) % 0xf;
-    __atomic_fetch_add(&data->main->globalwrite, 1, __ATOMIC_RELAXED);
+    __atomic_fetch_add(&data->main->globalwrite[data->mystream * 128], 1, __ATOMIC_RELAXED);
+  
+ //data->mystream = (data->mystream + 1) % 8;
   //}
-   long thisgroup = data->main->globalwrite / data->threadsize;
+   long thisgroup = data->main->globalwrite[data->mystream] / data->threadsize;
   
    if (thisgroup != data->lastgroup) {
      if (SAMPLE == 1) {
@@ -485,7 +488,20 @@ int * threadwork(struct Data * data) {
             }
             
             // long buffer = (data->threadindex << 24) | (data->main->globalwrite % 0xf) << 16 | (data->main->writecursor % 0xf);
-         buffer = (past << 16) | data->readcursor;
+         
+         buffer = data->laststream << 24 | (past << 16) | data->readcursor % 0xff;
+    //printf("%d\n", data->readcursor);
+    //printf("laststream %d\n", data->laststream);
+      if (SAMPLE == 1) {
+
+        struct Epoch * epoch = &thread->epochs[thread->currentepoch];
+        epoch->time = time;
+  thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
+        epoch->thread = data->threadindex;
+ // epoch->dest = x;
+  epoch->buffer = buffer;
+  epoch->set = 1;
+      }
                // printf("%x\n", buffer);
                 // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
                 //&data->threads[data->threadindex];
@@ -500,8 +516,14 @@ int * threadwork(struct Data * data) {
                   // data->readcursor = (data->readcursor + 1) % 0xffffff;
         
         
-        
+     if (data->readcursor + 1 == data->threadsize) {
+        data->laststream = (data->laststream + 1) % 5;
+       if (data->laststream == data->mystream) {
+         data->laststream = (data->laststream + 1) % 5;
+       }
+     }
      data->readcursor = (data->readcursor + 1) % data->threadsize;
+    
          if (data->readcursor == data->threadindex) {
            data->readcursor++;
          }
@@ -679,12 +701,17 @@ printf("%ld chunks\n", chunkslen);
  // }
   int cpu = 0;
   int * readies __attribute__((aligned (128))) = calloc(threadsize, sizeof(int));
+  
+  long * globalwrite;
+  posix_memalign((void **)&globalwrite, 128, 128 * 4);
+  
   data[0].works = works;
   for (int x = 0; x < threadsize ; x++) {
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
     CPU_SET(cpu += 1, data[x].cpu_set);
     printf("assigning thread %d to cpu %d\n", x, cpu);
     data[x].bucketstart = x * buckets ;
+    data[x].globalwrite = globalwrite;
     data[x].loglevel = debug;
     data[x].running = 1;
     data[x].threadindex = x;
@@ -708,6 +735,7 @@ printf("%ld chunks\n", chunkslen);
     data[x].newmask = 0;
     data[x].prevread = threadsize;
     data[x].prevwrite = threadsize;
+    data[x].mystream = 1 + (2 * x) / 4;
     data[x].thiswrite = threadsize;
     int epochs = 10000000;
     data[x].epochs = calloc(epochs, sizeof(struct Epoch));
