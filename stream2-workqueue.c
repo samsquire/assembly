@@ -389,6 +389,9 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 }
 
 int * threadwork(struct Data * data) {
+  int cursorlimit = data->threadsize;
+  int epochsize = data->threadsize;
+  int epochwidth = 0xff;
  // printf("%d\n", data->threadindex);
    // asm volatile (""::: "memory");
 
@@ -417,14 +420,29 @@ int * threadwork(struct Data * data) {
     
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+  
+  if (data->running == 2) {
   //if (data ->threadindex == 0 ) {
-   data->freq_writes++;
+  
+   
+   
     
     
-        buffer = data->mystream << 24 | ( (data->main->globalwrite[data->mystream * 128] / (data->threadsize)) % 0xff) << 16 | data->threadindex;
+        buffer = data->mystream << 24 | ( (data->main->globalwrite[data->mystream * 128] / (epochsize)) % epochwidth) << 16 | data->writecursor % 0xff;
+   // data->writecursor = (data->writecursor + 1) % 10;
+    if (data->threadindex == 1) {
+    //printf("w %d %d %d\n", data->mystream,  (data->main->globalwrite[data->mystream * 128] / (epochsize)) % epochwidth, data->writecursor);
+    }
+   /*
+    while (data->main->works[buffer] != -1 && data->writecursor < 0xffff) { 
+      data->writecursor = (data->writecursor + 1) % 0xffff;
+      buffer = data->mystream << 24 | ( (data->main->globalwrite[data->mystream * 128] / (data->threadsize)) % 0xff) << 16 | data->writecursor;
+    }
+    */
       // printf("%x\n", buffer);
         // printf("%d buffer %d %d\n", data->threadindex, buffer, data->readcursor);
   struct Data * thread = &data->threads[data->threadindex];
+  
   if (SAMPLE == 1) {
 
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
@@ -435,9 +453,15 @@ int * threadwork(struct Data * data) {
   epoch->buffer = buffer;
   epoch->set = 1;
   }
+    
+     // printf("alrrady filled\n");
+  if (data->main->works[buffer] != -1) {
+    
+    data->freq_writes++;
+  }
   data->main->works[buffer] = data->threadindex;
         
-  //printf("%d %d\n", data->threadindex, (data->main->currentread % data->threadsize) + data->oreadcursor + data->readcursor);
+  
         // data->readcursors[data->threadindex]++;
   // }
          
@@ -445,12 +469,22 @@ int * threadwork(struct Data * data) {
   //  data->prevread = data->main->currentread;
      
      
-    //data->writecursor = (data->writecursor + 1) % 0xf;
+    data->writecursor = (data->writecursor + 1) % cursorlimit;
+    
+    
+      
     __atomic_fetch_add(&data->main->globalwrite[data->mystream * 128], 1, __ATOMIC_RELAXED);
+}
+long thisgroup = data->main->globalwrite[data->mystream * 128] / epochsize;
+  
+  if (thisgroup != data->lastgroup) {
+    // printf("ndw group\n");
+      data->writecursor = 0;
+  }
   //printf("%d %d %d w\n", data->mystream, data->main->globalwrite[data->mystream * 128] % 0xff, data->threadindex);
  //data->mystream = (data->mystream + 1) % 8;
   //}
-   long thisgroup = data->main->globalwrite[data->mystream] / data->threadsize;
+   
   
    if (thisgroup != data->lastgroup) {
      if (SAMPLE == 1) {
@@ -464,6 +498,7 @@ int * threadwork(struct Data * data) {
      }
    }
    data->lastgroup = thisgroup;
+
    //  __atomic_fetch_add(&data->main->totalwrites, 1, __ATOMIC_ACQUIRE);
   /*
     if (data->main->globalwrite != 0 && (data->main->globalwrite % (data->threadsize)) == 0) {
@@ -486,21 +521,24 @@ int * threadwork(struct Data * data) {
       
           
             
-            long past = (((data->globalread[data->laststream]).global / (data->threadsize)) - 1) % 0xff;
+            long past = (((data->globalread[data->laststream]).global / (epochsize)) - 1) % epochwidth;
         
             if (past < 0) {
               past = 0;
             }
             
             // long buffer = (data->threadindex << 24) | (data->main->globalwrite % 0xf) << 16 | (data->main->writecursor % 0xf);
-        if (data->threadindex == 1) {
-          //printf("%d %d %d\n", data->laststream, past, data->globalread[data->laststream].cursor);
-        }
+        
         buffer = data->laststream << 24 | (past << 16) | data->globalread[data->laststream].cursor % 0xff;
+    int thistream = data->laststream; 
+    //buffer = data->laststream << 24 | (past << 16) | 0 % 0xff;
+    if (data->threadindex == 1) {
+          printf("r %d %d %d %d\n", data->laststream, past, data->globalread[data->laststream].cursor, data->main->works[buffer]);
+    }
     //printf("%d\n", data->readcursor);
     //printf("laststream %d\n", data->laststream);
       if (SAMPLE == 1) {
-
+struct Data * thread = &data->threads[data->threadindex];
         struct Epoch * epoch = &thread->epochs[thread->currentepoch];
         epoch->time = time;
   thread->currentepoch = (thread->currentepoch + 1) % thread->epochssize;
@@ -516,6 +554,8 @@ int * threadwork(struct Data * data) {
         // printf("%d\n", data->main->works[buffer]);
         if (data->main->works[buffer] != -1) {
           data->successreads++;
+          data->globalread[thistream].cursor = 0;
+          data->main->works[buffer] = -1;
           if (PRINT == 1) {
         printf("%d received bcast %d from %d\n", data->threadindex, data->main->works[buffer], data->readcursor);
           }
@@ -526,28 +566,65 @@ int * threadwork(struct Data * data) {
           // }
                   // data->readcursor = (data->readcursor + 1) % 0xffffff;
         
-        data->globalread[data->laststream].global++;
-    int thistream = data->laststream; 
-    if (data->globalread[data->laststream].cursor + 1 == data->threadsize ) {
-       data->laststream = (data->laststream + 1) % 5;
-       if (data->laststream == data->mystream) {
-        data->laststream = (data->laststream + 1) % 5;
-       }
+        
+    // how to count through the streams
+    /*
+
+    for (int stream = 0 ; stream < 5 ; stream++) {
+      for (int global = 0 ; global < 0xff; global++) {
+        for (int cursor = 0 ; cursor < data->threadsize ; cursor++) {
+          
+        }
+      }
+    }
+
+    */
+    
+    // data->globalread[thistream].global++;
+    
+    
+    if (data->globalread[thistream].global + 1 == thiswrite) {
+      data->globalread[thistream].cursor = 0;
+      data->globalread[thistream].global++;
+      data->laststream = (data->laststream + 1);
+      if (data->laststream == data->mystream) {
+        data->laststream = (data->laststream + 1);
+      }
+    } else if (data->globalread[thistream].cursor < cursorlimit) {
+      data->globalread[thistream].global++;
+      
+      if (data->globalread[thistream].cursor + 1 == cursorlimit) {
+        data->laststream = (data->laststream + 1);
+        
+        data->globalread[thistream].cursor = 0;
+      } else {
+        data->globalread[thistream].cursor = (data->globalread[thistream].cursor + 1) % cursorlimit;
+      }
+    }
+    if (data->globalread[thistream].cursor == cursorlimit) {
+      
+      data->globalread[thistream].global++;
+      data->globalread[thistream].cursor = 0;
+    }
+    if (data->laststream == data->mystream) {
+      data->laststream = data->laststream + 1;
+    }
+    if (data->laststream == 5) {
+       data->laststream = 0;
+       data->globalread[data->laststream].cursor = 0;
        // printf("%d\n", data->laststream);
      }
-    data->globalread[thistream].cursor = (data->globalread[thistream].cursor + 1) % data->threadsize;
+    //data->globalread[thistream].cursor = (data->globalread[thistream].cursor + 1);
+    // data->globalread[thistream].cursor = data->globalread[thistream].cursor % cursorlimit;
     
-         if (data->globalread[thistream].cursor == data->threadindex) {
-           data->globalread[thistream].cursor++;
-         }
+         
       
-        if ((data->globalread[thistream].cursor % data->threadsize) == 0) {
-          // printf("reader epoch\n");
-          data->globalread[thistream].cursor = 0;
-        }
+      
     
     //printf("%ld\n", data->main->currentread);
-      }
+      
+ 
+}
     //__atomic_fetch_add(&data->main->globalread, 1, __ATOMIC_RELAXED);
       
 //>writecursor, 1, __ATOMIC_RELAXED);
@@ -652,7 +729,7 @@ void * work(void * arg) {
   
   
   int stop = 0;
-  while (data->running == 1) {
+  while (data->running > 0)  {
     writers = 0;
     readers = 0;
     stop = 0;
@@ -727,7 +804,7 @@ printf("%ld chunks\n", chunkslen);
     data[x].bucketstart = x * buckets ;
     data[x].globalwrite = globalwrite;
     data[x].loglevel = debug;
-    data[x].running = 1;
+    data[x].running = 2;
     data[x].threadindex = x;
     data[x].worksize = worksize;
     
@@ -742,7 +819,7 @@ printf("%ld chunks\n", chunkslen);
     data[x].read = 0;
     data[x].write = worksize;
     data[x].readcursor = threadsize - 1;
-    data[x].writecursor = threadsize - 1;
+    data[x].writecursor = 0;
     data[x].freelist = freelist;
     data[x].chunksize = chunksize;
     data[x].chunkslen = chunkslen;
@@ -773,10 +850,21 @@ printf("%ld chunks\n", chunkslen);
   };
   
   nanosleep(&time, &rem);
+  
+  printf("runphased\n");
   for (int x = 0; x < threadsize ; x++) {
-    data[x].running = 0;
+    data[x].running--;
     
   }
+  
+ printf("draining\n");
+  //time.tv_sec = 3;
+  //nanosleep(&time, &rem);
+  for (int x = 0; x < threadsize ; x++) {
+    data[x].running--;
+  }
+  
+  //nanosleep(&time, &rem);
   for (int x = 0; x < threadsize; x++) {
     void *res;
     pthread_join(thread[x], &res);
@@ -801,7 +889,7 @@ printf("%ld chunks\n", chunkslen);
     printf("%ld successreads\n", data[x].successreads);
     goods += data[x].successreads;
   }
-  printf("%d good reads\n", goods);
+  
   long freq_writes = 0;
   
   for (int x = 0; x < threadsize; x++) {
@@ -836,7 +924,8 @@ printf("%ld chunks\n", chunkslen);
     printf("%ld\n", data[x].wpoll.tv_nsec - data[x].wavail.tv_nsec);
     printf("sw %ld\n", data[x].swend.tv_nsec - data[x].swstart.tv_nsec);
   } 
-
+  printf("%ld good reads per second\n", goods / seconds);
+  printf("%ld good reads per second latency\n", 1000000000 / (goods / seconds));
   if (SAMPLE == 1) {
   char * filename = calloc(100, sizeof(char));
   char * buf = calloc(1000, sizeof(char));
