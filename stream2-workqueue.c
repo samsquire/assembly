@@ -21,6 +21,12 @@ struct Cursor {
   int cursor;
 };
 
+struct Access {
+  int stream;
+  int global;
+  int cursor;
+};
+
 struct Epoch {
   int thread;
   struct timespec time;
@@ -128,6 +134,8 @@ struct Data {
   int mystream;
   int laststream;
   long successreads;
+  struct Access * reads;
+  struct Access * writes;
 };
 
 /*
@@ -478,7 +486,7 @@ int * threadwork(struct Data * data) {
 long thisgroup = data->main->globalwrite[data->mystream * 128] / epochsize;
   
   if (thisgroup != data->lastgroup) {
-    // printf("ndw group\n");
+     // printf("ndw group\n");
       data->writecursor = 0;
   }
   //printf("%d %d %d w\n", data->mystream, data->main->globalwrite[data->mystream * 128] % 0xff, data->threadindex);
@@ -533,7 +541,7 @@ long thisgroup = data->main->globalwrite[data->mystream * 128] / epochsize;
     int thistream = data->laststream; 
     //buffer = data->laststream << 24 | (past << 16) | 0 % 0xff;
     if (data->threadindex == 1) {
-          printf("r %d %d %d %d\n", data->laststream, past, data->globalread[data->laststream].cursor, data->main->works[buffer]);
+          //printf("r %d %d %d %d\n", data->laststream, past, data->globalread[data->laststream].cursor, data->main->works[buffer]);
     }
     //printf("%d\n", data->readcursor);
     //printf("laststream %d\n", data->laststream);
@@ -610,7 +618,7 @@ struct Data * thread = &data->threads[data->threadindex];
       data->laststream = data->laststream + 1;
     }
     if (data->laststream == 5) {
-       data->laststream = 0;
+       data->laststream = 1;
        data->globalread[data->laststream].cursor = 0;
        // printf("%d\n", data->laststream);
      }
@@ -797,6 +805,8 @@ printf("%ld chunks\n", chunkslen);
   posix_memalign((void **)&globalwrite, 128, 128 * 4);
   struct Cursor * globalread = calloc(threadsize, sizeof(struct Cursor));
   data[0].works = works;
+  struct Access * reads = calloc(10000000, sizeof(struct Access));
+  struct Access * writes = calloc(10000000, sizeof(struct Access));
   for (int x = 0; x < threadsize ; x++) {
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
     CPU_SET(cpu += 1, data[x].cpu_set);
@@ -944,4 +954,9 @@ printf("%ld chunks\n", chunkslen);
     }
   }
   }
+  for (int x = 0 ; x < worksize ; x++) {
+    if (works[x] != -1) {
+      //printf("unread work\n");
+    }
+  } 
 }
