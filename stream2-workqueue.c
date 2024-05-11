@@ -408,7 +408,7 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 }
 
 int * threadwork(struct Data * data) {
-  int cursorlimit = data->threadsize;
+  int cursorlimit = 7;
   int epochsize = data->threadsize;
   int epochwidth = 0xff;
  // printf("%d\n", data->threadindex);

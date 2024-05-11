@@ -393,17 +393,14 @@ singlewriter:
 threadwork:
 .LFB78:
 	.cfi_startproc
-	pushq	%r12
-	.cfi_def_cfa_offset 16
-	.cfi_offset 12, -16
 	pushq	%rbp
-	.cfi_def_cfa_offset 24
-	.cfi_offset 6, -24
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
 	pushq	%rbx
-	.cfi_def_cfa_offset 32
-	.cfi_offset 3, -32
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
 	movq	%rdi, %rbx
-	subq	$32, %rsp
+	subq	$40, %rsp
 	.cfi_def_cfa_offset 64
 	movl	104(%rdi), %ebp
 	movl	$4, %edi
@@ -449,10 +446,10 @@ threadwork:
 	jge	.L65
 .L64:
 	cltd
-	movl	4(%rdi), %esi
 	addq	$1, 72(%rbx)
+	movl	4(%rdi), %esi
 	idivl	%ebp
-	movl	%esi, %r12d
+	movl	%esi, %ebp
 	subl	$1, %eax
 	movslq	%eax, %rdx
 	movl	%eax, %r11d
@@ -471,23 +468,24 @@ threadwork:
 	cltq
 	testq	%rax, %rax
 	cmovs	%rdx, %rax
-	movslq	%esi, %rdx
-	sarl	$31, %r12d
-	imulq	$-2139062143, %rdx, %rdx
+	sarl	$31, %ebp
 	sall	$24, %r11d
 	salq	$16, %rax
-	shrq	$32, %rdx
-	addl	%esi, %edx
-	sarl	$7, %edx
-	subl	%r12d, %edx
-	movl	%edx, %r12d
-	sall	$8, %r12d
-	subl	%edx, %r12d
-	movl	%esi, %edx
-	subl	%r12d, %edx
-	orl	%edx, %r11d
-	movslq	%r11d, %r11
-	orq	%r11, %rax
+	movq	%rax, %rdx
+	movslq	%esi, %rax
+	imulq	$-2139062143, %rax, %rax
+	shrq	$32, %rax
+	addl	%esi, %eax
+	sarl	$7, %eax
+	subl	%ebp, %eax
+	movl	%eax, %ebp
+	sall	$8, %ebp
+	subl	%eax, %ebp
+	movl	%esi, %eax
+	subl	%ebp, %eax
+	orl	%r11d, %eax
+	cltq
+	orq	%rdx, %rax
 	addq	112(%r10), %rax
 	cmpb	$-1, (%rax)
 	je	.L66
@@ -499,13 +497,13 @@ threadwork:
 	addq	%r8, %rdi
 	movl	4(%rdi), %esi
 .L66:
-	cmpl	%esi, %ebp
-	jle	.L67
+	cmpl	$6, %esi
+	jg	.L67
 	addl	$1, %esi
 	addl	$1, (%rdi)
 	movl	%esi, 4(%rdi)
 .L67:
-	cmpl	%esi, %ebp
+	cmpl	$7, %esi
 	je	.L74
 	cmpl	%ecx, %r9d
 	je	.L75
@@ -516,15 +514,13 @@ threadwork:
 	movq	24(%rsp), %rax
 	subq	%fs:40, %rax
 	jne	.L77
-	addq	$32, %rsp
+	addq	$40, %rsp
 	.cfi_remember_state
-	.cfi_def_cfa_offset 32
+	.cfi_def_cfa_offset 24
 	xorl	%eax, %eax
 	popq	%rbx
-	.cfi_def_cfa_offset 24
-	popq	%rbp
 	.cfi_def_cfa_offset 16
-	popq	%r12
+	popq	%rbp
 	.cfi_def_cfa_offset 8
 	ret
 	.p2align 4,,10
@@ -600,14 +596,23 @@ threadwork:
 .L62:
 	movb	%r8b, (%r9)
 	movl	384(%rbx), %eax
-	addl	$1, %eax
-	cltd
-	idivl	%ebp
+	leal	1(%rax), %edx
+	movslq	%edx, %rax
+	movl	%edx, %esi
+	imulq	$-1840700269, %rax, %rax
+	sarl	$31, %esi
+	shrq	$32, %rax
+	addl	%edx, %eax
+	sarl	$2, %eax
+	subl	%esi, %eax
+	leal	0(,%rax,8), %esi
+	subl	%eax, %esi
 	movl	908(%rbx), %eax
-	sall	$7, %eax
-	cltq
+	subl	%esi, %edx
 	movl	%edx, 384(%rbx)
 	movq	40(%rbx), %rdx
+	sall	$7, %eax
+	cltq
 	movq	896(%rdx), %rdx
 	lock addq	$1, (%rdx,%rax,8)
 	jmp	.L61
