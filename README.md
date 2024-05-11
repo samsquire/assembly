@@ -50,16 +50,18 @@ four:
 Do all buffers yield ?
 Can a buffer be ready without a yield?
 
+
+
 # Why I am unsatisfied with existing technology
 
 I want to be able to run a tool and see this information:
 
 ```
 $ asyncps
-   cpu tasks:io ratio 20:30
-
- request
-  [+] client
+  async ratio
+    20:1
+   async ratio
+  [+] client-routine (5789)
    [+] send-request
    [+] read-request
    
@@ -354,6 +356,8 @@ The scheduler has to check if either can run and then run one of them.
 
 # Types of parallelism
 
+See this blog post: https://github.com/alexpusch/rust-magic-patterns/blob/master/rust-stream-visualized/Readme.md
+
 I want to handle the kinds of parallelism that are useful.
 
 How do we representing turing complete parallelism that can be turned on and off.
@@ -379,7 +383,7 @@ Separated parallelism
 GUIs
 Network app split io parallelism
 
-Thered a parallelism where body of loop is divided into pieces and each segment is replicated across threads.
+Threed a parallelism where body of loop is divided into pieces and each segment is replicated across threads.
 
 Blocks are replicated across threads
 
@@ -420,7 +424,7 @@ the pattern of messages is parsed
 Being able to jump to any state in parallel.
 letter H is a join
 
-# Join patterns: Waiting for events to complete
+# Join patterns: Waiting for events to complete and pattern matching
 
 When threads have completed their task they need to move to the next task. Or a sequence that is split across threads needs to resume processing.
 
@@ -527,6 +531,9 @@ Join of a for loop - it's a relation, each iteration is a line
 High level semantic Data flow analysis 
 
 # Iterators and basic blocks
+
+flywheels and gear engagement
+the block target depends on block origin/previous
 
 You can think of an iterator as basic blocks.
 

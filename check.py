@@ -1,5 +1,5 @@
 recs = []
-for line in open("samples15").read().split("\n"):
+for line in open("samples").read().split("\n"):
   comps = line.split(" ")
   #print(comps)
   if comps[0] == "":
@@ -24,12 +24,13 @@ for rec in recs:
     duplicate = None
     an = None
     for index, item in enumerate(group):
-      
-      if item[2] not in known:
-        known[item[2]] = (index, item)
-      elif known[item[2]][1][3] != item[3]:
+      if item[2] == 0:
+        continue
+      if item[3] not in known:
+        known[item[3]] = (index, item)
+      elif known[item[3]][1][4] != item[4]:
         duplicate = (index, item)
-        an = known[item[2]]
+        an = known[item[3]]
         break
     if duplicate:
       print("duplicate {} {}".format(duplicate, an))
