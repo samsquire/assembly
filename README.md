@@ -4,7 +4,25 @@ How do you implement a high performance low latency concurrency and asynchronous
 
 How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution for things such as parallel joins?
 
-This is a GitHub repository of components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
+ * use threads for paralellism
+ * split control flow into these threads but do not join (synchronize) frequently - shard truly with no synchronization on the hot path
+ * minimise contention of locks, atomics or compare and swap
+ * split threads into a topology so thread pairs for barriers or 4 threads for atomic synchronizer
+ * split memory locations to avoid contention on a field
+ * avoid locks/mutexes and use lockfree algorithms
+ * minimise the number crossover communication points between shards
+ * have strict per-thread memory ownership
+ * use padding alignment to avoid false sharing
+ * use io_uring
+ * use linear arrays (vectors)
+ * use structures of arrays
+ * use memory tiling
+ * use strides
+ * use column major or row major access pattern
+ * use database technology and lessons
+ * use async/coroutines
+
+This is a GitHub repository of some components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
 I am building a high performance low latency async parallel runtime as a hobby.
 
@@ -13,6 +31,8 @@ This is designed for low latency and high throughput parallelism on large multic
 You can speed up computation by doing things at the same time - paralellism. Amdahls law means the speedup expectation is limited by the serialised portion of the work. Thread safety by mutexes suffer from contention when used by lots of threads and restrict useful parallelism. Atomics and compare and swap are tools that also suffer from contention.
 
 Lock free algorithms don't use mutexes but use atomics or compare and swap.
+
+One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work.
 
 Here's a parallel version of this graph in assembly. Parallel control flow.
 
@@ -46,6 +66,8 @@ middle:
 three:
 four:
 ```
+One thrrad can handle one and another two and another thread the remaining pipeline.
+
 
 Do all buffers yield ?
 Can a buffer be ready without a yield?
@@ -54,13 +76,15 @@ Can a buffer be ready without a yield?
 
 # Why I am unsatisfied with existing technology
 
-I want to be able to run a tool and see this information:
+I dont think existing runtimes have good observability for async coroutine behaviour.
+
+I want to be able to run a tool  asyncps and see this information:
 
 ```
-$ asyncps
-  async ratio
-    20:1
-   async ratio
+$ aps
+  async ratio 20:5
+  coroutine 200 cos/sec
+  buffers 10300 second
   [+] client-routine (5789)
    [+] send-request
    [+] read-request
@@ -71,12 +95,15 @@ $ asyncps
 +]
 [+
 
+I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
 
-# Where do you draw the horizontal line ?
+# Synchronization: Where do you draw the horizontal line ?
+
+If you think of parallel and concurrent system as interlocking gears the more engaged the gears they are the more synchronization there is.
 
 In any multithreaded system there is a horizontal line.
 
-I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
+
 
 
 
@@ -116,7 +143,7 @@ Now if we add parallelism to this. You could be executing a task-c at the same t
 
 Now imagine a server that processes user sessions in paralllel.
 
-The global pipeline is also turing complete.
+The global pipeline is also turing complete: states can be returned to.
 
 Your server is fully parallel. It has a coroutine for each connection and each request that the server makes is also in its own coroutine.
 
@@ -136,7 +163,7 @@ I've written a toy JIT compiler and a number of parallel  lockfree runtimes for 
 
 Each of these subprojects had a different performance profile.
  * atomic bcast gets 9-10 million requests per second with 15 threads with latency around 100 nanoseconds
-* the starbarrier multibarrier gets 30 million requests per second with lafency around 60
+* the starbarrier multibarrier gets 30 million requests per second between thread pairs with lafency around 60
 * the LMAX Disruptor gets latency around 50-120 depending on topology
 
 To put this into perspective: this allows the number of parallel splits (or forks) to occur per second.
@@ -147,7 +174,7 @@ One important thing is that the more threads that can write, the more contention
 
 There are the problems I shall talk about and this repository tries to make solutions to:
 
- * code generation for coroutines. Do ee genrrate assembly with labels and need an assembler or do we write a linker?
+ * code generation for coroutines. Do we generate assembly with labels and need an assembler or do we write a linker?
  * cheap runtime scheduler
  * thread safe data streams
  * arbitrary turing completr iterators
@@ -168,6 +195,7 @@ There are the problems I shall talk about and this repository tries to make solu
  * high throughput
  * low contention on the thread safe parts
  * how to have turing complete parallelism
+ * unevenly sized control flow
 
 In the nodejs world which uses libuv and handles IO and compute tasks. Nodejs and browser engines use promises and async await to specify task sequences.
 
@@ -187,7 +215,7 @@ Stackful coroutines can call regular functions and stackless coroutines can only
 
 Direction in control flow can limit design flexibility.
 
-If you think of a microservice archirecture you might sometimes want to be called when things happen or to call yourself.
+If you think of a microservice architecture you might sometimes want to be called when things happen or to call yourself.
 
 Its the insertion point of indirection where you change direction of control or flow. From push to pull or pull to push or sync to async or async to sync.
 
@@ -198,13 +226,62 @@ Actors is another approach.
 
 Message passed control flow is an approach to coroutine scheduling which allows threads to direct control flow of other threads.
 
+# Unevenly sized control flow
+
+In an average aysnc code you have regions that can run and then there are pauses where other code runs. If you run the same async tasks multiple times then you might have uneven segments of computation that can be parallel.
+
+In languages such as Rust and Go the scheduler is a work stealing so that work can unevey accumulate on different threads. This requires work to move work to another thread.
+
+The nature of the ideal scheduling depends on all the code that can run.
+
+
+
 # Coroutine states
 
+I am unfamiliar with the literature on session types but these might be similar.
 
+A coroutine has a number of different states which is actually a graph of valid control flow destinations from its current position.
+
+For example, code that 
+
+Transparent interleaving.
+
+Hidden pseudo method calls
 
 A data structure of control flows.
 graph of coroutine states
 coroutine basic blocks
+
+# Nested for loop data transformation
+
+for buffer in table:
+  nextbuffer = next_destination()
+  next_buffer[table[buffer]] = f()
+
+arry[x] = arry2[b]
+this can be autoparallelised
+
+expressions are traversals.. easy to pluralise code or add indirections!
+
+types hardcoded lines
+parallelism and plurality lines
+
+# Monad ordering problem
+
+draw the components/contexts and draw the data flow as lines
+
+then the lines are reconcilef automatically
+
+# Subsumption Pratt parsing
+
+
+# Variable dimensions, growing and joins
+
+if theres a relationship between two things it might be in a direction
+
+allow the software to be dynamically reconfigured
+
+
 
 # Calling convention
 
@@ -1602,3 +1679,35 @@ transformation matrix
 interpreter
 interpreter for traversals
 buffer coordinate mapper
+
+sum types applied to time
+two streams of sum types interact patterns, they fall into buckets
+
+where there is an potential interaction between different streams is an active region
+
+range of an IO chunk
+data structure for scanning to arbitrary region
+in the same region it is efficient
+splitting text by newlines
+
+how to fast do things that require lots of IO
+
+text concatenation, insert a space somewhere
+
+token emitter C library binary file format for fast concatenation and paralel scanning
+token emitter GUI
+
+protocol that is an API
+
+extract semantics from interpreted languages
+
+satisfying C language
+compilation satisfying, 
+
+types distribution
+
+add types together
+
+combining models together efficiently
+
+algebra of modern languages doesnt do what i want

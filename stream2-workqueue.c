@@ -13,7 +13,7 @@
 #define NEW_EPOCH 1
 
 #define DURATION 1
-#define SAMPLE 0
+#define SAMPLE 1
 #define THREADS 15
 #define PRINT 0
 #define ACCESSLOG 0
@@ -408,8 +408,8 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 }
 
 int * threadwork(struct Data * data) {
-  int cursorlimit = 7;
-  int epochsize = data->threadsize;
+  int cursorlimit = 5;
+  int epochsize = 5;
   int epochwidth = 0xff;
  // printf("%d\n", data->threadindex);
    // asm volatile (""::: "memory");
@@ -444,7 +444,7 @@ int * threadwork(struct Data * data) {
   //if (data ->threadindex == 0 ) {
   
    
-   
+   for (int x = 0 ; x < data->threadsize ; x++) {
     
     int global = (data->main->globalwrite[data->mystream * 128] / (epochsize)) % epochwidth;
     
@@ -506,7 +506,7 @@ struct Access * access = &data->writes[data->cwrite];
      
     data->writecursor = (data->writecursor + 1) % cursorlimit;
     
-    
+   }
       
     __atomic_fetch_add(&data->main->globalwrite[data->mystream * 128], 1, __ATOMIC_RELAXED);
 //}
@@ -554,7 +554,9 @@ struct Access * access = &data->writes[data->cwrite];
  // {
    //printf("%ld  %ld r%d\n", data->main->currentread, data->prevread, data->threadindex);
   long thiswrite = data->main->globalwrite[data->laststream * 128];
+  
   if (data->globalread[data->laststream].global < thiswrite || thiswrite == 0) {  
+    for (int x = 0; x < data->threadsize - 1; x++) {
   // printf("%d\n", thiswrite);
    data->freq++;
   
@@ -647,6 +649,7 @@ struct Data * thread = &data->threads[data->threadindex];
       
     
     if (data->globalread[thistream].cursor < cursorlimit) {
+    
       data->globalread[thistream].global++;
         
         
@@ -671,7 +674,7 @@ data->globalread[thistream].cursor = 0;
        // printf("%d\n", data->laststream);
      }
     
-     
+  }
  // }
     //data->globalread[thistream].cursor = (data->globalread[thistream].cursor + 1);
     // data->globalread[thistream].cursor = data->globalread[thistream].cursor % cursorlimit;

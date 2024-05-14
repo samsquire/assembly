@@ -1,19 +1,29 @@
+import mmap
+
 recs = []
-for line in open("samples").read().split("\n"):
+f = open("samples", "r")
+# memory-map the file, size 0 means whole file
+mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+line = mm.readline().decode("utf8")
+
+while line != "":
   comps = line.split(" ")
+  line = mm.readline().decode("utf8")
+  # print(comps)
   #print(comps)
   if comps[0] == "":
     continue
   try:
-    data = [int(x) for x in comps]
+    data = [int(x) for x in comps[:-1]]
     recs.append(data)
   except:
     pass
   comps = None
+
   #print(data)
 
 print("read")
-recs.sort(key= lambda x: x[0])
+recs.sort(key=lambda x: x[0])
 
 print("loaded")
 group = []
@@ -37,5 +47,3 @@ for rec in recs:
     group.clear()
   else:
     group.append(rec)
-    
-
