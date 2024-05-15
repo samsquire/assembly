@@ -13,7 +13,7 @@
 #define NEW_EPOCH 1
 
 #define DURATION 1
-#define SAMPLE 1
+#define SAMPLE 0
 #define THREADS 15
 #define PRINT 0
 #define ACCESSLOG 0

@@ -56,9 +56,10 @@ movq $1, 1(%rsi)
 
 # give data
 movq $ONE_LOOP, %rsi
-movq %eip, %rdi
-movq %rsp, %rdx
-movq %rdi, %rcx
+
+movq %rsp, %rdx # stack
+movq %rdi, %rcx # buffer
+movq %eip, %rdi # where we are, will be added to
 jmp yield
 
 two:
@@ -76,14 +77,17 @@ Can a buffer be ready without a yield?
 
 # Why I am unsatisfied with existing technology
 
+I've written a toy JIT compiler and a number of parallel  lockfree runtimes for message passing: a phaser barrier inspired by bulk synchronous parallel, an LMAX Disruptor inspired ringbuffer, a single writer data mover and a parallel buffer manager (called atomic bcast). I have implemented a toy SQL database and am inspired by relational algebra and RocksDB.
+
 I dont think existing runtimes have good observability for async coroutine behaviour.
 
 I want to be able to run a tool  asyncps and see this information:
 
 ```
 $ aps
+  coroutines:threads 20000:12
   async ratio 20:5
-  coroutine 200 cos/sec
+  coroutine 8000 cos/sec
   buffers 10300 second
   [+] client-routine (5789)
    [+] send-request
@@ -159,7 +163,7 @@ How I have chosen to think of async tasks is that there is events that are recor
  * an event represents the completion of some action or completion of an coroutine task state/step
  * an event can indicate IO completion or compute completion or coroutine state change
 
-I've written a toy JIT compiler and a number of parallel  lockfree runtimes for message passing: a phaser barrier inspired by bulk synchronous parallel, an LMAX Disruptor inspired ringbuffer, a single writer data mover and a parallel buffer manager (called atomic bcast). I have implemented a toy SQL database and am inspired by relational algebra and RocksDB.
+
 
 Each of these subprojects had a different performance profile.
  * atomic bcast gets 9-10 million requests per second with 15 threads with latency around 100 nanoseconds
@@ -1711,3 +1715,7 @@ add types together
 combining models together efficiently
 
 algebra of modern languages doesnt do what i want
+
+conditional array copy
+
+an relational set that is a sequence incrementing or pattern
