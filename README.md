@@ -1,5 +1,7 @@
 # parallel data race server
 
+[Jump to summary of this repos files](#summary)
+
 How do you implement a high performance low latency concurrency and asynchronous userspace parallel server programs? How does async work?
 
 How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution for things such as parallel joins?
@@ -7,11 +9,11 @@ How do you implement fast parallel kernel commands such as parallel map? Or para
  * use threads for paralellism
  * split control flow into these threads but do not join (synchronize) frequently - shard truly with no synchronization on the hot path
  * minimise contention of locks, atomics or compare and swap
- * split threads into a topology so thread pairs for barriers or 4 threads for atomic synchronizer
- * split memory locations to avoid contention on a field
+ * split threads into a topology for low latency (50-120 nanoseconds) so thread pairs for barriers or 4 threads for atomic synchronizer
+ * split memory locations to avoid contention on a parricular memory address on the bus when using atomics
  * avoid locks/mutexes and use lockfree algorithms
- * minimise the number crossover communication points between shards
- * have strict per-thread memory ownership
+ * minimise the number of crossover communication points between threads and treat them as independent shards
+ * have strict per-thread memory ownership. communication changes the owner unless its readonly.
  * use padding alignment to avoid false sharing
  * use io_uring
  * use linear arrays (vectors)
@@ -19,12 +21,14 @@ How do you implement fast parallel kernel commands such as parallel map? Or para
  * use memory tiling
  * use strides
  * use column major or row major access pattern
- * use database technology and lessons
+ * use database technology and its lessons. relational algebra
  * use async/coroutines
+ * arrange a hiearchy of arrays is like register allocation for index transformations (perfect hashing)
+ * Avoid scheduling costs if the pipeline is a pipeline 
 
 This is a GitHub repository of some components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
-I am building a high performance low latency async parallel runtime as a hobby.
+I am building a high performance low latency async parallel runtime as a hobby. My focus so far has been the communication runtime which provides safety between threads and coroutines.
 
 This is designed for low latency and high throughput parallelism on large multicore machines such as 96 core or 192 core machines.
 
@@ -32,7 +36,7 @@ You can speed up computation by doing things at the same time - paralellism. Amd
 
 Lock free algorithms don't use mutexes but use atomics or compare and swap.
 
-One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work.
+One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work and use the available bandwidth.
 
 Here's a parallel version of this graph in assembly. Parallel control flow.
 
@@ -41,7 +45,7 @@ Here's a parallel version of this graph in assembly. Parallel control flow.
 ```
 one:
 one_loop:
-
+# get a buffer
 # pushq %eip (if use jmps)
 movq $128, %rdi # buffer size
 call get_buffer
@@ -51,9 +55,11 @@ call get_buffer
 movq 1(%rdi), %rax
 move %rax, 1(%eax)
 
+# indicate buffer is finished
 movq $1, 1(%rsi)
 # move buffer readiness flag
 
+# store coroutine state
 # give data
 movq $ONE_LOOP, %rsi
 
@@ -67,17 +73,17 @@ middle:
 three:
 four:
 ```
-One thrrad can handle one and another two and another thread the remaining pipeline.
 
+One thread can handle one and another two and another thread the remaining pipeline.
 
-Do all buffers yield ?
-Can a buffer be ready without a yield?
+Do user applications use an io_uring style interface to handle buffer readiness? I would like to abstract the control flow from the applications.
 
+Colescing IO events
 
 
 # Why I am unsatisfied with existing technology
 
-I've written a toy JIT compiler and a number of parallel  lockfree runtimes for message passing: a phaser barrier inspired by bulk synchronous parallel, an LMAX Disruptor inspired ringbuffer, a single writer data mover and a parallel buffer manager (called atomic bcast). I have implemented a toy SQL database and am inspired by relational algebra and RocksDB.
+I've written a toy JIT compiler and a number of parallel  lockfree runtimes for message passing: a phaser barrier inspired by bulk synchronous parallel, an LMAX Disruptor inspired ringbuffer, a single writer data mover and a parallel buffer manager (called atomic bcast). I have implemented a toy multimodal SQL database and am inspired by relational algebra and RocksDB.
 
 I dont think existing runtimes have good observability for async coroutine behaviour.
 
@@ -88,7 +94,7 @@ $ aps
   coroutines:threads 20000:12
   async ratio 20:5
   coroutine 8000 cos/sec
-  buffers 10300 second
+  buffer transfers 10300 second
   [+] client-routine (5789)
    [+] send-request
    [+] read-request
@@ -101,15 +107,13 @@ $ aps
 
 I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
 
-# Synchronization: Where do you draw the horizontal line ?
+# Synchronization: Where do you draw the horizontal line?
 
 If you think of parallel and concurrent system as interlocking gears the more engaged the gears they are the more synchronization there is.
 
-In any multithreaded system there is a horizontal line.
+If you disengage the gears then the system is without impedance an can operate independently and independently fast.
 
-
-
-
+In a multithreaded progtam If you draw shards as a vertical tree, each thread's work goes from top down. If you synchronize there is a horizontal line that represents communication. Where you put this line determines performance characteristics.
 
 One way to think of async tasks is to think of some code that has two sides to it - the task and then the code that temporally runs after the task is completed. This is typically a callback in other languages. Or a state machine rewritten async/await. LMAX splits IO into three parts - the part before the IO, the IO and the part to happen afterwards.
 
@@ -170,7 +174,7 @@ Each of these subprojects had a different performance profile.
 * the starbarrier multibarrier gets 30 million requests per second between thread pairs with lafency around 60
 * the LMAX Disruptor gets latency around 50-120 depending on topology
 
-To put this into perspective: this allows the number of parallel splits (or forks) to occur per second.
+To put this into perspective: this allows the number of parallel splits (or forks) to occur per second. Or work pickups.
 
 One important thing is that the more threads that can write, the more contention you will have if they all want to write at the same time.
 
@@ -181,7 +185,7 @@ There are the problems I shall talk about and this repository tries to make solu
  * code generation for coroutines. Do we generate assembly with labels and need an assembler or do we write a linker?
  * cheap runtime scheduler
  * thread safe data streams
- * arbitrary turing completr iterators
+ * arbitrary turing complete iterators
  * calling convention between asynchronous tasks/coroutine to asynchronous task/coroutine. How does data go between tasks? Its not by the stack since the stack changes and there could be on a different thread so thread safety is needed
  * a syntax or API to define the ordering of asynchronous tasks. In Javascript this might be async library tools that allow chaining together promises or `.then`
  * switching stacks when changing coroutines
@@ -200,12 +204,13 @@ There are the problems I shall talk about and this repository tries to make solu
  * low contention on the thread safe parts
  * how to have turing complete parallelism
  * unevenly sized control flow
+ * loop stopping: how do you preempt a loop?
 
 In the nodejs world which uses libuv and handles IO and compute tasks. Nodejs and browser engines use promises and async await to specify task sequences.
 
-In single threaded designs there is also data flow, control flow and direction which program structure encodes. Who asks for what and who sends what where. Then you have logistics moving data to where it is needed or moving variables between and in parameters. If you refactor large code bases you are familiar with moving parameters around and making things available in different places. (Aside: this grouping style of "things" is an organisation could be a useful data structure)
+In single threaded designs there is also data flow, control flow and direction which program structure encodes. Who asks for what and who sends what where. Then you have logistics moving data to where it is needed or moving variables between and in parameters. If you refactor large code bases you are familiar with moving parameters around and making things available in different places. (Aside: this grouping style of "things" is an organisation could be a useful data structure Make this available here.)
 
-You can think of code converging on a memory location or register from different control flows.
+You can think of code converging on a memory location or register from different control flows (such as different coroutines)
 
 For example, a compiler pipeline has multiple stages. You can call the lexer from the tokeniser or run them as independent tasks and coordinate them from above in one place - this is composition. It can be desirable to decouple components for reuseability by other people or extension permutation.
 
@@ -224,7 +229,7 @@ If you think of a microservice architecture you might sometimes want to be calle
 Its the insertion point of indirection where you change direction of control or flow. From push to pull or pull to push or sync to async or async to sync.
 
 Message passing is one approach.
-In a message passing design you handle messages with different identities and the identity of the message determines what you do.
+In a message passing design you handle messages with different identities and the identity of the message determines what you do: where control flow jumps.
 
 Actors is another approach.
 
@@ -246,9 +251,11 @@ I am unfamiliar with the literature on session types but these might be similar.
 
 A coroutine has a number of different states which is actually a graph of valid control flow destinations from its current position.
 
-For example, code that 
+For example, code that paginates or load balances
 
 Transparent interleaving.
+
+Automatic composition: you can refer to the aggregated output of a different component
 
 Hidden pseudo method calls
 
@@ -258,12 +265,22 @@ coroutine basic blocks
 
 # Nested for loop data transformation
 
+Computers are good at array transformations. ECS and data orientated design are approaches to maximise CPU performance.
+
+Array that you write to and control flow. Reductions? Control flow over the data. Efficient control flow patterns.
+
+If the array has different shape when writing.
+
+```
 for buffer in table:
   nextbuffer = next_destination()
   next_buffer[table[buffer]] = f()
+```
 
 arry[x] = arry2[b]
 this can be autoparallelised
+
+split IO and compute
 
 expressions are traversals.. easy to pluralise code or add indirections!
 
@@ -274,10 +291,11 @@ parallelism and plurality lines
 
 draw the components/contexts and draw the data flow as lines
 
-then the lines are reconcilef automatically
+then the lines are reconciled automatically
 
 # Subsumption Pratt parsing
 
+Is there something generic about this? Trampolines, golangs mini interpreter for tail call optimisation
 
 # Variable dimensions, growing and joins
 
@@ -413,6 +431,8 @@ We want coroutine execution to be turing complete.
 
 A Buffer block is equivalent to control flow to another block on a another thread but is parallel.
 
+Variables for anything and addressing them.
+
 # Messaging
 
 A buffer event can force a coroutine to execute from a position, this is like an actor.
@@ -435,6 +455,8 @@ runtime.either(a, b);
 
 The scheduler has to check if either can run and then run one of them.
 
+Fairness
+
 # Types of parallelism
 
 See this blog post: https://github.com/alexpusch/rust-magic-patterns/blob/master/rust-stream-visualized/Readme.md
@@ -452,7 +474,7 @@ with regard to independence
 split IO
 recv independent with send
 
-Specify all the states and nest them. It cartedian product ?
+Specify all the states and nest them. It cartesian product ?
 
 move a moving thing
 runtime H
@@ -470,6 +492,9 @@ Blocks are replicated across threads
 
 # Integer calculation to memory location
 
+# Movement of a moving thing
+
+If two things can independently change states and we want to catch all changes between them when they change.
 
 # Protocols
 
@@ -609,7 +634,9 @@ Independent for loops - you specify how they overlap in sequence numbers
 Join of a for loop - it's a relation, each iteration is a line
 
 
-High level semantic Data flow analysis 
+High level semantic Data flow analysis of programming languages
+
+Whats easy what is hard from assembly perspective
 
 # Iterators and basic blocks
 
@@ -1171,8 +1198,50 @@ acknowledgement
 
 fractal mutex owned values in memory- determine memory location to write to
 
+# Event stream parsing
+
+We can think of the runtime as receiving events: buffers written to and coroutines pausing or resuming.
+
+Each thread of the runtime is processing events on that thread as a lexing source. Each thread monitors/observes other threads for events for triggering new behaviours.
+
+The scheduler is a proper parser which waits for patterns and issues commands.
+
+This uses the same techniques as pattern matching streams. It is a tree of spans where event submission is handled.
+
+An API for notifying that an address changed. Post a pointer for monitoring.
+
+
+If an event is fired that the parser doesnt handle then thats an error.
+
+Algebraic memory swaps linear types: terms and collections of terms and swapping
+
+coroutine
+  run states:
+    x
+    y
+    z
+  
+
+  if buffer[x] == 6:
+    fork a x b
+    while True:
+      if buffer[y] == 7:
+  
+
+coroutine
+  buffer[x] == 6
+  fire x
+
+The control flow of the parsing coroutine is the driving of the rest of the system.
+
+
+
+Do all buffers yield ?
+Can a buffer be ready without a yield?
+
 
 # also in this repository
+<a name="summary"/>
 
 This repository has:
 
@@ -1660,10 +1729,12 @@ down
 join
 relativise
 
+lenses
+
 a kernel maps data from one place to another place.
 
 compile codegen the changey glue code between the kernels
-maps integers 
+maps integers in array to positions
 loop striding and tiling
 
 nested dfs/bfs traversals and joins
@@ -1700,6 +1771,7 @@ text concatenation, insert a space somewhere
 
 token emitter C library binary file format for fast concatenation and paralel scanning
 token emitter GUI
+output to binary format that has fast access properties 
 
 protocol that is an API
 
@@ -1719,3 +1791,41 @@ algebra of modern languages doesnt do what i want
 conditional array copy
 
 an relational set that is a sequence incrementing or pattern
+
+simple crud - you submit a url to me.
+
+adding value to static sites
+
+traverse lang
+
+api when you create spans for differently indexed things
+
+truth maintenanxe
+and differential dataflow
+
+asts hard to visualise
+
+value grids, effective text guis
+algebra
+
+the components on the screen, there is a traversal of them
+
+lines added on click
+parallel just means more lines that are also in parallel
+
+ship sqlite to the client for sorts and joins..dont need to build a gui
+
+an interface can be whatever you want
+
+plurality is automatic depends where the lines hit.
+
+collection types with algebraic terms inside them
+
+write a component to do whatever you want. its always compatible.
+
+modular reuseable
+
+term rewriting what does it mean ? to ordering ?
+generates more and more terms
+
+you tell the syatem what the behaviour should be

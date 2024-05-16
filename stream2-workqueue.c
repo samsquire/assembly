@@ -409,7 +409,7 @@ int singlewriter(struct Data *data, long * available, int * readyreaders, int * 
 
 int * threadwork(struct Data * data) {
   int cursorlimit = 5;
-  int epochsize = 5;
+  int epochsize = 1;
   int epochwidth = 0xff;
  // printf("%d\n", data->threadindex);
    // asm volatile (""::: "memory");
@@ -859,7 +859,7 @@ printf("%ld chunks\n", chunkslen);
   posix_memalign((void **)&globalwrite, 128, 128 * 4);
   struct Cursor * globalread = calloc(threadsize, sizeof(struct Cursor));
   data[0].works = works;
-  int accesssize = 10000000;
+  int accesssize = 100000000;
   struct Access * reads = calloc(accesssize, sizeof(struct Access));
   struct Access * writes = calloc(accesssize, sizeof(struct Access));
   for (int x = 0; x < threadsize ; x++) {

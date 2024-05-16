@@ -393,90 +393,58 @@ singlewriter:
 threadwork:
 .LFB78:
 	.cfi_startproc
-	pushq	%r15
-	.cfi_def_cfa_offset 16
-	.cfi_offset 15, -16
 	pushq	%r14
-	.cfi_def_cfa_offset 24
-	.cfi_offset 14, -24
+	.cfi_def_cfa_offset 16
+	.cfi_offset 14, -16
 	pushq	%r13
-	.cfi_def_cfa_offset 32
-	.cfi_offset 13, -32
+	.cfi_def_cfa_offset 24
+	.cfi_offset 13, -24
 	pushq	%r12
-	.cfi_def_cfa_offset 40
-	.cfi_offset 12, -40
+	.cfi_def_cfa_offset 32
+	.cfi_offset 12, -32
 	pushq	%rbp
-	.cfi_def_cfa_offset 48
-	.cfi_offset 6, -48
+	.cfi_def_cfa_offset 40
+	.cfi_offset 6, -40
 	pushq	%rbx
-	.cfi_def_cfa_offset 56
-	.cfi_offset 3, -56
+	.cfi_def_cfa_offset 48
+	.cfi_offset 3, -48
 	movq	%rdi, %rbx
 	movl	$4, %edi
-	subq	$40, %rsp
-	.cfi_def_cfa_offset 96
+	subq	$32, %rsp
+	.cfi_def_cfa_offset 80
 	movq	%fs:40, %rax
 	movq	%rax, 24(%rsp)
 	xorl	%eax, %eax
 	movq	%rsp, %rsi
 	call	clock_gettime@PLT
 	cmpl	$2, 92(%rbx)
-	je	.L85
+	je	.L84
 .L61:
-	movq	40(%rbx), %rbp
-	movl	908(%rbx), %eax
-	movabsq	$7378697629483820647, %rdx
-	movq	896(%rbp), %rdi
+	movl	908(%rbx), %ebp
+	movq	40(%rbx), %r12
+	movslq	904(%rbx), %rcx
+	movl	%ebp, %eax
+	movq	896(%r12), %rdx
 	sall	$7, %eax
 	cltq
-	movq	(%rdi,%rax,8), %rcx
-	movq	%rcx, %rax
-	sarq	$63, %rcx
-	imulq	%rdx
-	movslq	904(%rbx), %rax
-	sarq	%rdx
-	subq	%rcx, %rdx
-	movq	%rdx, %r12
-	cmpq	%rax, %rdx
+	movq	(%rdx,%rax,8), %rax
+	cmpq	%rcx, %rax
 	je	.L67
-	movslq	100(%rbx), %rbp
-	movl	$4, %edi
 	movl	$0, 384(%rbx)
-	salq	$10, %rbp
-	addq	48(%rbx), %rbp
-	movslq	804(%rbp), %rax
-	leaq	(%rax,%rax,2), %r13
-	salq	$4, %r13
-	addq	792(%rbp), %r13
-	leaq	8(%r13), %rsi
-	call	clock_gettime@PLT
-	movl	804(%rbp), %eax
-	addl	$1, %eax
-	cltd
-	idivl	800(%rbp)
-	movl	100(%rbx), %eax
-	movl	%edx, 804(%rbp)
-	movq	40(%rbx), %rbp
-	movl	%eax, 0(%r13)
-	movl	908(%rbx), %eax
-	movq	896(%rbp), %rdi
-	movl	%eax, 44(%r13)
-	movq	.LC0(%rip), %rax
-	movq	%rax, 32(%r13)
 .L67:
 	movl	912(%rbx), %esi
+	movl	%eax, 904(%rbx)
 	movq	840(%rbx), %r9
-	movl	%r12d, 904(%rbx)
 	movl	%esi, %eax
 	sall	$7, %eax
 	cltq
-	movq	(%rdi,%rax,8), %rcx
-	movslq	%esi, %rax
-	leaq	(%rax,%rax,2), %rdx
-	movl	(%r9,%rdx,4), %edx
+	movq	(%rdx,%rax,8), %rcx
+	movslq	%esi, %rdx
+	leaq	(%rdx,%rdx,2), %rax
+	movl	(%r9,%rax,4), %eax
 	testq	%rcx, %rcx
 	je	.L79
-	movslq	%edx, %rdi
+	movslq	%eax, %rdi
 	cmpq	%rcx, %rdi
 	jge	.L68
 .L79:
@@ -490,87 +458,65 @@ threadwork:
 	.p2align 3
 .L74:
 	addl	$1, %r11d
-	cmpl	%r11d, %r10d
-	jle	.L68
+	cmpl	%r10d, %r11d
+	jge	.L68
 .L75:
-	movslq	%esi, %rax
-	movq	40(%rbx), %rbp
-	leaq	(%rax,%rax,2), %rdx
-	movl	(%r9,%rdx,4), %edx
+	movslq	%esi, %rdx
+	movq	40(%rbx), %r12
+	leaq	(%rdx,%rdx,2), %rax
+	movl	(%r9,%rax,4), %eax
 .L76:
-	leaq	(%rax,%rax,2), %r8
-	movslq	%edx, %rax
-	sarl	$31, %edx
+	subl	$1, %eax
+	leaq	(%rdx,%rdx,2), %r8
 	addq	$1, 72(%rbx)
-	imulq	$1717986919, %rax, %rax
+	movslq	%eax, %rdx
+	movl	%eax, %r13d
 	salq	$2, %r8
-	movdqa	(%rsp), %xmm0
+	imulq	$-2139062143, %rdx, %rdx
+	sarl	$31, %r13d
 	leaq	(%r9,%r8), %rdi
 	movl	4(%rdi), %ecx
-	sarq	$33, %rax
-	subl	%edx, %eax
-	movl	%ecx, %r13d
-	subl	$1, %eax
-	movslq	%eax, %rdx
-	movl	%eax, %r12d
-	imulq	$-2139062143, %rdx, %rdx
-	sarl	$31, %r12d
 	shrq	$32, %rdx
+	movl	%ecx, %r14d
 	addl	%eax, %edx
-	sarl	$7, %edx
-	subl	%r12d, %edx
-	movl	%edx, %r12d
-	sall	$8, %r12d
-	subl	%edx, %r12d
-	xorl	%edx, %edx
-	subl	%r12d, %eax
-	movl	%esi, %r12d
-	cltq
-	testq	%rax, %rax
-	cmovs	%rdx, %rax
-	movslq	%ecx, %rdx
-	sarl	$31, %r13d
-	imulq	$-2139062143, %rdx, %rdx
-	sall	$24, %r12d
-	salq	$16, %rax
-	shrq	$32, %rdx
-	addl	%ecx, %edx
 	sarl	$7, %edx
 	subl	%r13d, %edx
 	movl	%edx, %r13d
 	sall	$8, %r13d
 	subl	%edx, %r13d
+	xorl	%edx, %edx
+	subl	%r13d, %eax
+	movl	%esi, %r13d
+	cltq
+	testq	%rax, %rax
+	cmovs	%rdx, %rax
+	movslq	%ecx, %rdx
+	sarl	$31, %r14d
+	imulq	$-2139062143, %rdx, %rdx
+	sall	$24, %r13d
+	salq	$16, %rax
+	shrq	$32, %rdx
+	addl	%ecx, %edx
+	sarl	$7, %edx
+	subl	%r14d, %edx
+	movl	%edx, %r14d
+	sall	$8, %r14d
+	subl	%edx, %r14d
 	movl	%ecx, %edx
-	subl	%r13d, %edx
-	movslq	100(%rbx), %r13
-	orl	%edx, %r12d
-	movq	%r13, %r15
-	salq	$10, %r13
-	addq	48(%rbx), %r13
-	movslq	%r12d, %r12
-	movslq	804(%r13), %rdx
-	orq	%rax, %r12
-	movq	%rdx, %rax
-	leaq	(%rdx,%rdx,2), %r14
-	addl	$1, %eax
-	salq	$4, %r14
-	addq	792(%r13), %r14
-	cltd
-	movups	%xmm0, 8(%r14)
-	idivl	800(%r13)
-	movl	%edx, 804(%r13)
-	movq	%r12, 24(%r14)
-	addq	112(%rbp), %r12
-	movl	%r15d, (%r14)
-	movl	$1, 36(%r14)
-	cmpb	$-1, (%r12)
+	subl	%r14d, %edx
+	orl	%edx, %r13d
+	movslq	%r13d, %r13
+	orq	%r13, %rax
+	addq	112(%r12), %rax
+	cmpb	$-1, (%rax)
 	je	.L70
 	addq	$1, 920(%rbx)
-	movb	$-1, (%r12)
+	movb	$-1, (%rax)
 	movq	840(%rbx), %r9
 	movl	104(%rbx), %r10d
 	movl	912(%rbx), %esi
 	leaq	(%r9,%r8), %rdi
+	movl	908(%rbx), %ebp
 	movl	4(%rdi), %ecx
 	subl	$1, %r10d
 .L70:
@@ -586,17 +532,17 @@ threadwork:
 	movl	%esi, 912(%rbx)
 	movl	$0, 4(%rdi)
 .L72:
-	cmpl	%esi, 908(%rbx)
+	cmpl	%esi, %ebp
 	jne	.L73
-	addl	$1, %esi
+	leal	1(%rbp), %esi
 	movl	%esi, 912(%rbx)
 .L73:
 	cmpl	$5, %esi
 	jne	.L74
 	movl	$1, 912(%rbx)
 	addl	$1, %r11d
-	cmpl	%r11d, %r10d
-	jle	.L68
+	cmpl	%r10d, %r11d
+	jge	.L68
 	movl	$1, %esi
 	jmp	.L75
 	.p2align 4,,10
@@ -604,106 +550,78 @@ threadwork:
 .L68:
 	movq	24(%rsp), %rax
 	subq	%fs:40, %rax
-	jne	.L86
-	addq	$40, %rsp
+	jne	.L85
+	addq	$32, %rsp
 	.cfi_remember_state
-	.cfi_def_cfa_offset 56
+	.cfi_def_cfa_offset 48
 	xorl	%eax, %eax
 	popq	%rbx
-	.cfi_def_cfa_offset 48
-	popq	%rbp
 	.cfi_def_cfa_offset 40
-	popq	%r12
+	popq	%rbp
 	.cfi_def_cfa_offset 32
-	popq	%r13
+	popq	%r12
 	.cfi_def_cfa_offset 24
-	popq	%r14
+	popq	%r13
 	.cfi_def_cfa_offset 16
-	popq	%r15
+	popq	%r14
 	.cfi_def_cfa_offset 8
 	ret
 	.p2align 4,,10
 	.p2align 3
-.L85:
+.L84:
 	.cfi_restore_state
 	movl	104(%rbx), %eax
 	testl	%eax, %eax
 	jle	.L65
 	movl	384(%rbx), %ecx
-	xorl	%edi, %edi
-	movabsq	$7378697629483820647, %r10
-	movabsq	$-9187201950435737471, %r9
+	xorl	%esi, %esi
+	movabsq	$-9187201950435737471, %r8
 	.p2align 4,,10
 	.p2align 3
 .L66:
-	movl	908(%rbx), %r11d
-	movq	40(%rbx), %r8
-	movdqa	(%rsp), %xmm1
-	movl	%r11d, %eax
-	movq	896(%r8), %rdx
-	sall	$24, %r11d
+	movl	908(%rbx), %r10d
+	movq	40(%rbx), %r9
+	movl	100(%rbx), %edi
+	movl	%r10d, %eax
+	movq	896(%r9), %rdx
+	sall	$24, %r10d
 	sall	$7, %eax
 	cltq
-	movq	(%rdx,%rax,8), %rsi
-	movq	%rsi, %rax
-	sarq	$63, %rsi
-	imulq	%r10
-	movq	%rdx, %rax
-	sarq	%rax
-	subq	%rsi, %rax
-	movq	%rax, %rbp
-	imulq	%r9
-	movq	%rbp, %rax
+	movq	(%rdx,%rax,8), %r11
+	movq	%r11, %rax
+	imulq	%r8
+	movq	%r11, %rax
 	sarq	$63, %rax
-	leaq	(%rdx,%rbp), %rsi
-	sarq	$7, %rsi
-	subq	%rax, %rsi
-	movq	%rbp, %rax
-	movslq	100(%rbx), %rbp
-	movq	%rsi, %rdx
-	salq	$8, %rdx
-	subq	%rsi, %rdx
-	movslq	%ecx, %rsi
-	imulq	$-2139062143, %rsi, %rsi
-	subq	%rdx, %rax
-	movl	%ecx, %edx
-	sarl	$31, %edx
-	sall	$16, %eax
-	shrq	$32, %rsi
-	addl	%ecx, %esi
-	sarl	$7, %esi
-	subl	%edx, %esi
-	movl	%esi, %edx
-	sall	$8, %edx
-	subl	%esi, %edx
-	subl	%edx, %ecx
-	orl	%r11d, %ecx
-	movq	%rbp, %r11
-	salq	$10, %rbp
-	addq	48(%rbx), %rbp
-	movslq	804(%rbp), %rdx
-	orl	%eax, %ecx
-	movslq	%ecx, %rcx
+	addq	%r11, %rdx
+	sarq	$7, %rdx
+	subq	%rax, %rdx
 	movq	%rdx, %rax
-	leaq	(%rdx,%rdx,2), %rsi
-	addl	$1, %eax
-	salq	$4, %rsi
-	addq	792(%rbp), %rsi
-	cltd
-	movups	%xmm1, 8(%rsi)
-	idivl	800(%rbp)
-	movl	%edx, 804(%rbp)
-	movq	%rcx, 24(%rsi)
-	addq	112(%r8), %rcx
-	movl	%r11d, (%rsi)
-	movl	$1, 36(%rsi)
+	salq	$8, %rax
+	subq	%rdx, %rax
+	movslq	%ecx, %rdx
+	imulq	$-2139062143, %rdx, %rdx
+	subq	%rax, %r11
+	movl	%ecx, %eax
+	sarl	$31, %eax
+	sall	$16, %r11d
+	shrq	$32, %rdx
+	addl	%ecx, %edx
+	sarl	$7, %edx
+	subl	%eax, %edx
+	movl	%edx, %eax
+	sall	$8, %eax
+	subl	%edx, %eax
+	subl	%eax, %ecx
+	orl	%r10d, %ecx
+	orl	%r11d, %ecx
+	movslq	%ecx, %rcx
+	addq	112(%r9), %rcx
 	cmpb	$-1, (%rcx)
 	je	.L63
 	addq	$1, 80(%rbx)
-.L63:
-	movb	%r11b, (%rcx)
+	addl	$1, %esi
+	movb	%dil, (%rcx)
 	movl	384(%rbx), %eax
-	addl	$1, %edi
 	addl	$1, %eax
 	movslq	%eax, %rcx
 	cltd
@@ -714,8 +632,8 @@ threadwork:
 	subl	%edx, %eax
 	movl	%eax, 384(%rbx)
 	movl	%eax, %ecx
-	cmpl	%edi, 104(%rbx)
-	jg	.L66
+	cmpl	104(%rbx), %esi
+	jl	.L66
 .L65:
 	movq	40(%rbx), %rdx
 	movl	908(%rbx), %eax
@@ -724,7 +642,26 @@ threadwork:
 	cltq
 	lock addq	$1, (%rdx,%rax,8)
 	jmp	.L61
-.L86:
+	.p2align 4,,10
+	.p2align 3
+.L63:
+	movb	%dil, (%rcx)
+	movl	384(%rbx), %eax
+	addl	$1, %esi
+	addl	$1, %eax
+	movslq	%eax, %rcx
+	cltd
+	imulq	$1717986919, %rcx, %rcx
+	sarq	$33, %rcx
+	subl	%edx, %ecx
+	leal	(%rcx,%rcx,4), %edx
+	subl	%edx, %eax
+	movl	%eax, 384(%rbx)
+	movl	%eax, %ecx
+	cmpl	%esi, 104(%rbx)
+	jg	.L66
+	jmp	.L65
+.L85:
 	call	__stack_chk_fail@PLT
 	.cfi_endproc
 .LFE78:
@@ -752,16 +689,16 @@ work:
 	call	__printf_chk@PLT
 	movl	92(%rbx), %edx
 	testl	%edx, %edx
-	jle	.L88
+	jle	.L87
 	.p2align 4,,10
 	.p2align 3
-.L89:
+.L88:
 	movq	%rbx, %rdi
 	call	threadwork@PLT
 	movl	92(%rbx), %eax
 	testl	%eax, %eax
-	jg	.L89
-.L88:
+	jg	.L88
+.L87:
 	movl	100(%rbx), %edx
 	leaq	.LC2(%rip), %rsi
 	movl	$1, %edi
@@ -779,14 +716,14 @@ work:
 work2:
 .LFB79:
 	.cfi_startproc
-	jmp	.L96
+	jmp	.L95
 	.p2align 4,,10
 	.p2align 3
-.L94:
+.L93:
 	addq	$1, 72(%rdi)
-.L96:
+.L95:
 	cmpl	$1, 92(%rdi)
-	je	.L94
+	je	.L93
 	ret
 	.cfi_endproc
 .LFE79:
@@ -858,13 +795,6 @@ work2:
 	.align 8
 .LC36:
 	.string	"%ld good reads per second latency\n"
-	.section	.rodata.str1.1
-.LC37:
-	.string	"creating sample log"
-.LC38:
-	.string	"w"
-.LC39:
-	.string	"%ld%ld %d %d %ld %d %d\n"
 	.section	.text.startup,"ax",@progbits
 	.p2align 4
 	.globl	main
@@ -974,11 +904,11 @@ main:
 	call	calloc@PLT
 	movq	%rbp, 112(%rbx)
 	movl	$20, %esi
-	movl	$10000000, %edi
+	movl	$100000000, %edi
 	movq	%rax, 24(%rsp)
 	call	calloc@PLT
 	movl	$20, %esi
-	movl	$10000000, %edi
+	movl	$100000000, %edi
 	movq	%rax, %rbp
 	call	calloc@PLT
 	movq	%rbp, %xmm5
@@ -988,7 +918,7 @@ main:
 	movaps	%xmm5, 32(%rsp)
 	.p2align 4,,10
 	.p2align 3
-.L99:
+.L98:
 	movdqa	32(%rsp), %xmm1
 	movl	$128, %esi
 	movl	%r13d, (%rsp)
@@ -1050,10 +980,10 @@ main:
 	movq	24(%rsp), %rax
 	movq	%rax, -184(%r14)
 	call	calloc@PLT
-	movl	$10000000, -72(%r14)
+	movl	$100000000, -72(%r14)
 	movq	%rax, -208(%r14)
 	cmpq	$16, %r13
-	jne	.L99
+	jne	.L98
 	movq	56(%rsp), %rbp
 	movq	48(%rsp), %r15
 	movq	%rbx, (%rsp)
@@ -1063,7 +993,7 @@ main:
 	movq	%rax, %r14
 	.p2align 4,,10
 	.p2align 3
-.L100:
+.L99:
 	movq	%rbx, %rcx
 	movq	%rbp, %rsi
 	movq	%r15, %rdi
@@ -1077,7 +1007,7 @@ main:
 	addq	$1024, %rbx
 	call	pthread_setaffinity_np@PLT
 	cmpq	%r14, %rbp
-	jne	.L100
+	jne	.L99
 	movq	(%rsp), %rbx
 	leaq	96(%rsp), %rsi
 	leaq	80(%rsp), %rdi
@@ -1125,13 +1055,13 @@ main:
 	addq	$120, %rbp
 	.p2align 4,,10
 	.p2align 3
-.L101:
+.L100:
 	movq	(%r12), %rdi
 	movq	%r13, %rsi
 	addq	$8, %r12
 	call	pthread_join@PLT
-	cmpq	%rbp, %r12
-	jne	.L101
+	cmpq	%r12, %rbp
+	jne	.L100
 	leaq	.LC18(%rip), %rdi
 	leaq	72(%rbx), %rbp
 	xorl	%r12d, %r12d
@@ -1140,7 +1070,7 @@ main:
 	leaq	.LC19(%rip), %r13
 	.p2align 4,,10
 	.p2align 3
-.L102:
+.L101:
 	movq	0(%rbp), %rdx
 	movq	%r13, %rsi
 	movl	$1, %edi
@@ -1148,8 +1078,8 @@ main:
 	addq	$1024, %rbp
 	call	__printf_chk@PLT
 	addq	-1024(%rbp), %r12
-	cmpq	%r14, %rbp
-	jne	.L102
+	cmpq	%rbp, %r14
+	jne	.L101
 	movq	%r12, %rdx
 	leaq	.LC20(%rip), %rsi
 	movl	$1, %edi
@@ -1185,7 +1115,7 @@ main:
 	call	__printf_chk@PLT
 	.p2align 4,,10
 	.p2align 3
-.L103:
+.L102:
 	movq	0(%rbp), %rdx
 	movq	%r14, %rsi
 	movl	$1, %edi
@@ -1196,14 +1126,14 @@ main:
 	addq	%r12, %r13
 	movq	%r13, %r12
 	cmpq	%rbp, %r15
-	jne	.L103
+	jne	.L102
 	leaq	80(%rbx), %rbp
 	leaq	15440(%rbx), %r15
 	xorl	%r12d, %r12d
 	leaq	.LC26(%rip), %r14
 	.p2align 4,,10
 	.p2align 3
-.L104:
+.L103:
 	movq	0(%rbp), %rdx
 	movq	%r14, %rsi
 	movl	$1, %edi
@@ -1212,13 +1142,12 @@ main:
 	addq	%rdx, %r12
 	call	__printf_chk@PLT
 	cmpq	%rbp, %r15
-	jne	.L104
+	jne	.L103
 	movq	%r12, %rdx
 	movl	$1, %edi
 	xorl	%eax, %eax
 	movl	$1000000000, %ebp
 	leaq	.LC27(%rip), %rsi
-	leaq	800(%rbx), %r14
 	call	__printf_chk@PLT
 	movq	%r12, %rdx
 	movl	$1, %edi
@@ -1288,7 +1217,6 @@ main:
 	subq	304(%rbx), %rdx
 	leaq	.LC34(%rip), %rsi
 	xorl	%eax, %eax
-	addq	$16160, %rbx
 	call	__printf_chk@PLT
 	movq	%r13, %rdx
 	movl	$1, %edi
@@ -1300,55 +1228,12 @@ main:
 	leaq	.LC36(%rip), %rsi
 	cqto
 	idivq	%r13
-	xorl	%r13d, %r13d
 	movq	%rax, %rdx
 	xorl	%eax, %eax
 	call	__printf_chk@PLT
-	leaq	.LC37(%rip), %rdi
-	call	puts@PLT
-	movl	$1, %esi
-	movl	$100, %edi
-	call	calloc@PLT
-	movl	$1, %esi
-	movl	$1000, %edi
-	movq	%rax, %r12
-	call	calloc@PLT
-	movq	%r12, %rdi
-	leaq	.LC38(%rip), %rsi
-	movq	%rax, %rbp
-	movabsq	$32481138738815347, %rax
-	movq	%rax, (%r12)
-	call	fopen@PLT
-	movq	%rax, %r12
-	.p2align 4,,10
-	.p2align 3
-.L105:
-	movl	(%r14), %ecx
-	xorl	%r15d, %r15d
-	testl	%ecx, %ecx
-	jle	.L108
-.L121:
-	movq	-8(%r14), %rsi
-.L109:
-	movslq	%r15d, %rax
-	leaq	(%rax,%rax,2), %rdx
-	salq	$4, %rdx
-	addq	%rsi, %rdx
-	cmpl	$1, 36(%rdx)
-	je	.L123
-	addl	$1, %r15d
-	cmpl	%ecx, %r15d
-	jl	.L109
-.L108:
-	addq	$1024, %r14
-	cmpq	%r14, %rbx
-	jne	.L105
-.L110:
-	movq	%r12, %rdi
-	call	fclose@PLT
 	movq	120(%rsp), %rax
 	subq	%fs:40, %rax
-	jne	.L124
+	jne	.L112
 	addq	$136, %rsp
 	.cfi_remember_state
 	.cfi_def_cfa_offset 56
@@ -1366,52 +1251,8 @@ main:
 	popq	%r15
 	.cfi_def_cfa_offset 8
 	ret
-	.p2align 4,,10
-	.p2align 3
-.L123:
+.L112:
 	.cfi_restore_state
-	movq	%r13, %rax
-	movl	$125, %ecx
-	movq	%rbp, %rdi
-	movl	$100, %esi
-	rep stosq
-	movl	$1000, %ecx
-	movq	%rbp, %rdi
-	addl	$1, %r15d
-	leaq	.LC39(%rip), %r8
-	movl	40(%rdx), %eax
-	movq	8(%rdx), %r9
-	pushq	%rax
-	.cfi_def_cfa_offset 200
-	movl	(%rdx), %eax
-	pushq	%rax
-	.cfi_def_cfa_offset 208
-	movl	44(%rdx), %eax
-	pushq	24(%rdx)
-	.cfi_def_cfa_offset 216
-	pushq	%rax
-	.cfi_def_cfa_offset 224
-	movl	32(%rdx), %eax
-	pushq	%rax
-	.cfi_def_cfa_offset 232
-	xorl	%eax, %eax
-	pushq	16(%rdx)
-	.cfi_def_cfa_offset 240
-	movl	$1, %edx
-	call	__snprintf_chk@PLT
-	addq	$48, %rsp
-	.cfi_def_cfa_offset 192
-	movq	%r12, %rsi
-	movq	%rbp, %rdi
-	call	fputs@PLT
-	movl	(%r14), %ecx
-	cmpl	%ecx, %r15d
-	jl	.L121
-	addq	$1024, %r14
-	cmpq	%r14, %rbx
-	jne	.L105
-	jmp	.L110
-.L124:
 	call	__stack_chk_fail@PLT
 	.cfi_endproc
 .LFE81:

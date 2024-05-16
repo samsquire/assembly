@@ -3,9 +3,17 @@ cols = {
   "r": [],
   "w": []
 }
+import mmap
 
-for line in open("accesslog").read().split("\n"):
+recs = []
+f = open("accesslog", "r")
+# memory-map the file, size 0 means whole file
+mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+line = mm.readline().decode("utf8")
+
+while line != "":
   comps = line.split(" ")
+  line = mm.readline().decode("utf8")
   #print(comps)
   if comps[0] == "":
     continue
