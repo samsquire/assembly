@@ -3,3 +3,4 @@ rsp 8
 eip 16
 data 24
 corourinedata.running 0
+size coroutine 32

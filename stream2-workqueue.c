@@ -16,10 +16,9 @@
  
 #define DURATION 1
 #define SAMPLE 0
-#define THREADS 15
+#define THREADS 8
 #define PRINT 0
-#define ACCESSLOG 0
-
+#define ACCESSLOG 0 
 
 struct Cursor {
   int global;
@@ -52,7 +51,6 @@ struct Coroutine {
 };
 
 extern int switch_to(struct Coroutine * coroutines, int index, struct Scheduler * scheduler);
-
 struct Epoch {
   int thread;
   struct timespec time;
@@ -68,20 +66,21 @@ int yield() {
 }
 
 int coroutine_func(struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
- // printf("%p %p %p coroutine running\n", scheduler, coroutine, data);
+ printf("%p %p %p coro\n", scheduler, coroutine, data); 
 
 
   while (data->running == 1) {
-   asm("lea 0(%%rip), %%r11\n"
+   /*asm("lea 0(%%rip), %%r11\n"
       "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
+      */
     // yield(1, scheduler, coroutine);
-    printf("%ld\n", coroutine->eip);
-  
+    printf("%ld\n", coroutine->eip); 
+         
   }
   //printf("loop finished\n");
-  return 0;
+  return 0; 
 
-
+ 
 }
 
 
@@ -486,21 +485,21 @@ int * threadwork(struct Data * data) {
   //printf("%%rsp %p\n", (void *)rsp);
   // switch_to(struct Coroutine * coroutines, int index
   //printf("table %x\n", (void *)data->coroutines);
-  //printf("coroutine 0 %x\n", &data->coroutines[0]);
- // printf("coroutine eip %lx\n", data->coroutines[0].eip);
- // printf("coroutine data %lx\n", data->coroutines[0].data);
-  switch_to(data->coroutines, 0, data->scheduler);
- // printf("finished coroutine\n");
+ // printf("coroutine 3 %x\n", &data->coroutines[3]);
+ // printf("coroutine eip %lx\n", data->coroutines[3].eip);
+ // printf("coroutine data %lx\n", data->coroutines[3].data);
+  switch_to(data->coroutines, 3, data->scheduler);  
+  //printf("finished coroutine\n");
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
- 
      
+       
 clock_gettime(CLOCK_MONOTONIC_RAW, &time);
   //if (data->threadindex % 2 == 0) {
    
   if (data->running == 2) {
   //if (data ->threadindex == 0 ) {
-     
-     
+      
+
    for (int x = 0 ; x < data->threadsize ; x++) {
       
     int global = (data->main->globalwrite[data->mystream * 128] / (epochsize)) % epochwidth;
@@ -511,7 +510,7 @@ clock_gettime(CLOCK_MONOTONIC_RAW, &time);
      buffer = data->mystream << 24 | ( global << 16) | cursor % 0xff;
 
     if (ACCESSLOG == 1) {
-struct Access * access = &data->writes[data->cwrite];
+struct Access * access = &data->writes[data->cwrite]; 
     access->stream = data->mystream;
     access->thread = data->threadindex;
     access->global = global;
@@ -929,15 +928,15 @@ printf("%ld chunks\n", chunkslen);
     struct Coroutine * cos = calloc(10, sizeof(struct Coroutine));
     
     data[x].coroutines = cos;
-    for (int y= 0; y < 10; y++ ) {
+    for (int y = 0; y < 10; y++ ) {
       struct CoroutineData * codata = calloc(1, sizeof(struct CoroutineData));
       cos[y].data = codata;
       cos[y].eip = (uint64_t)coroutine_func;
-    } 
-    data[x].scheduler = scheduler;
+    }
+    data[x].scheduler = scheduler; 
     data[x].reads = reads;
-    data[x].writes = writes;
-    data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
+    data[x].writes = writes; 
+    data[x].cpu_set = calloc(1, sizeof(cpu_set_t)); 
     CPU_SET(cpu += 1, data[x].cpu_set);
     printf("assigning thread %d to cpu %d\n", x, cpu);
     data[x].bucketstart = x * buckets ;
@@ -1149,7 +1148,10 @@ memset(buf, 0, 1000);
   memset(buf, 0, 1000);
   snprintf(buf, 100, "corourinedata.running %ld\n", offsetof(struct CoroutineData, running));
   fprintf(out_file, "%s", buf);
-  
+
+  memset(buf, 0, 1000);
+  snprintf(buf, 100, "size coroutine %ld\n", sizeof(struct Coroutine));
+  fprintf(out_file, "%s", buf);
   
   fclose(out_file);
 }
