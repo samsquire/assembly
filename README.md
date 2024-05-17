@@ -24,7 +24,7 @@ How do you implement fast parallel kernel commands such as parallel map? Or para
  * use database technology and its lessons. relational algebra
  * use async/coroutines
  * arrange a hiearchy of arrays is like register allocation for index transformations (perfect hashing)
- * Avoid scheduling costs if the pipeline is a pipeline 
+ * Avoid scheduling costs if the pipeline is a direct pipeline 
 
 This is a GitHub repository of some components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
@@ -44,19 +44,20 @@ Here's a parallel version of this graph in assembly. Parallel control flow.
 
 ```
 one:
-one_loop:
 # get a buffer
 # pushq %eip (if use jmps)
 movq $128, %rdi # buffer size
 call get_buffer
-# we can use other registers besides eax
+
+generate:
 # eax has buffer pointer in
 # move some data into buffer
-movq 1(%rdi), %rax
-move %rax, 1(%eax)
+inc rax
+movq %rax, (%eax)
+addq %eax, $8
 
 # indicate buffer is finished
-movq $1, 1(%rsi)
+movq %eax, 1(%rsi)
 # move buffer readiness flag
 
 # store coroutine state
@@ -67,6 +68,9 @@ movq %rsp, %rdx # stack
 movq %rdi, %rcx # buffer
 movq %eip, %rdi # where we are, will be added to
 jmp yield
+
+cmp %rax, $128
+jne generate
 
 two:
 middle:
@@ -239,11 +243,23 @@ Message passed control flow is an approach to coroutine scheduling which allows 
 
 In an average aysnc code you have regions that can run and then there are pauses where other code runs. If you run the same async tasks multiple times then you might have uneven segments of computation that can be parallel.
 
-In languages such as Rust and Go the scheduler is a work stealing so that work can unevey accumulate on different threads. This requires work to move work to another thread.
+In languages such as Rust and Go the scheduler is a work stealing so that work can unevenly accumulate on different threads. This requires work to move work to another thread.
 
 The nature of the ideal scheduling depends on all the code that can run.
 
+# Text format
 
+a       b       c
+ coro-1 coro-4 coro-7
+ coro-2 coro-5 coro-8
+ coro-3 coro-6 coro-9
+ 
+Coroutine state announcement
+pattern matching parser
+regexp
+
+coro-1 doesnt call coro-2 directly but writes to memory
+interop between coroutines is by memory therefore
 
 # Coroutine states
 

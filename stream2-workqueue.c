@@ -9,6 +9,10 @@
 #include <math.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
+
+
 
 #define NEW_EPOCH 1
 
@@ -31,8 +35,24 @@ struct Access {
   int thread;
   int set;
 
-
 };
+
+struct CoroutineData {
+  int running;
+};
+
+struct Scheduler {
+  uint64_t rsp;
+};
+
+struct Coroutine {
+  int index;
+  uint64_t rsp;
+  uint64_t eip;
+  struct CoroutineData * data;
+};
+
+extern int switch_to(struct Coroutine * coroutines, int index);
 
 struct Epoch {
   int thread;
@@ -43,6 +63,20 @@ struct Epoch {
   int dest;
   int stream;
 };
+
+int yield() {
+  
+}
+
+int coroutine(struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
+  while (data->running == 1) {
+   asm("movq %%rip, %0" : "=rm" (coroutine->eip));
+    // yield(1, scheduler, coroutine);
+    
+  }
+}
+
+
 
 struct Work {
   int taskindex;
@@ -147,6 +181,8 @@ struct Data {
   int cwrite;
   int cread;
   int accesssize;
+  struct Coroutine * coroutines;
+  struct Scheduler * scheduler;
 };
 
 /*
@@ -435,8 +471,10 @@ int * threadwork(struct Data * data) {
 //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
  //if (lastwrite != data->prevwrite) {
    
-    
-    
+    uint64_t rsp;
+    asm( "mov %%rsp, %0" : "=rm" ( rsp ));
+  data->scheduler->rsp = rsp;
+  printf("%%rsp %p\n", (void *)rsp);
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
   //if (data->threadindex % 2 == 0) {
@@ -862,7 +900,21 @@ printf("%ld chunks\n", chunkslen);
   int accesssize = 100000000;
   struct Access * reads = calloc(accesssize, sizeof(struct Access));
   struct Access * writes = calloc(accesssize, sizeof(struct Access));
+
+  struct Scheduler * scheduler = calloc(1, sizeof(struct Scheduler));
+
+  
+  
   for (int x = 0; x < threadsize ; x++) {
+    
+    struct Coroutine * cos = calloc(10, sizeof(struct Coroutine));
+    
+    data[x].coroutines = cos;
+    for (int y= 0; y < 10; y++ ) {
+      struct CoroutineData * codata = calloc(1, sizeof(struct CoroutineData));
+      cos[y].data = codata;
+    }
+    data[x].scheduler = scheduler;
     data[x].reads = reads;
     data[x].writes = writes;
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t));
@@ -1050,4 +1102,25 @@ printf("%ld chunks\n", chunkslen);
    fclose(out_file);
    
  }
+
+  char * filename = calloc(100, sizeof(char));
+  char * buf = calloc(1000, sizeof(char));
+  memset(filename, 0, 100);
+  snprintf(filename, 100, "coroutine.struct");
+  FILE *out_file = fopen(filename, "w");
+
+memset(buf, 0, 1000);
+  snprintf(buf, 100, "index %ld\n", offsetof(struct Coroutine, index));
+  fprintf(out_file, "%s", buf );
+  
+  memset(buf, 0, 1000);
+  snprintf(buf, 100, "rsp %ld\n", offsetof(struct Coroutine, rsp));
+  fprintf(out_file, "%s", buf );
+  
+  memset(buf, 0, 1000);
+  snprintf(buf, 100, "eip %ld\n", offsetof(struct Coroutine, eip));
+  fprintf(out_file, "%s", buf );
+
+  
+  fclose(out_file);
 }
