@@ -13,6 +13,9 @@
 .INDEX:
 	.string	"Coroutine index... %d\n"
 	.text
+.RET:
+	.string	"Return... %d\n"
+	.text
 	# switch_to(struct Coroutine * coroutines, int index, struct Scheduler * scheduler)
 	# rdi, %rsi, %rdx, %rcx, %r8 and %r9
 switch_to:
@@ -85,23 +88,47 @@ movq -40(%rbp), %rsi
 mov $0, %eax
 #popq %r9
 
-movq -16(%rbp), %rdi
-movq -24(%rbp), %rsi
-movq -40(%rbp), %rdx
 
 
 
 movq -32(%rbp), %r9
-#leaq after(%rip), %r11
+leaq after(%rip), %r11
 
 #movq %rbp, %rsp
 # popq %rbp
-add $1024, %rsp
+
 # add $8, %rsp
  #popq %r11
- popq %r11
+# popq %r11
 #pushq %r11
 #movq %r11, %rsp
+
+#mov %rbp, %rsp
+
+movq -16(%rbp), %rdi
+movq -24(%rbp), %rsi
+movq -40(%rbp), %rdx
+
+#subq $8, %rsp
+# pushq %rbp
+#mov %rsp, %rbp
+pushq %r11
+
+
 jmp *%r9
-#after:
-#ret
+after:
+# pushq %rbp
+
+movq %rsp, %rbp
+
+leaq .RET(%rip), %rdi
+movq %r9, %rsi
+call printf@plt
+mov $0, %eax
+
+
+#pop %rbp
+add $1024, %rsp
+#movq %rsp, %rbp
+popq %rbp
+ret

@@ -16,7 +16,7 @@
  
 #define DURATION 1
 #define SAMPLE 0
-#define THREADS 8
+#define THREADS 15
 #define PRINT 0
 #define ACCESSLOG 0 
 
@@ -32,7 +32,6 @@ struct Access {
   int cursor;
   int thread;
   int set;
-
 };
 
 struct CoroutineData {
@@ -59,10 +58,10 @@ struct Epoch {
   int set;
   int dest;
   int stream;
-};
-
+};   
+ 
 int yield() {
-  
+   
 }
 
 int coroutine_func(struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
