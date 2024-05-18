@@ -81,11 +81,12 @@ asm ("movq %%rdx, %0" : "=r" (data)::);
       "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
     
     // yield(1, scheduler, coroutine)
-  printf("coro resumed\n");
+  int rsp = scheduler->rsp;
   asm("movq %0, %%rsp" ::"r"(scheduler->rsp));
+  
  // }
   //printf("loop finished\n");
-  return 0; 
+  return 0;  
 
  
 }

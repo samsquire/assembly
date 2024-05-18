@@ -133,7 +133,7 @@ leaq after(%rip), %r11
 
 movq -64(%rbp), %rsp # set stack to coroutine
 sub $8, %rsp
-#movq %r11, (%rsp) # set stack return address
+movq %r11, (%rsp) # set stack return address
 
 
 jmp *%r9

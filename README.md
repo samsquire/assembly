@@ -1863,3 +1863,37 @@ pick the memory, pick the order and generate a traversal
 sides ***
 5, 5, 4
 wind around a circle
+
+tree traversal up and down another branch
+understanding stack behaviours
+
+tree up and down can be used to code generate logistics of passing things along
+
+data flow and control flow
+i need this HERE.. computer works out the structural tree traversal
+
+grid of locations, each location is a queue
+apply meaning to the locations with perfect hashing
+
+unitt build
+parallel lexing, files are unit of compilation
+
+how do you write code that never needs to be changed with its meaning
+
+global code addressing
+
+autorefactor - regroup code based on relationships
+
+behaviour stays the same, the implementation can be drastically different.
+
+model of an application to do with understanding stack synchronization
+
+single letters grid
+
+put aside for later, moved to the right place optionally
+
+graphql for application behaviour
+
+write the grid in text format and it works it out
+
+
