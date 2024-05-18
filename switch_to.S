@@ -14,7 +14,7 @@
 	.string	"Coroutine index... %d\n"
 	.text
 .RET:
-	.string	"Return... %d\n"
+	.string	"Return... %x\n"
 	.text
 .STACK:
 	.string	"Stack... %p\n"
@@ -135,15 +135,15 @@ movq -64(%rbp), %rsp # set stack to coroutine
 sub $8, %rsp
 movq %r11, (%rsp) # set stack return address
 
-
+# pushq %rbp
 jmp *%r9
 after: 
 # pushq %rbp
-
+# popq %rbp
 #movq %rsp, %rbp
 
 leaq .RET(%rip), %rdi
-movq %r9, %rsi
+movq %rsp, %rsi
 call printf@plt
 mov $0, %eax
 
@@ -151,5 +151,5 @@ mov $0, %eax
 #pop %rbp
 add $1024, %rsp
 #movq %rsp, %rbp
-popq %rbp
+#popq %rbp
 ret

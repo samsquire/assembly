@@ -19,7 +19,7 @@
 #define THREADS 15
 #define PRINT 0
 #define ACCESSLOG 0 
-
+ 
 struct Cursor {
   int global;
   int cursor;
@@ -76,19 +76,17 @@ asm ("movq %%rdx, %0" : "=r" (data)::);
  printf("%p %p %p coro\n", scheduler, coroutine, data);
    
   //while (data->running == 1) {
-   printf("%ld\n", coroutine->eip); 
+   //printf("%ld\n", coroutine->eip); 
   asm("lea 0(%%rip), %%r11\n"
       "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
     
-    // yield(1, scheduler, coroutine)
+    // yield(1, scheduler, coroutine) 
   int rsp = scheduler->rsp;
-  asm("movq %0, %%rsp" ::"r"(scheduler->rsp));
-  
+  asm("movq %0, %%rsp" ::"rm"(scheduler->rsp));  
+       
  // }
   //printf("loop finished\n");
-  return 0;  
-
- 
+  return 0;      
 }
 
 
