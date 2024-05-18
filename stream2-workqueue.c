@@ -64,18 +64,26 @@ int yield() {
    
 }
 
-int coroutine_func(struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
- printf("%p %p %p coro\n", scheduler, coroutine, data); 
-
-
-  while (data->running == 1) {
-   /*asm("lea 0(%%rip), %%r11\n"
+int coroutine_func(void) {
+  struct Scheduler * scheduler;
+  struct Coroutine * coroutine;
+  struct CoroutineData * data;
+  
+  asm("movq %%rdi, %0" : "=r" (scheduler));
+  asm ("movq %%rsi, %0" : "=r" (coroutine)::);
+asm ("movq %%rdx, %0" : "=r" (data)::);    
+// struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
+ printf("%p %p %p coro\n", scheduler, coroutine, data);
+   
+  //while (data->running == 1) {
+   printf("%ld\n", coroutine->eip); 
+  asm("lea 0(%%rip), %%r11\n"
       "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
-      */
-    // yield(1, scheduler, coroutine);
-    printf("%ld\n", coroutine->eip); 
-         
-  }
+    
+    // yield(1, scheduler, coroutine)
+  printf("coro resumed\n");
+  asm("movq %0, %%rsp" ::"r"(scheduler->rsp));
+ // }
   //printf("loop finished\n");
   return 0; 
 
@@ -928,11 +936,16 @@ printf("%ld chunks\n", chunkslen);
     
     data[x].coroutines = cos;
     for (int y = 0; y < 10; y++ ) {
+      char * stack;
+      posix_memalign((void **)&stack, 16, 8016);
+      
       struct CoroutineData * codata = calloc(1, sizeof(struct CoroutineData));
-      cos[y].data = codata;
+      cos[y].data = codata; 
+      codata->running = 1;
       cos[y].eip = (uint64_t)coroutine_func;
+      cos[y].rsp = stack + 8016;
     }
-    data[x].scheduler = scheduler; 
+    data[x].scheduler = scheduler;  
     data[x].reads = reads;
     data[x].writes = writes; 
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t)); 

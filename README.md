@@ -1845,3 +1845,21 @@ term rewriting what does it mean ? to ordering ?
 generates more and more terms
 
 you tell the syatem what the behaviour should be
+
+dominating variables rather than control flow
+
+counted btree for iteration and algorithms: scroll down to 7464 then it knows what needs to be processed up and down and left and right
+
+never processing from the top
+
+behaviour programming: path finding blocks.
+
+import owned adressed with apostrophe
+
+joins / alignment of terms that produce terms where the terms interact, traversals
+
+pick the memory, pick the order and generate a traversal
+
+sides ***
+5, 5, 4
+wind around a circle

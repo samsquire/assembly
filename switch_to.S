@@ -16,6 +16,9 @@
 .RET:
 	.string	"Return... %d\n"
 	.text
+.STACK:
+	.string	"Stack... %p\n"
+	.text
 	# switch_to(struct Coroutine * coroutines, int index, struct Scheduler * scheduler)
 	# rdi, %rsi, %rdx, %rcx, %r8 and %r9
 switch_to:
@@ -49,6 +52,11 @@ movq %r11, %rax
 leaq 16(%rax), %rax
 movq (%rax), %r9
 movq %r9, -32(%rbp) # coroutine function
+
+movq %r11, %rax
+leaq 8(%rax), %rax
+movq (%rax), %r9
+movq %r9, -64(%rbp) # coroutine stack
 
 movq %r11, %rax
 leaq 24(%rax), %rax # load from coroutine object data object
@@ -91,8 +99,7 @@ mov $0, %eax
 
 
 
-movq -32(%rbp), %r9
-leaq after(%rip), %r11
+
 
 #movq %rbp, %rsp
 # popq %rbp
@@ -112,14 +119,28 @@ movq -40(%rbp), %rdx
 #subq $8, %rsp
 # pushq %rbp
 #mov %rsp, %rbp
-pushq %r11
+# pushq %r11
+
+
+
+leaq .STACK(%rip), %rdi
+movq -64(%rbp), %rsi
+call printf@plt
+mov $0, %eax
+
+movq -32(%rbp), %r9
+leaq after(%rip), %r11
+
+movq -64(%rbp), %rsp # set stack to coroutine
+sub $8, %rsp
+#movq %r11, (%rsp) # set stack return address
 
 
 jmp *%r9
-after:
+after: 
 # pushq %rbp
 
-movq %rsp, %rbp
+#movq %rsp, %rbp
 
 leaq .RET(%rip), %rdi
 movq %r9, %rsi
