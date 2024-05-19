@@ -14,10 +14,16 @@
 	.string	"Coroutine index... %d\n"
 	.text
 .RET:
-	.string	"Return... %x\n"
+	.string	"ReturnedStack... %p\n"
 	.text
 .STACK:
-	.string	"Stack... %p\n"
+	.string	"CO Stack... %p\n"
+	.text
+.CURSTACK:
+	.string	"SavedStack.. %p\n"
+	.text
+.SCHED:
+	.string	"Scheduler.. %p\n"
 	.text
 	# switch_to(struct Coroutine * coroutines, int index, struct Scheduler * scheduler)
 	# rdi, %rsi, %rdx, %rcx, %r8 and %r9
@@ -33,6 +39,7 @@ subq $1024, %rsp
 movq %rdi, -56(%rbp) # coroutine table
 movq %rsi, -8(%rbp) # index
 movq %rdx, -16(%rbp) # scheduler
+
 
 movq %rsi, %rax
 imul $32, %rax
@@ -77,6 +84,11 @@ movq %r11, %rsi
 # call printf@plt
 mov $0, %eax
 
+leaq .SCHED(%rip), %rdi
+movq -16(%rbp), %rsi
+call printf@plt
+mov $0, %eax
+
 #popq %r11
 
 #pushq %r9
@@ -112,9 +124,7 @@ mov $0, %eax
 
 #mov %rbp, %rsp
 
-movq -16(%rbp), %rdi
-movq -24(%rbp), %rsi
-movq -40(%rbp), %rdx
+
 
 #subq $8, %rsp
 # pushq %rbp
@@ -123,17 +133,38 @@ movq -40(%rbp), %rdx
 
 
 
+
+
+
+
+movq -16(%rbp), %rax
+movq %rsp, 0(%rax)
+
+leaq .CURSTACK(%rip), %rdi
+movq 0(%rax), %rsi
+call printf@plt
+mov $0, %eax
+
+
+
+
+
+
 leaq .STACK(%rip), %rdi
 movq -64(%rbp), %rsi
 call printf@plt
 mov $0, %eax
 
+movq -64(%rbp), %rsp # set stack to coroutine
+
 movq -32(%rbp), %r9
 leaq after(%rip), %r11
-
-movq -64(%rbp), %rsp # set stack to coroutine
 sub $8, %rsp
 movq %r11, (%rsp) # set stack return address
+
+movq -16(%rbp), %rdi
+movq -24(%rbp), %rsi
+movq -40(%rbp), %rdx
 
 # pushq %rbp
 jmp *%r9
@@ -142,14 +173,24 @@ after:
 # popq %rbp
 #movq %rsp, %rbp
 
+#pushq %rax
+movq %rax, %rsp
+# movq %rsp, %rbp
+
 leaq .RET(%rip), %rdi
-movq %rsp, %rsi
+movq %rax, %rsi
 call printf@plt
 mov $0, %eax
+
+#popq %rax
+
+# popq %r11
+
+
 
 
 #pop %rbp
 add $1024, %rsp
 #movq %rsp, %rbp
-#popq %rbp
+popq %rbp
 ret

@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #define NEW_EPOCH 1
- 
+  
 #define DURATION 1
 #define SAMPLE 0
 #define THREADS 15
@@ -64,7 +64,7 @@ int yield() {
    
 }
 
-int coroutine_func(void) {
+uint64_t coroutine_func(void) {
   struct Scheduler * scheduler;
   struct Coroutine * coroutine;
   struct CoroutineData * data;
@@ -73,24 +73,28 @@ int coroutine_func(void) {
   asm ("movq %%rsi, %0" : "=r" (coroutine)::);
 asm ("movq %%rdx, %0" : "=r" (data)::);    
 // struct Scheduler * scheduler, struct Coroutine* coroutine, struct CoroutineData * data) {
- printf("%p %p %p coro\n", scheduler, coroutine, data);
+  uint64_t myrsp;
+  asm("movq %%rsp, %0" :"=rm"(myrsp));   
+ printf("startrsp %p\n%p %p %p coro\n", myrsp, scheduler, coroutine, data);
    
   //while (data->running == 1) {
    //printf("%ld\n", coroutine->eip); 
   asm("lea 0(%%rip), %%r11\n"
       "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
-    
+
+  // cant clobber rsp from inside coroutind :-(
+  
     // yield(1, scheduler, coroutine) 
-  int rsp = scheduler->rsp;
-  asm("movq %0, %%rsp" ::"rm"(scheduler->rsp));  
-       
+  uint64_t rsp = scheduler->rsp;
+  printf("scheduler %p scheduler %p\n", scheduler, rsp);
+  //asm("movq %0, %%rsp" ::"rm"(scheduler->rsp): "rsp");  
+         
  // }
   //printf("loop finished\n");
-  return 0;      
-}
-
-
-
+  return scheduler->rsp;
+}   
+ 
+ 
 struct Work {
   int taskindex;
   int available;
@@ -477,7 +481,7 @@ int * threadwork(struct Data * data) {
     // printf("item %d\n", x);
   //if (data->readcursors[data->threadindex] != data->middle) {
   struct timespec time;
-  
+    
   long buffer;
   //printf("pw %ld %ld\n", data->main->currentwrite, data->prevwrite);
   //long lastwrite = __atomic_load_n(&data->main->currentwrite, __ATOMIC_ACQUIRE);
@@ -487,13 +491,13 @@ int * threadwork(struct Data * data) {
    
     uint64_t rsp;
     asm( "mov %%rsp, %0" : "=rm" ( rsp ));
-  data->scheduler->rsp = rsp;
+ // data->scheduler->rsp = rsp;
   //printf("%%rsp %p\n", (void *)rsp);
   // switch_to(struct Coroutine * coroutines, int index
   //printf("table %x\n", (void *)data->coroutines);
  // printf("coroutine 3 %x\n", &data->coroutines[3]);
  // printf("coroutine eip %lx\n", data->coroutines[3].eip);
- // printf("coroutine data %lx\n", data->coroutines[3].data);
+ // printf("coroutine data %lx\n", data->coroutines[3].data); 
   switch_to(data->coroutines, 3, data->scheduler);  
   //printf("finished coroutine\n");
   //printf("%ld %ld w%d\n", lastwrite, data->prevwrite, data->threadindex);
@@ -925,7 +929,7 @@ printf("%ld chunks\n", chunkslen);
   struct Access * reads = calloc(accesssize, sizeof(struct Access));
   struct Access * writes = calloc(accesssize, sizeof(struct Access));
 
-  struct Scheduler * scheduler = calloc(1, sizeof(struct Scheduler));
+  
 
   
   
@@ -944,13 +948,14 @@ printf("%ld chunks\n", chunkslen);
       cos[y].eip = (uint64_t)coroutine_func;
       cos[y].rsp = stack + 8016;
     }
-    data[x].scheduler = scheduler;  
+    struct Scheduler * scheduler = calloc(1, sizeof(struct Scheduler));
+    data[x].scheduler = scheduler;   
     data[x].reads = reads;
     data[x].writes = writes; 
     data[x].cpu_set = calloc(1, sizeof(cpu_set_t)); 
-    CPU_SET(cpu += 1, data[x].cpu_set);
+    CPU_SET(cpu += 1, data[x].cpu_set); 
     printf("assigning thread %d to cpu %d\n", x, cpu);
-    data[x].bucketstart = x * buckets ;
+    data[x].bucketstart = x * buckets; 
     data[x].globalwrite = globalwrite;
     data[x].loglevel = debug;
     data[x].running = 2;
@@ -1163,6 +1168,11 @@ memset(buf, 0, 1000);
   memset(buf, 0, 1000);
   snprintf(buf, 100, "size coroutine %ld\n", sizeof(struct Coroutine));
   fprintf(out_file, "%s", buf);
+
+memset(buf, 0, 1000);
+  snprintf(buf, 100, "scheduler.rsp %ld\n", offsetof(struct Scheduler, rsp));
+  fprintf(out_file, "%s", buf);
+  
   
   fclose(out_file);
 }
