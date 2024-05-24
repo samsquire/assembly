@@ -79,20 +79,26 @@ asm ("movq %%rdx, %0" : "=r" (data)::);
    
   //while (data->running == 1) {
    //printf("%ld\n", coroutine->eip); 
-  asm("lea 0(%%rip), %%r11\n"
-      "movq %%r11, %0" : "=rm" (coroutine->eip) ::"r11");
-
+  //asm("lea %0, %%r11\n"
+   //   "movq %%r11, %1" : "=rm" (coroutine->eip) ::"r11");
+   coroutine->eip = &&resume;
   // cant clobber rsp from inside coroutind :-(
   
-    // yield(1, scheduler, coroutine) 
+resume:
+  asm("movq %%rdi, %0" : "=r" (scheduler));
+    asm ("movq %%rsi, %0" : "=r" (coroutine)::);
+  asm ("movq %%rdx, %0" : "=r" (data)::);    
+  //printf("resume\n");
+    // yield(1, scheduler, coroutine)  {
   uint64_t rsp = scheduler->rsp;
   printf("scheduler %p scheduler %p\n", scheduler, rsp);
+
   //asm("movq %0, %%rsp" ::"rm"(scheduler->rsp): "rsp");  
          
  // }
   //printf("loop finished\n");
   return scheduler->rsp;
-}   
+}    
  
  
 struct Work {

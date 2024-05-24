@@ -159,15 +159,16 @@ movq -64(%rbp), %rsp # set stack to coroutine
 
 movq -32(%rbp), %r9
 leaq after(%rip), %r11
-sub $8, %rsp
-movq %r11, (%rsp) # set stack return address
+#sub $8, %rsp
+#movq %r11, (%rsp) # set stack return address
 
 movq -16(%rbp), %rdi
 movq -24(%rbp), %rsi
 movq -40(%rbp), %rdx
 
 # pushq %rbp
-jmp *%r9
+#jmp *%r9
+call *%r9
 after: 
 # pushq %rbp
 # popq %rbp

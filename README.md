@@ -6,17 +6,18 @@ How do you implement a high performance low latency concurrency and asynchronous
 
 How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution for things such as parallel joins?
 
- * use threads for paralellism
+ * use threads for paralellism and use a number less than the number of physical cores in the CPU less one for the operating system
+ * pin the threads to a particular core
  * split control flow into these threads but do not join (synchronize) frequently - shard truly with no synchronization on the hot path
  * minimise contention of locks, atomics or compare and swap
  * split threads into a topology for low latency (50-120 nanoseconds) so thread pairs for barriers or 4 threads for atomic synchronizer
- * split memory locations to avoid contention on a parricular memory address on the bus when using atomics
+ * split memory locations to avoid contention on a particular memory address on the memory bus when using atomics
  * avoid locks/mutexes and use lockfree algorithms
  * minimise the number of crossover communication points between threads and treat them as independent shards
  * have strict per-thread memory ownership. communication changes the owner unless its readonly.
  * use padding alignment to avoid false sharing
  * use io_uring
- * use linear arrays (vectors)
+ * use linear arrays (vectors) apter trees
  * use structures of arrays
  * use memory tiling
  * use strides
@@ -24,21 +25,33 @@ How do you implement fast parallel kernel commands such as parallel map? Or para
  * use database technology and its lessons. relational algebra
  * use async/coroutines
  * arrange a hiearchy of arrays is like register allocation for index transformations (perfect hashing)
- * Avoid scheduling costs if the pipeline is a direct pipeline 
+ * Avoid scheduling costs if the pipeline is a direct pipeline
 
 This is a GitHub repository of some components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
 I am building a high performance low latency async parallel runtime as a hobby. My focus so far has been the communication runtime which provides safety between threads and coroutines.
 
+Most web applications are single threaded behind the HTTP request handling.
+
 This is designed for low latency and high throughput parallelism on large multicore machines such as 96 core or 192 core machines.
+
+Progress table
+|Area|Description|Completeness|
+|---|---|---|
+|Thread safe communication|over 5 threadsafe mechanisms of communication, 3 in C and 2 in Java.|Experimental|
+|Coroutine API|||
+|Async pipeline syntax|Parser in Javascript||
+|APL style algebra|||
+|Buffer movement|||
+
 
 You can speed up computation by doing things at the same time - paralellism. Amdahls law means the speedup expectation is limited by the serialised portion of the work. Thread safety by mutexes suffer from contention when used by lots of threads and restrict useful parallelism. Atomics and compare and swap are tools that also suffer from contention.
 
-Lock free algorithms don't use mutexes but use atomics or compare and swap.
+Lock free algorithms don't use mutexes but use atomics (xchg) or compare and swap.
 
-One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work and use the available bandwidth.
+One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work and use the available bandwidth. You cannot accelerate a program that uses (writes to) the same memory location. This is due to contention and synchronization. We should instead make synchronization as valuable as possible.
 
-Here's a parallel version of this graph in assembly. Parallel control flow.
+Here's a parallel version of this graph in assembly. Parallel control flow is masked by jumps to the `synchronize` command of the runtime. This is a mixture of yield and fork.
 
 ![parallel program one](diagramspng/exampleone.png)
 
@@ -52,9 +65,11 @@ call get_buffer
 generate:
 # eax has buffer pointer in
 # move some data into buffer
-inc rax
+inc rcx
 movq %rax, (%eax)
 addq %eax, $8
+
+mov $1, (%eax)
 
 # indicate buffer is finished
 movq %eax, 1(%rsi)
@@ -62,13 +77,14 @@ movq %eax, 1(%rsi)
 
 # store coroutine state
 # give data
-movq $ONE_LOOP, %rsi
+movq .one_yield1, %rsi
 
 movq %rsp, %rdx # stack
 movq %rdi, %rcx # buffer
 movq %eip, %rdi # where we are, will be added to
-jmp yield
+jmp synchronize
 
+one_yield1:
 cmp %rax, $128
 jne generate
 
@@ -78,11 +94,13 @@ three:
 four:
 ```
 
+
+
 One thread can handle one and another two and another thread the remaining pipeline.
 
-Do user applications use an io_uring style interface to handle buffer readiness? I would like to abstract the control flow from the applications.
 
 Colescing IO events
+
 
 
 # Why I am unsatisfied with existing technology
@@ -95,13 +113,12 @@ I want to be able to run a tool  asyncps and see this information:
 
 ```
 $ aps
-  coroutines:threads 20000:12
+  co:thrd ratio 20000:12
   async ratio 20:5
   coroutine 8000 cos/sec
   buffer transfers 10300 second
-  [+] client-routine (5789)
-   [+] send-request
-   [+] read-request
+  [+] client (5789)
+   [+]
    
  
 ```
@@ -115,13 +132,13 @@ I am inspired by Erlang's actor design but Erlang uses locks and is not a compil
 
 If you think of parallel and concurrent system as interlocking gears the more engaged the gears they are the more synchronization there is.
 
-If you disengage the gears then the system is without impedance an can operate independently and independently fast.
+If you disengage the gears then the system is without impedance an can operate independently and independently fast. Like a flywheel.
 
 In a multithreaded progtam If you draw shards as a vertical tree, each thread's work goes from top down. If you synchronize there is a horizontal line that represents communication. Where you put this line determines performance characteristics.
 
 One way to think of async tasks is to think of some code that has two sides to it - the task and then the code that temporally runs after the task is completed. This is typically a callback in other languages. Or a state machine rewritten async/await. LMAX splits IO into three parts - the part before the IO, the IO and the part to happen afterwards.
 
-You can think of an await command as a pause command and the allowing the runtime to do something different while waiting for the Kernel.
+You can think of an await command as a pause command and the allowing the runtime to do something different while waiting for the Kernel runtime.
 
 Note that an async runtime that uses callbacks will use threads or asynchronous IO. So it would spawn a thread or send a message to a threadpool queue and then the thread pool will send a message to the main thread to tell it to execute the user's callback.
 
@@ -153,7 +170,7 @@ At any point any task from any table of tasks can be scheduled. So you could be 
 
 Now if we add parallelism to this. You could be executing a task-c at the same time as a task-a but for different instances of the pipeline.
 
-Now imagine a server that processes user sessions in paralllel.
+Now imagine a server that processes user sessions in parallel.
 
 The global pipeline is also turing complete: states can be returned to.
 
@@ -261,6 +278,11 @@ regexp
 coro-1 doesnt call coro-2 directly but writes to memory
 interop between coroutines is by memory therefore
 
+Colour grid - lanes
+independent lanes can be parallel
+reordering
+number sequences, positions
+
 # Coroutine states
 
 I am unfamiliar with the literature on session types but these might be similar.
@@ -278,6 +300,9 @@ Hidden pseudo method calls
 A data structure of control flows.
 graph of coroutine states
 coroutine basic blocks
+
+control flow is the message
+check the same array or different array?
 
 # Nested for loop data transformation
 
@@ -1054,6 +1079,9 @@ a btree could be in the buffer endless streaming
 
 managing control flow streams
 
+Do user applications use an io_uring style interface to handle buffer readiness? I would like to abstract the control flow from the applications.
+
+
 # Efficient kernels
 
 Patterns abstracted so most work is in the kernel
@@ -1644,7 +1672,24 @@ Check(Self) == /\ a /\ b /\ c
 
 ```
 ```
+# Ordering things without complexity
 
+Rest on/complicated ordering depends on perspective/convoy/access convoy
+  v2
+v1 v3
+  v4
+cartesian
+
+
+combination logic: a document that describes behaviour accurately and is casually readable
+different primitives - control flow segment and swaps (algebra)
+
+swap into CPU/coroutine
+swaps all way down
+
+architecture plurality
+
+pattern match ANY control flow event and its compiled down by aggregating all scenarios
 
 
 # LICENCE
@@ -1888,7 +1933,7 @@ behaviour stays the same, the implementation can be drastically different.
 
 model of an application to do with understanding stack synchronization
 
-single letters grid
+single letters grid - memory locations "a" "b" "c"
 
 put aside for later, moved to the right place optionally
 
@@ -1896,4 +1941,48 @@ graphql for application behaviour
 
 write the grid in text format and it works it out
 
+valid cases only
+progression
 
+excel spreadsheet, cell is a node
+
+go through line
+you have components but you specify all the paths through them
+points horizontal vertical
+
+you know which branch was taken
+
+global state change
+immutable values have a position
+
+events that are attached together, move seauentially.
+
+a grid of items where things move up and down and left and right either together but they can move separately and according to a global algorithm
+(not the nbody layout algorithm)
+
+static polymorphism
+
+constant fold a loop
+code motion loops
+algebraic value moving determination
+
+compose outputs
+compose ordering
+sort tree
+
+buffer moves
+
+  1 2 3 4 5 6
+a
+      a
+          a
+
+ordering and state movement
+
+control flow data structures
+
+aaaaaa
+bccvvv
+bcvvvv
+
+swaps
