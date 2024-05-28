@@ -4,11 +4,11 @@ recs = []
 f = open("samples", "r")
 # memory-map the file, size 0 means whole file
 mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-line = mm.readline().decode("utf8")
+line = mm.readline().decode("utf8").strip()
 
 while line != "":
   comps = line.split(" ")
-  line = mm.readline().decode("utf8")
+  line = mm.readline().decode("utf8").strip()
   # print(comps)
   #print(comps)
   if comps[0] == "":
@@ -23,6 +23,7 @@ while line != "":
   #print(data)
 
 print("read")
+mm.close()
 recs.sort(key=lambda x: x[0])
 
 print("loaded")

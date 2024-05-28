@@ -1,75 +1,84 @@
 # parallel data race server
 
+
 [Jump to summary of this repos files](#summary)
 
 How do you implement a high performance low latency concurrency and asynchronous userspace parallel server programs? How does async work?
 
 How do you implement fast parallel kernel commands such as parallel map? Or parallel iterate? Inspired by APL and array programming languages. And Volcano query execution for things such as parallel joins?
 
+How do you write fast event handling sequences? Such as draining events and waiting for things?
+
+Some design plans/patterns that should work:
+
  * use threads for paralellism and use a number less than the number of physical cores in the CPU less one for the operating system
  * pin the threads to a particular core
  * split control flow into these threads but do not join (synchronize) frequently - shard truly with no synchronization on the hot path
  * minimise contention of locks, atomics or compare and swap
- * split threads into a topology for low latency (50-120 nanoseconds) so thread pairs for barriers or 4 threads for atomic synchronizer
- * split memory locations to avoid contention on a particular memory address on the memory bus when using atomics
+ * split threads into a topology for low latency (50-120 nanoseconds) so thread pairs for barriers or 4 threads for atomic synchronizer. See [LMAX Disruptor performance numbers](https://lmax-exchange.github.io/disruptor/disruptor.html#_throughput_performance_testing).
+ * split memory locations to avoid contention on a particular memory address on the memory bus when using atomics (this is caled multi cas in the concurrency hierarchy)
  * avoid locks/mutexes and use lockfree algorithms
  * minimise the number of crossover communication points between threads and treat them as independent shards
  * have strict per-thread memory ownership. communication changes the owner unless its readonly.
  * use padding alignment to avoid false sharing
+ * implement iterators using basic blocks
  * use io_uring
+ * split IO can decouple sending and receiving by having them be on different threads
  * use linear arrays (vectors) apter trees
  * use structures of arrays
  * use memory tiling
  * use strides
  * use column major or row major access pattern
- * use database technology and its lessons. relational algebra
+ * use database technology and its lessons. relational algebra and volcano iterators
  * use async/coroutines
  * arrange a hiearchy of arrays is like register allocation for index transformations (perfect hashing)
- * Avoid scheduling costs if the pipeline is a direct pipeline
+ * Avoid scheduling costs if the pipeline is a direct sequence pipeline
 
 This is a GitHub repository of some components and design notes for building a flexible tool for server parallelism that handles fast parallel IO and fast parallel compute. It goes down into notes about assembly, custom syntax (a new language) compiler codegen design and runtime. I have tried to make the notes detailed so you know the design decisions and thought that went into its design and you could build the same kind of thing.
 
 I am building a high performance low latency async parallel runtime as a hobby. My focus so far has been the communication runtime which provides safety between threads and coroutines.
 
-Most web applications are single threaded behind the HTTP request handling.
+Most web applications are single threaded behind the HTTP request handling. (For example nginx parallises requests to a PHP web app but the PHP code is single threaded)
 
 This is designed for low latency and high throughput parallelism on large multicore machines such as 96 core or 192 core machines.
 
 Progress table
 |Area|Description|Completeness|
 |---|---|---|
-|Thread safe communication|over 5 threadsafe mechanisms of communication, 3 in C and 2 in Java.|Experimental|
-|Coroutine API|||
-|Async pipeline syntax|Parser in Javascript||
-|APL style algebra|||
-|Buffer movement|||
+|Thread safe communication|over 5 threadsafe mechanisms of communication, 4 in C (disruptor, atomic bcast, single writer, starbarrier phaser) and 2+ in Java (starbarrier phaser, actor2).|Experimental|
+|Coroutine runtime|Forms of it are in starbarrier||
+|Coroutine API|I have been trying to determine the primitives to the runtime.|Incomplete|
+|Coroutine code generation|I have a Java parallel interpreter for an imaginary assembly language that has `sendcode` and `recvcode` instructions. I have a JIT compiler in C||
+|Scheduler|Needs to swap in and out coroutines.|Unstarted|
+|Async pipeline syntax|There is [Parser and visualization in Javascript](https://processes3.replit.app/) scroll down to "Definition"||
+|APL style algebra transformations||Not started|
+||||
 
 
 You can speed up computation by doing things at the same time - paralellism. Amdahls law means the speedup expectation is limited by the serialised portion of the work. Thread safety by mutexes suffer from contention when used by lots of threads and restrict useful parallelism. Atomics and compare and swap are tools that also suffer from contention.
 
-Lock free algorithms don't use mutexes but use atomics (xchg) or compare and swap.
+Lock free algorithms don't use mutexes but use atomics (rex xchg) or compare and swap.
 
-One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work and use the available bandwidth. You cannot accelerate a program that uses (writes to) the same memory location. This is due to contention and synchronization. We should instead make synchronization as valuable as possible.
+One CPU core cannot use the entirety of memory bandwidth but multiple threads can do lots more work and use the available bandwidth. You cannot accelerate a program that uses (writes to) the same memory location. This is due to contention and synchronization. We should instead make synchronization as valuable as possible to multiply benefits.
 
-Here's a parallel version of this graph in assembly. Parallel control flow is masked by jumps to the `synchronize` command of the runtime. This is a mixture of yield and fork.
+Here's a parallel version of part of this graph in assembly. Parallel control flow is masked by jumps to the `synchronize` command of the runtime. Data passing is done by writing to buffer memory locations. This is a mixture of yield and fork.
 
 ![parallel program one](diagramspng/exampleone.png)
 
 ```
 one:
 # get a buffer
-# pushq %eip (if use jmps)
 movq $128, %rdi # buffer size
 call get_buffer
 
 generate:
-# eax has buffer pointer in
+# rax has buffer pointer in
 # move some data into buffer
-inc rcx
-movq %rax, (%eax)
-addq %eax, $8
+inc %rcx
+movq %rcx, (%rax)
+addq $8, %rax
 
-mov $1, (%eax)
+mov %rcx, (%rax)
 
 # indicate buffer is finished
 movq %eax, 1(%rsi)
@@ -85,7 +94,7 @@ movq %eip, %rdi # where we are, will be added to
 jmp synchronize
 
 one_yield1:
-cmp %rax, $128
+cmp %rcx, $128
 jne generate
 
 two:
@@ -101,7 +110,7 @@ One thread can handle one and another two and another thread the remaining pipel
 
 Colescing IO events
 
-
+join patterns, with fork and join
 
 # Why I am unsatisfied with existing technology
 
@@ -114,7 +123,7 @@ I want to be able to run a tool  asyncps and see this information:
 ```
 $ aps
   co:thrd ratio 20000:12
-  async ratio 20:5
+  async ratio 1667:1
   coroutine 8000 cos/sec
   buffer transfers 10300 second
   [+] client (5789)
@@ -128,13 +137,116 @@ $ aps
 
 I am inspired by Erlang's actor design but Erlang uses locks and is not a compiled language (BEAM virtual machine). I am inspired by Go lang but I think the throughput and latency could be higher and latency lower. (Go takes 200 nanoseconds to schedule a Goroutine) I also want to write code in a different style. I also want a thread per core design and to use lock free algorithms.
 
+# High level behaviour
+
+Scheduling is ordering.
+Architecture is also ordering.
+A loop through a list of collections has a pattern but a fixed order. So does a tree traversal.
+
+Can the following sequence be optimised, if the cardinalities are known?
+
+```
+coroutine-broadcast-buffer | parse-messages-buffer-tree | all-coroutine-buffers-ready | queue-coroutine | run-coroutine
+```
+
+The pattern will mostly be - enqueue a job for every other thread by writing into that thread.
+grid work
+
+dominator variable you can refer to dominated future to queue from
+
+Plurality is handled
+Partial order and loops
+backwards and forwards
+Code motion?
+
+
+thread1.coroutine1.buffer1
+thread1.coroutine2.buffer1
+thread1.coroutine3.buffer1
+event1
+
+Is there anything that stops writers doing too much ?
+
+If there multiple coroutines on a thread, they can share the same atomic synchroniser.
+
+a b c d e f g h
+1 1
+  2 2
+    3 3
+      4 4
+
+parse-buffer-tree
+rete algorithm?
+regex NFA
+
+each event is a counted and cmped
+
+a coroutine that is local to a thread, will always send to self
+
+counts = {}
+graph = {
+}
+events = [1, 2, 3]
+
+for item in events:
+  mask = mask | masks[item]
+
+or
+
+for item in events:
+  counts[item]++
+  
+  if counts[event] > threshold:
+      schedule(item.coroutine)
+
+If one coroutine shares buffer with 10 threads
+
+topology text format, joins
+
+coroutines × 25000
+ 3 buffers ea
+3 buffers × 25000 = 75000
+We dont want to check 75000 buffers multiple times a second, so we can send a message to indicate buffer is ready 
+
+Write a message and parse on messages that are received
+Dont check all dependencies all the time only check what has changed.
+
+The runtime needs to test the buffers for completeness
+
+OOP - named regions
+can method call arrangement provide The behaviour i want for coroutines?
+dispatcher to each method
+dispatcher
+ segment1
+ segment2
+ segment3
+
+a graph flow within state machine formulation of repeats
+
+how to make scheduling constant time
+
+direction is not implied by state machine formulation
+instances and oop is kind if part of a tuple like "coroutine(20) broadcsst-buffer(20)"
+
+concurrency puzzles
+
+20,000 coroutines
+5 coroutine instances
+topology
+
+How to keep buffer parsing minimum cost?
+APL placement of things into destinations, index calculations/mappings
+
+SIMD append to array for every item
+SIMD accelerated traversal
+
 # Synchronization: Where do you draw the horizontal line?
 
 If you think of parallel and concurrent system as interlocking gears the more engaged the gears they are the more synchronization there is.
 
 If you disengage the gears then the system is without impedance an can operate independently and independently fast. Like a flywheel.
 
-In a multithreaded progtam If you draw shards as a vertical tree, each thread's work goes from top down. If you synchronize there is a horizontal line that represents communication. Where you put this line determines performance characteristics.
+In a multithreaded program If you draw shards as a vertical tree, each thread's work goes from top down. If you synchronize there is a horizontal line that represents communication. Where you put this horizontal line determines performance characteristics. The more horizontal lines the slower it is.
 
 One way to think of async tasks is to think of some code that has two sides to it - the task and then the code that temporally runs after the task is completed. This is typically a callback in other languages. Or a state machine rewritten async/await. LMAX splits IO into three parts - the part before the IO, the IO and the part to happen afterwards.
 
@@ -177,6 +289,7 @@ The global pipeline is also turing complete: states can be returned to.
 Your server is fully parallel. It has a coroutine for each connection and each request that the server makes is also in its own coroutine.
 
 ```
+client-coroutine accept-socket = 
 read-socket-data | parse-socket-data | dispatch-to-handler
 ```
 
@@ -188,10 +301,9 @@ How I have chosen to think of async tasks is that there is events that are recor
  * an event represents the completion of some action or completion of an coroutine task state/step
  * an event can indicate IO completion or compute completion or coroutine state change
 
-
-
 Each of these subprojects had a different performance profile.
  * atomic bcast gets 9-10 million requests per second with 15 threads with latency around 100 nanoseconds
+ * stream2 gets 7 milion reads per second snd 130 million writes per second
 * the starbarrier multibarrier gets 30 million requests per second between thread pairs with lafency around 60
 * the LMAX Disruptor gets latency around 50-120 depending on topology
 
@@ -204,14 +316,14 @@ One important thing is that the more threads that can write, the more contention
 There are the problems I shall talk about and this repository tries to make solutions to:
 
  * code generation for coroutines. Do we generate assembly with labels and need an assembler or do we write a linker?
- * cheap runtime scheduler
+ * cheap runtime scheduler: can we avoid invoking the scheduler for data buffer moves?
  * thread safe data streams
  * arbitrary turing complete iterators
  * calling convention between asynchronous tasks/coroutine to asynchronous task/coroutine. How does data go between tasks? Its not by the stack since the stack changes and there could be on a different thread so thread safety is needed
  * a syntax or API to define the ordering of asynchronous tasks. In Javascript this might be async library tools that allow chaining together promises or `.then`
  * switching stacks when changing coroutines
  * storing the stack RSP register somewhere when pausing
- * storing the instruction pointer somewhere when pausing
+ * storing the instruction pointer or marker somewhere when pausing
  * restoring the stack and instruction pointer when resuming
  * an API for imperative control of the running coroutine (yield data, pause until event, sleep)
  * handling return values from coroutines that yield and sending values back to them once resumed
@@ -220,12 +332,13 @@ There are the problems I shall talk about and this repository tries to make solu
  * implementing a programming model that is easy to understand
  * deciding whether to parallelise data (and give it to the same or pipelined code) or paralellise control flow
  * designed for high number of threads
+ * register setup when resuming
  * low latency
  * high throughput
  * low contention on the thread safe parts
  * how to have turing complete parallelism
  * unevenly sized control flow
- * loop stopping: how do you preempt a loop?
+ * loop stopping: [how do you preempt a loop?](https://github.com/samsquire/preemptible-thread)
 
 In the nodejs world which uses libuv and handles IO and compute tasks. Nodejs and browser engines use promises and async await to specify task sequences.
 
@@ -245,9 +358,9 @@ Stackful coroutines can call regular functions and stackless coroutines can only
 
 Direction in control flow can limit design flexibility.
 
-If you think of a microservice architecture you might sometimes want to be called when things happen or to call yourself.
+If you think of a microservice architecture you might sometimes want to be called when things happen or to do the call yourself.
 
-Its the insertion point of indirection where you change direction of control or flow. From push to pull or pull to push or sync to async or async to sync.
+Its an insertion point of indirection where you change direction of control or flow. From push to pull or pull to push or sync to async or async to sync.
 
 Message passing is one approach.
 In a message passing design you handle messages with different identities and the identity of the message determines what you do: where control flow jumps.
@@ -258,36 +371,24 @@ Message passed control flow is an approach to coroutine scheduling which allows 
 
 # Unevenly sized control flow
 
-In an average aysnc code you have regions that can run and then there are pauses where other code runs. If you run the same async tasks multiple times then you might have uneven segments of computation that can be parallel.
+In an average aysnc code you have regions that can run and then there are pauses in that sequence where other code runs. If you run the same async tasks multiple times then you might have uneven length segments of computation that can be queued up. For example one thread might create lots of tasks that are small and another tasks that are large.
 
 In languages such as Rust and Go the scheduler is a work stealing so that work can unevenly accumulate on different threads. This requires work to move work to another thread.
 
 The nature of the ideal scheduling depends on all the code that can run.
 
-# Text format
 
-a       b       c
- coro-1 coro-4 coro-7
- coro-2 coro-5 coro-8
- coro-3 coro-6 coro-9
- 
-Coroutine state announcement
-pattern matching parser
-regexp
-
-coro-1 doesnt call coro-2 directly but writes to memory
-interop between coroutines is by memory therefore
-
-Colour grid - lanes
-independent lanes can be parallel
-reordering
-number sequences, positions
 
 # Coroutine states
+
 
 I am unfamiliar with the literature on session types but these might be similar.
 
 A coroutine has a number of different states which is actually a graph of valid control flow destinations from its current position.
+
+You can think of the different states of the coroutine as region of basic blocks.
+
+We can even think of nested states.
 
 For example, code that paginates or load balances
 
@@ -312,11 +413,27 @@ Array that you write to and control flow. Reductions? Control flow over the data
 
 If the array has different shape when writing.
 
+Arrays can be split into chunks and parallelised.
+
+array of arrays with completion integer for chunk
+
+Functional transformation - index pipeline
+
+using APL for control flow
+
+each array is a function queue
+
+data, control flow
+tables
+
+
 ```
 for buffer in table:
   nextbuffer = next_destination()
   next_buffer[table[buffer]] = f()
 ```
+
+concatenation with arrays and strings general purpose
 
 arry[x] = arry2[b]
 this can be autoparallelised
@@ -328,9 +445,13 @@ expressions are traversals.. easy to pluralise code or add indirections!
 types hardcoded lines
 parallelism and plurality lines
 
+lisp fixes execution order
+
+data structure inference based on impossible jumps
+
 # Monad ordering problem
 
-draw the components/contexts and draw the data flow as lines
+draw the components/contexts side by side and draw the data flow as horizontal joining lines
 
 then the lines are reconciled automatically
 
@@ -439,14 +560,16 @@ compile parser for event checking
 Topologies are turing complete
 Both the coroutine and the data buffers being sent down can occur in any direction and order.
 
-Deadline on real time kernels.
 
-Data flow is not single direction like a pipeline.
+
+Data flow is not always a single direction like a pipeline but is turing complete.
+
+A socket server that allows data to be sent from any coroutine to the send coroutine and the recv coroutine foreards received data to another coroutine.
 
 send-thread1
- send-coroutine-
+ send-coroutine-1
 recv-thread1
- recv-coroutine
+ recv-coroutine-1
 worker-thread-1
  worker-coroutine
  request-coroutine2
@@ -527,7 +650,7 @@ Separated parallelism
 GUIs
 Network app split io parallelism
 
-Threed a parallelism where body of loop is divided into pieces and each segment is replicated across threads.
+Thread a parallelism where body of loop is divided into pieces and each segment is replicated across threads.
 
 Blocks are replicated across threads
 
@@ -1700,6 +1823,32 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.   
 
+# Text format
+
+Can we define a text format for coroutines that run in sequence?
+
+```
+a       b       c
+ coro-1 coro-4 coro-7
+ coro-2 coro-5 coro-8
+ coro-3 coro-6 coro-9
+
+ ```
+
+protocol of valid events
+ 
+Coroutine state announcement
+pattern matching parser
+regexp
+
+coro-1 doesnt call coro-2 directly but writes to memory
+interop between coroutines is by memory therefore
+
+Colour grid - lanes
+independent lanes can be parallel
+reordering
+number sequences, positions
+
  # Idea Journal
 
  target, ctrl+r
@@ -1730,6 +1879,7 @@ a cross symbol
 
 i was thinking of assembly and blocks to handle IO as a pipeline for state machine formulation and filling the variables for data
 
+global addresses
 mov %6, √Data
 
 relative to
@@ -1808,6 +1958,7 @@ if a value passes through a particular index it means something.. symbolic movem
 apl of io, network tables, mappings of integers
 
 twocode - one identifier to what the the user said and a number
+THING-1262
 
 gpu sink, sink identities at different multi dimensional matrixes 
 transformation matrix
@@ -1955,7 +2106,7 @@ you know which branch was taken
 global state change
 immutable values have a position
 
-events that are attached together, move seauentially.
+events that are attached together, move sequentially.
 
 a grid of items where things move up and down and left and right either together but they can move separately and according to a global algorithm
 (not the nbody layout algorithm)
@@ -1986,3 +2137,28 @@ bccvvv
 bcvvvv
 
 swaps
+
+Deadline on real time kernels.
+
+context is generated and inferred in state machine formulation
+
+algebraic swaps, why did this end up here, equivalent
+write an inefficient program and interpret it and it learns how an item appeared in its position. then infer the rule and then optimise the rule
+
+write the data flow and the control flow separately 
+
+just realised that fheres elements of identity and multiples when listing components
+
+such as
+
+load balancer
+rate limiter
+authenticator
+shard manager
+tenant manager
+
+there is ordering between compoents and ordering if data flow and plurality of everything to everything else 
+
+protocol designer: can complex protocols be mapped and then code genned
+
+write entire process on one screen and it doesnt change but coloured to indicate progress
